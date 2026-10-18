@@ -856,7 +856,12 @@ public class MainActivity extends AppCompatActivity {
                 rowCards = new ArrayList<>();
             }
         }
-        if (!rowCards.isEmpty()) grid.addView(ui.gridRow(rowCards), bottomMargin());
+        if (!rowCards.isEmpty()) {
+            // ردیف آخر ناقص است؛ جای خالی‌ها هم‌اندازه نگه داشته می‌شوند تا
+            // کارت‌ها بی‌دلیل پهن نشوند.
+            padRow(rowCards, columns);
+            grid.addView(ui.gridRow(rowCards), bottomMargin());
+        }
         page.addView(grid);
     }
 
@@ -864,6 +869,11 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = ui.params(-1, -2);
         params.bottomMargin = ui.dp(16);
         return params;
+    }
+
+    /** پر کردن ردیف ناقص با جای خالی تا کارت‌های آخر هم‌عرض بقیه بمانند. */
+    private void padRow(List<View> cells, int columns) {
+        while (cells.size() < columns) cells.add(new View(this));
     }
 
     private void addPaginationBar() {

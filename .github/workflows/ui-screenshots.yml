@@ -25,6 +25,12 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Enable KVM (best effort)
+        run: |
+          ls -l /dev/kvm || echo "no /dev/kvm on this runner"
+          sudo chmod 666 /dev/kvm 2>/dev/null || true
+          ls -l /dev/kvm || true
+
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
 
@@ -38,7 +44,7 @@ jobs:
           avd-name: tv1080
           cores: 2
           ram-size: 2048M
-          emulator-boot-timeout: 900
+          emulator-boot-timeout: 1200
           disable-animations: true
           disable-spellchecker: true
           emulator-options: >-
