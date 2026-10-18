@@ -51,6 +51,18 @@ final class CrashLogger {
         }
     }
 
+    /** خلاصه خوانا از خطا؛ هیچ‌وقت خالی برنمی‌گرداند. */
+    static String describe(Throwable error) {
+        if (error == null) return "خطای ناشناخته";
+        String message = error.getMessage();
+        String name = error.getClass().getSimpleName();
+        if (name == null || name.isEmpty()) name = "خطا";
+        if (message == null) message = "";
+        message = message.trim();
+        if (message.length() > 300) message = message.substring(0, 300);
+        return message.isEmpty() ? name : name + ": " + message;
+    }
+
     private static java.io.File logFile(android.content.Context context) {
         return new java.io.File(context.getFilesDir(), "last_crash.log");
     }

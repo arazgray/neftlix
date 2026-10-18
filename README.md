@@ -16,7 +16,7 @@ site directly.
   keep working even as the site changes its menu.
 - **Fast launch with cache** — the last catalog is stored on-device and shown
   instantly; a quiet refresh runs in the background on every fresh open
-  (⟳ کاتالوگ forces a full refresh with a centered loader).
+  (`کاتالوگ` forces a full refresh with a centered loader).
 - **Whole-archive search** — queries the site's `quick-search` endpoint (full title +
   Persian title, cover, series/movie type); falls back to page search, then to the
   downloaded catalog. English voice search (microphone permission is requested
@@ -33,7 +33,7 @@ site directly.
 - **Self-update** — update button checks `version.json`, downloads the new APK
   with a progress dialog (+cancel), cleans the file afterward, and opens the
   installer.
-- **Info** — ⓘ button opens an app card (name, description, version, author, site
+- **Info** — the info button opens an app card (name, description, version, author, site
   link, QR code to arazgray.com).
 
 Remote: D-pad moves, OK opens/expands/plays, Back goes back. Black/red Netflix-style
@@ -62,7 +62,7 @@ Vazirmatn font throughout (app + subtitles).
 2. Commit, tag, push: `git tag vX.Y && git push origin vX.Y` — the release workflow
    builds a signed APK and publishes a `vX.Y` GitHub release.
 3. Update `version.json` (`versionCode`, `versionName`, `apkUrl`, `notes`) and push.
-4. The app's به‌روزرسانی نفتلیکس button will offer the update. On Android 8+, allow
+4. The app's update button will offer the update. On Android 8+, allow
    “install unknown apps” once when asked.
 
 ## Signing

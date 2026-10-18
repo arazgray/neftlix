@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, "نسخه جدیدی نیست", Toast.LENGTH_SHORT).show();
                     });
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 runOnUiThread(() -> {
                     status.setText("بررسی نسخه ناموفق بود");
                     Toast.makeText(this, "خطا در بررسی به‌روزرسانی", Toast.LENGTH_LONG).show();
@@ -332,7 +332,8 @@ public class MainActivity extends AppCompatActivity {
         traceView.setGravity(Gravity.START);
         traceView.setPadding(dp(8), dp(8), dp(8), dp(8));
         scroll.addView(traceView);
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        androidx.appcompat.app.AlertDialog crashDialog =
+                new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("خطای اجرای قبلی")
                 .setMessage("برنامه دفعه قبل به‌طور غیرمنتظره بسته شد. متن خطا:")
                 .setView(scroll)
@@ -346,9 +347,14 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("بستن", null)
                 .show();
+        if (crashDialog.getWindow() != null) {
+            crashDialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(Color.BLACK));
+        }
     }
 
-    private void showInfoDialog() {        LinearLayout layout = new LinearLayout(this);
+    private void showInfoDialog() {
+        LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         layout.setPadding(dp(8), dp(8), dp(8), dp(8));
@@ -496,7 +502,7 @@ public class MainActivity extends AppCompatActivity {
                     status.setText("دانلود تمام شد");
                     installApk(apk);
                 });
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 runOnUiThread(() -> {
                     if (!cancelled[0]) dialog.dismiss();
                     status.setText("دانلود ناموفق بود");
@@ -524,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
             intent.setDataAndType(uri, "application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             Toast.makeText(this, "نصب ممکن نشد", Toast.LENGTH_LONG).show();
         }
     }
@@ -539,14 +545,14 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        for (BrowseSection section : catalog.sections) {
+            addSectionPreview(section);
+        }
+
         addHeading("دسته‌بندی فیلم‌ها");
         addCategoryRow(catalog.movieCategories);
         addHeading("دسته‌بندی سریال‌ها");
         addCategoryRow(catalog.seriesCategories);
-
-        for (BrowseSection section : catalog.sections) {
-            addSectionPreview(section);
-        }
         focusFirst();
     }
 
@@ -904,14 +910,11 @@ public class MainActivity extends AppCompatActivity {
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        final android.content.res.ColorStateList idle =
-                android.content.res.ColorStateList.valueOf(Color.rgb(45, 45, 45));
-        final android.content.res.ColorStateList focused =
-                android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20));
-        button.setBackgroundTintList(idle);
-        button.setOnFocusChangeListener((v, hasFocus) -> {
-            button.setBackgroundTintList(hasFocus ? focused : idle);
-        });
+        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(Color.TRANSPARENT);
+        idleBg.setStroke(dp(2), Color.rgb(229, 9, 20));
+        final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
+        button.setBackground(idleBg);
+        button.setOnFocusChangeListener((v, hasFocus) -> button.setBackground(hasFocus ? focusedBg : idleBg));
         return button;
     }
 

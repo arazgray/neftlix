@@ -121,14 +121,14 @@ public class DetailsActivity extends AppCompatActivity {
                     } catch (Throwable error) {
                         hideLoading();
                         status.setText("خطا در نمایش صفحه");
-                        addSmallText(error.getMessage() == null ? "" : error.getMessage());
+                        addSmallText(CrashLogger.describe(error));
                     }
                 });
             } catch (Throwable e) {
                 runOnUiThread(() -> {
                     hideLoading();
                     status.setText("خطا در بارگذاری صفحه");
-                    addSmallText(e.getMessage() == null ? "" : e.getMessage());
+                    addSmallText(CrashLogger.describe(e));
                 });
             }
         });
@@ -390,7 +390,8 @@ public class DetailsActivity extends AppCompatActivity {
         summary.setPadding(dp(14), dp(13), dp(14), dp(13));
         summary.setFocusable(true);
         summary.setClickable(true);
-        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(Color.rgb(28, 28, 28));
+        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(Color.TRANSPARENT);
+        idleBg.setStroke(dp(2), Color.rgb(120, 120, 120));
         final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
         summary.setBackground(idleBg);
         summary.setOnFocusChangeListener((v, hasFocus) -> summary.setBackground(hasFocus ? focusedBg : idleBg));
@@ -433,14 +434,11 @@ public class DetailsActivity extends AppCompatActivity {
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        final android.content.res.ColorStateList idle =
-                android.content.res.ColorStateList.valueOf(Color.rgb(45, 45, 45));
-        final android.content.res.ColorStateList focused =
-                android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20));
-        button.setBackgroundTintList(idle);
-        button.setOnFocusChangeListener((v, hasFocus) -> {
-            button.setBackgroundTintList(hasFocus ? focused : idle);
-        });
+        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(Color.TRANSPARENT);
+        idleBg.setStroke(dp(2), Color.rgb(229, 9, 20));
+        final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
+        button.setBackground(idleBg);
+        button.setOnFocusChangeListener((v, hasFocus) -> button.setBackground(hasFocus ? focusedBg : idleBg));
         return button;
     }
 
