@@ -1,15 +1,14 @@
 package com.arazgray.neftlix;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -18,9 +17,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.bumptech.glide.Glide;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,12 +25,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * صفحه اصلی راست‌چین و فارسی، مناسب ریموت‌کنترل تلویزیون.
- * هر بار که باز می‌شود فهرست را از سایت تازه می‌کند.
+ * صفحهٔ اصلی: راست‌چین، فارسی و مناسب ریموت‌کنترل تلویزیون.
+ *
+ * ساختار: نوار بالا (لوگو، جست‌وجو، کاتالوگ، به‌روزرسانی، درباره) → بیلبورد ویژه →
+ * ریل‌های افقی فیلم و سریال → دسته‌بندی ژانرها. هر بار که باز می‌شود فهرست از
+ * سایت تازه می‌شود و تا وقتی پاسخ بیاید، فهرست ذخیره‌شدهٔ روی دستگاه نشان
+ * داده می‌شود.
  */
 public class MainActivity extends AppCompatActivity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final CatalogRepository repository = new CatalogRepository();
+    private Ui ui;
     private CatalogData catalog;
     private LinearLayout page;
     private TextView status;
@@ -46,13 +47,17 @@ public class MainActivity extends AppCompatActivity {
     private int listingPage = 1;
     private boolean listingHasNext;
 
+    /** اولین کارت ریل‌ها؛ دکمهٔ «مرور کاتالوگ» بیلبورد فوکوس را به آن می‌دهد. */
+    private View firstCard;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         CrashLogger.install(this);
+        ui = new Ui(this);
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        getWindow().setStatusBarColor(Color.rgb(10, 10, 10));
-        getWindow().setNavigationBarColor(Color.rgb(10, 10, 10));
+        getWindow().setStatusBarColor(Ui.BG);
+        getWindow().setNavigationBarColor(Ui.BG);
         // پاک‌سازی فایل به‌روزرسانی قبلی (بعد از نصب دیگر لازم نیست)
         try {
             java.io.File updatesDir = new java.io.File(getExternalFilesDir("updates"), "");
@@ -87,44 +92,43 @@ public class MainActivity extends AppCompatActivity {
         if (catalog == null) refreshCatalog();
     }
 
-    private void buildShell() {
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        root.setPadding(dp(22), dp(14), dp(22), dp(10));
+    // ── پوستهٔ صفحه ──────────────────────────────────────────────────
 
-        LinearLayout toolbar = new LinearLayout(this);
-        toolbar.setGravity(Gravity.CENTER_VERTICAL);
-        toolbar.setOrientation(LinearLayout.HORIZONTAL);
-        toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+    private void buildShell() {
+        LinearLayout root = ui.column();
+
+        // نوار بالا
+        LinearLayout bar = ui.row();
+        bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(9), ui.dp(Ui.PAGE_PAD), ui.dp(5));
 
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.app_logo);
         logo.setAdjustViewBounds(true);
-        logo.setScaleType(ImageView.ScaleType.FIT_START);
-        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(120), dp(40));
-        logoParams.setMargins(0, 0, 0, 0);
-        toolbar.addView(logo, logoParams);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams logoParams = ui.params(ui.dp(104), ui.dp(38));
+        logoParams.setMarginEnd(ui.dp(14));
+        bar.addView(logo, logoParams);
 
         searchBox = new EditText(this);
         searchBox.setSingleLine(true);
-        searchBox.setTextColor(Color.WHITE);
-        searchBox.setHintTextColor(Color.LTGRAY);
+        searchBox.setTextColor(Ui.TEXT);
+        searchBox.setHintTextColor(Ui.TEXT_MUTED);
         searchBox.setHint("جست‌وجوی فیلم و سریال…");
         searchBox.setTextDirection(View.TEXT_DIRECTION_RTL);
         searchBox.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         searchBox.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         searchBox.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-        searchBox.setPadding(dp(12), 0, dp(12), 0);
-        android.graphics.drawable.GradientDrawable searchBg =
-                new android.graphics.drawable.GradientDrawable();
-        searchBg.setColor(Color.rgb(20, 20, 20));
-        searchBg.setStroke(dp(2), Color.rgb(229, 9, 20));
-        searchBg.setCornerRadius(dp(10));
-        searchBox.setBackground(searchBg);
-        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(0, dp(48), 1f);
-        searchParams.setMargins(dp(8), 0, dp(8), 0);
-        toolbar.addView(searchBox, searchParams);
+        searchBox.setBackground(ui.stroked(Ui.SURFACE_2, 22, 1, Ui.HAIRLINE));
+        searchBox.setPadding(ui.dp(15), 0, ui.dp(15), 0);
+        searchBox.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                ui.icon(R.drawable.ic_search, 17), null, null, null);
+        searchBox.setCompoundDrawablePadding(ui.dp(9));
+        searchBox.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(
+                ui.stroked(hasFocus ? 0xFF17171C : Ui.SURFACE_2, 22, 1,
+                        hasFocus ? Ui.BRAND : Ui.HAIRLINE)));
+        LinearLayout.LayoutParams searchParams = ui.params(0, ui.dp(42), 1f);
+        searchParams.setMarginEnd(ui.dp(10));
+        bar.addView(searchBox, searchParams);
         searchBox.setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 showSearchResults();
@@ -147,105 +151,124 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        Button refresh = labeledIconButton("کاتالوگ", R.drawable.ic_refresh);
+        TextView refresh = ui.ghostButton("کاتالوگ", R.drawable.ic_refresh);
         refresh.setOnClickListener(view -> refreshCatalog(false));
-        LinearLayout.LayoutParams refreshParams = new LinearLayout.LayoutParams(-2, -2);
-        refreshParams.setMargins(dp(5), 0, dp(5), 0);
-        toolbar.addView(refresh, refreshParams);
+        LinearLayout.LayoutParams refreshParams = ui.params(-2, ui.dp(42));
+        refreshParams.setMarginEnd(ui.dp(8));
+        bar.addView(refresh, refreshParams);
 
-        Button update = labeledIconButton("نفتلیکس", R.drawable.ic_download);
+        TextView update = ui.ghostButton("به‌روزرسانی", R.drawable.ic_download);
         update.setOnClickListener(view -> checkAppUpdate());
-        LinearLayout.LayoutParams updateParams = new LinearLayout.LayoutParams(-2, -2);
-        updateParams.setMargins(dp(5), 0, dp(5), 0);
-        toolbar.addView(update, updateParams);
+        LinearLayout.LayoutParams updateParams = ui.params(-2, ui.dp(42));
+        updateParams.setMarginEnd(ui.dp(8));
+        bar.addView(update, updateParams);
 
-        Button info = iconButton(R.drawable.ic_info, "درباره");
+        TextView info = ui.iconButton(R.drawable.ic_info, "درباره");
+        info.setLayoutParams(ui.params(ui.dp(42), ui.dp(42)));
         info.setOnClickListener(view -> showInfoDialog());
-        toolbar.addView(info);
-        HorizontalScrollView toolbarScroll = new HorizontalScrollView(this);
-        toolbarScroll.setHorizontalScrollBarEnabled(false);
-        toolbarScroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        toolbarScroll.addView(toolbar);
-        root.addView(toolbarScroll, new LinearLayout.LayoutParams(-1, dp(56)));
+        bar.addView(info);
 
-        status = new TextView(this);
-        status.setTextColor(Color.LTGRAY);
-        status.setTextSize(14);
-        status.setTextDirection(View.TEXT_DIRECTION_RTL);
-        status.setPadding(0, dp(4), 0, dp(6));
-        root.addView(status);
+        root.addView(bar, ui.params(-1, -2));
+
+        status = ui.text("", 12, Ui.TEXT_MUTED);
+        status.setSingleLine(true);
+        status.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        status.setPadding(ui.dp(Ui.PAGE_PAD), 0, ui.dp(Ui.PAGE_PAD), ui.dp(2));
+        root.addView(status, ui.params(-1, -2));
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        page = new LinearLayout(this);
-        page.setOrientation(LinearLayout.VERTICAL);
-        page.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        page.setPadding(0, dp(4), 0, dp(28));
+        scroll.setClipToPadding(false);
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        page = ui.column();
+        page.setClipChildren(false);
+        page.setPadding(0, 0, 0, ui.dp(30));
         scroll.addView(page);
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
+        root.addView(scroll, ui.params(-1, 0, 1f));
 
-        android.widget.FrameLayout frame = new android.widget.FrameLayout(this);
-        frame.setBackgroundColor(Color.BLACK);
+        FrameLayout frame = new FrameLayout(this);
+        frame.setBackgroundColor(Ui.BG);
         ImageView backdrop = new ImageView(this);
         backdrop.setImageResource(R.drawable.main_bg);
         backdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        frame.addView(backdrop, new android.widget.FrameLayout.LayoutParams(-1, -1));
-        frame.addView(root, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        backdrop.setAlpha(0.55f);
+        frame.addView(backdrop, new FrameLayout.LayoutParams(-1, -1));
+        frame.addView(root, new FrameLayout.LayoutParams(-1, -1));
 
-        loadingOverlay = centeredOverlay("⏳ در حال بارگذاری…");
+        loadingOverlay = centeredOverlay();
         loadingOverlay.setVisibility(View.GONE);
-        frame.addView(loadingOverlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        frame.addView(loadingOverlay, new FrameLayout.LayoutParams(-1, -1));
 
-        splashOverlay = new android.widget.FrameLayout(this);
-        splashOverlay.setBackgroundColor(Color.BLACK);
+        splashOverlay = new FrameLayout(this);
+        splashOverlay.setBackgroundColor(Ui.BG);
         splashOverlay.setClickable(true);
+        splashOverlay.setFocusable(true);
         ImageView splashLogo = new ImageView(this);
         splashLogo.setImageResource(R.drawable.app_logo);
         splashLogo.setAdjustViewBounds(true);
         splashLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        android.widget.FrameLayout.LayoutParams splashParams =
-                new android.widget.FrameLayout.LayoutParams(dp(340), -2, Gravity.CENTER);
+        FrameLayout.LayoutParams splashParams =
+                new FrameLayout.LayoutParams(ui.dp(300), -2, Gravity.CENTER);
         splashOverlay.addView(splashLogo, splashParams);
-        frame.addView(splashOverlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        frame.addView(splashOverlay, new FrameLayout.LayoutParams(-1, -1));
         setContentView(frame);
     }
 
-    private android.widget.FrameLayout splashOverlay;
+    private FrameLayout splashOverlay;
 
     private void hideSplash() {
-        if (splashOverlay != null) splashOverlay.setVisibility(View.GONE);
+        if (splashOverlay == null || splashOverlay.getVisibility() != View.VISIBLE) return;
+        splashOverlay.animate().alpha(0f).setDuration(280).withEndAction(() -> {
+            if (splashOverlay != null) splashOverlay.setVisibility(View.GONE);
+        }).start();
     }
 
-    private android.widget.FrameLayout loadingOverlay;
+    private FrameLayout loadingOverlay;
+    private TextView loadingLabel;
 
-    private android.widget.FrameLayout centeredOverlay(String text) {
-        android.widget.FrameLayout overlay = new android.widget.FrameLayout(this);
+    private FrameLayout centeredOverlay() {
+        FrameLayout overlay = new FrameLayout(this);
         overlay.setBackgroundColor(0xCC000000);
         overlay.setClickable(true);
         overlay.setFocusable(true);
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout box = ui.column();
         box.setGravity(Gravity.CENTER);
-        box.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        LinearLayout card = ui.column();
+        card.setGravity(Gravity.CENTER);
+        card.setBackground(ui.stroked(Ui.SURFACE, 14, 1, Ui.HAIRLINE));
+        card.setPadding(ui.dp(30), ui.dp(22), ui.dp(30), ui.dp(22));
         android.widget.ProgressBar spinner = new android.widget.ProgressBar(this);
-        android.widget.LinearLayout.LayoutParams spinnerParams =
-                new android.widget.LinearLayout.LayoutParams(dp(56), dp(56));
+        LinearLayout.LayoutParams spinnerParams = ui.params(ui.dp(42), ui.dp(42));
         spinnerParams.gravity = Gravity.CENTER_HORIZONTAL;
-        box.addView(spinner, spinnerParams);
-        overlay.addView(box, new android.widget.FrameLayout.LayoutParams(
-                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
-                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+        card.addView(spinner, spinnerParams);
+        loadingLabel = ui.text("", 13, Ui.TEXT_DIM);
+        loadingLabel.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelParams = ui.params(-2, -2);
+        labelParams.topMargin = ui.dp(12);
+        labelParams.gravity = Gravity.CENTER_HORIZONTAL;
+        card.addView(loadingLabel, labelParams);
+        box.addView(card);
+        overlay.addView(box, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
                 Gravity.CENTER));
         return overlay;
     }
 
     private void showLoading(String text) {
-        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+        if (loadingOverlay == null) return;
+        if (text != null && loadingLabel != null) loadingLabel.setText(text);
+        loadingOverlay.setVisibility(View.VISIBLE);
     }
 
     private void hideLoading() {
-        if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
+        if (loadingOverlay == null) return;
+        loadingOverlay.setVisibility(View.GONE);
+        if (loadingOverlay.hasFocus()) focusFirst();
     }
+
+    // ── فهرست و به‌روزرسانی ─────────────────────────────────────────
 
     private void refreshCatalog() {
         refreshCatalog(false);
@@ -256,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
             status.setText("در حال به‌روزرسانی پس‌زمینه…");
         } else {
             status.setText("در حال به‌روزرسانی فهرست از سایت…");
-            showLoading("⏳ در حال به‌روزرسانی فهرست…");
+            showLoading("در حال به‌روزرسانی فهرست…");
         }
         io.execute(() -> {
             try {
@@ -269,14 +292,14 @@ public class MainActivity extends AppCompatActivity {
                     catalog = latest;
                     hideLoading();
                     if (quiet) {
-                        status.setText("فهرست به‌روز شد · " + toFaDigits(countItems(latest)) + " عنوان");
+                        status.setText("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان");
                         if (!showingSubPage && page.getChildCount() == 0) renderHome();
                         return;
                     }
                     showingSubPage = false;
                     activeSection = null;
                     activeCategory = null;
-                    status.setText("فهرست به‌روز شد · " + toFaDigits(countItems(latest)) + " عنوان · با ریموت انتخاب کنید");
+                    status.setText("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان · با ریموت انتخاب کنید");
                     renderHome();
                 });
             } catch (Throwable error) {
@@ -346,14 +369,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showCrashDialog(String trace) {
-        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        ScrollView scroll = new ScrollView(this);
         TextView traceView = new TextView(this);
         traceView.setText(trace);
-        traceView.setTextColor(Color.WHITE);
+        traceView.setTextColor(Ui.TEXT);
         traceView.setTextSize(11);
         traceView.setTextDirection(View.TEXT_DIRECTION_LTR);
         traceView.setGravity(Gravity.START);
-        traceView.setPadding(dp(8), dp(8), dp(8), dp(8));
+        traceView.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
         scroll.addView(traceView);
         androidx.appcompat.app.AlertDialog crashDialog =
                 new androidx.appcompat.app.AlertDialog.Builder(this)
@@ -372,57 +395,47 @@ public class MainActivity extends AppCompatActivity {
                 .show();
         if (crashDialog.getWindow() != null) {
             crashDialog.getWindow().setBackgroundDrawable(
-                    new android.graphics.drawable.ColorDrawable(Color.BLACK));
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK));
         }
     }
 
     private void showInfoDialog() {
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        layout.setPadding(dp(8), dp(8), dp(8), dp(8));
+        LinearLayout layout = ui.column();
+        layout.setGravity(Gravity.CENTER_HORIZONTAL);
+        layout.setPadding(ui.dp(14), ui.dp(10), ui.dp(14), ui.dp(6));
 
-        TextView name = new TextView(this);
-        name.setText("نفتلیکس · Neftlix");
-        name.setTextColor(Color.rgb(229, 9, 20));
-        name.setTextSize(20);
-        name.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        name.setGravity(Gravity.CENTER);
-        layout.addView(name);
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.app_logo);
+        logo.setAdjustViewBounds(true);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams logoParams = ui.params(ui.dp(170), ui.dp(58));
+        logoParams.gravity = Gravity.CENTER_HORIZONTAL;
+        layout.addView(logo, logoParams);
 
-        TextView desc = new TextView(this);
-        desc.setText("اپ تلویزیون فارسی برای مرور فیلم‌ها و سریال‌ها، جست‌وجوی سراسری آرشیو و پخش مستقیم با پخش‌کننده داخلی.");
-        desc.setTextColor(Color.WHITE);
-        desc.setTextSize(14);
+        TextView desc = ui.text("اپ تلویزیون فارسی برای مرور فیلم‌ها و سریال‌ها، جست‌وجوی سراسری آرشیو و پخش مستقیم با پخش‌کننده داخلی.",
+                13, Ui.TEXT_DIM);
         desc.setGravity(Gravity.CENTER);
-        desc.setTextDirection(View.TEXT_DIRECTION_RTL);
-        desc.setPadding(0, dp(8), 0, 0);
+        desc.setPadding(0, ui.dp(12), 0, 0);
         layout.addView(desc);
 
-        TextView version = new TextView(this);
-        version.setText("نسخه " + BuildConfig.VERSION_NAME + " (" + toFaDigits(BuildConfig.VERSION_CODE) + ")");
-        version.setTextColor(Color.LTGRAY);
-        version.setTextSize(13);
+        TextView version = ui.text("نسخه " + BuildConfig.VERSION_NAME + " (" + Ui.fa(BuildConfig.VERSION_CODE) + ")",
+                12, Ui.TEXT_MUTED);
         version.setGravity(Gravity.CENTER);
-        version.setPadding(0, dp(8), 0, 0);
+        version.setPadding(0, ui.dp(10), 0, 0);
         layout.addView(version);
 
-        TextView author = new TextView(this);
-        author.setText("سازنده: Araz Gray · arazgray.com");
-        author.setTextColor(Color.LTGRAY);
-        author.setTextSize(13);
+        TextView author = ui.text("سازنده: Araz Gray · arazgray.com", 12, Ui.TEXT_MUTED);
         author.setGravity(Gravity.CENTER);
-        author.setPadding(0, dp(4), 0, dp(8));
+        author.setPadding(0, ui.dp(4), 0, ui.dp(10));
         layout.addView(author);
 
         android.graphics.Bitmap qr = makeQrBitmap("https://arazgray.com", 420);
         if (qr != null) {
             ImageView qrView = new ImageView(this);
             qrView.setImageBitmap(qr);
-            qrView.setBackgroundColor(Color.WHITE);
-            qrView.setPadding(dp(8), dp(8), dp(8), dp(8));
-            LinearLayout.LayoutParams qrParams =
-                    new LinearLayout.LayoutParams(dp(220), dp(220));
+            qrView.setBackground(ui.stroked(android.graphics.Color.WHITE, 8, 0, 0));
+            qrView.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
+            LinearLayout.LayoutParams qrParams = ui.params(ui.dp(190), ui.dp(190));
             qrParams.gravity = Gravity.CENTER_HORIZONTAL;
             layout.addView(qrView, qrParams);
         }
@@ -439,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .show()
                 .getWindow()
-                .setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.BLACK));
+                .setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Ui.BG));
     }
 
     private android.graphics.Bitmap makeQrBitmap(String text, int size) {
@@ -451,7 +464,8 @@ public class MainActivity extends AppCompatActivity {
                     size, size, android.graphics.Bitmap.Config.RGB_565);
             for (int x = 0; x < size; x++) {
                 for (int y = 0; y < size; y++) {
-                    bitmap.setPixel(x, y, matrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                    bitmap.setPixel(x, y, matrix.get(x, y)
+                            ? android.graphics.Color.BLACK : android.graphics.Color.WHITE);
                 }
             }
             return bitmap;
@@ -464,17 +478,12 @@ public class MainActivity extends AppCompatActivity {
         android.widget.ProgressBar progress = new android.widget.ProgressBar(
                 this, null, android.R.attr.progressBarStyleHorizontal);
         progress.setMax(100);
-        progress.setPadding(dp(8), dp(8), dp(8), dp(8));
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        layout.setPadding(dp(16), dp(8), dp(16), dp(8));
-        android.widget.TextView label = new android.widget.TextView(this);
-        label.setText("در حال دانلود… ٪۰");
-        label.setTextColor(Color.WHITE);
-        label.setTextDirection(View.TEXT_DIRECTION_RTL);
-        layout.addView(label, new LinearLayout.LayoutParams(-1, -2));
-        layout.addView(progress, new LinearLayout.LayoutParams(-1, dp(24)));
+        progress.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
+        LinearLayout layout = ui.column();
+        layout.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), ui.dp(8));
+        final TextView label = ui.text("در حال دانلود… ٪۰", 13, Ui.TEXT);
+        layout.addView(label, ui.params(-1, -2));
+        layout.addView(progress, ui.params(-1, ui.dp(24)));
         final boolean[] cancelled = {false};
         androidx.appcompat.app.AlertDialog dialog =
                 new androidx.appcompat.app.AlertDialog.Builder(this)
@@ -515,7 +524,7 @@ public class MainActivity extends AppCompatActivity {
                             final int percent = (int) (done * 100 / total);
                             runOnUiThread(() -> {
                                 progress.setProgress(percent);
-                                label.setText("در حال دانلود… ٪" + toFaDigits(percent));
+                                label.setText("در حال دانلود… ٪" + Ui.fa(percent));
                             });
                         }
                     }
@@ -558,42 +567,153 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // ── صفحهٔ اصلی ───────────────────────────────────────────────────
+
     private void renderHome() {
         hideSplash();
         page.removeAllViews();
         showingSubPage = false;
         activeSection = null;
         activeCategory = null;
+        firstCard = null;
         if (catalog == null) {
             addMessage("در حال بارگذاری فهرست", "لطفاً کمی صبر کنید.");
             return;
         }
 
+        BrowseSection featured = featuredSection();
+        if (featured != null) addHero(featured);
+
         for (BrowseSection section : catalog.sections) {
-            addSectionPreview(section);
+            addSectionRail(section);
         }
 
-        addHeading("دسته‌بندی فیلم‌ها");
-        addCategoryRow(catalog.movieCategories);
-        addHeading("دسته‌بندی سریال‌ها");
-        addCategoryRow(catalog.seriesCategories);
+        if (!catalog.movieCategories.isEmpty()) {
+            page.addView(ui.sectionHeader("دسته‌بندی فیلم‌ها",
+                    Ui.fa(catalog.movieCategories.size()) + " ژانر", null));
+            page.addView(ui.rail(chipViews(catalog.movieCategories)));
+        }
+        if (!catalog.seriesCategories.isEmpty()) {
+            page.addView(ui.sectionHeader("دسته‌بندی سریال‌ها",
+                    Ui.fa(catalog.seriesCategories.size()) + " ژانر", null));
+            page.addView(ui.rail(chipViews(catalog.seriesCategories)));
+        }
         focusFirst();
     }
 
-    private void addSectionPreview(BrowseSection section) {
-        addHeading(section.title);
-        if (section.items.isEmpty()) {
-            addSmallText("موردی پیدا نشد.");
+    /** بخش ویژهٔ سایت (بیلبورد)؛ اگر نبود، هیچ بیلبوردی ساخته نمی‌شود. */
+    private BrowseSection featuredSection() {
+        if (catalog == null) return null;
+        for (BrowseSection section : catalog.sections) {
+            if (section.title != null && section.title.contains("ویژه") && !section.items.isEmpty()) {
+                return section;
+            }
+        }
+        return null;
+    }
+
+    private void addHero(BrowseSection section) {
+        // هر روز یک عنوان ویژه تازه (بدون تایمر و بدون پرش ناگهانی)
+        int index = (int) (System.currentTimeMillis() / 86400000L) % section.items.size();
+        final BrowseItem item = section.items.get(Math.abs(index));
+
+        FrameLayout hero = new FrameLayout(this);
+        hero.setClipChildren(false);
+        ImageView art = new ImageView(this);
+        art.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        ui.loadCover(art, item.coverUrl);
+        hero.addView(art, new FrameLayout.LayoutParams(-1, -1));
+        hero.addView(ui.scrim(GradientDrawable.Orientation.RIGHT_LEFT,
+                        0xF70A0A0C, 0xCC0A0A0C, 0x400A0A0C, 0x050A0A0C),
+                new FrameLayout.LayoutParams(-1, -1));
+        hero.addView(ui.scrim(GradientDrawable.Orientation.BOTTOM_TOP,
+                        0xFF0A0A0C, 0x000A0A0C),
+                new FrameLayout.LayoutParams(-1, -1));
+
+        LinearLayout info = ui.column();
+        info.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(34), ui.dp(Ui.PAGE_PAD), ui.dp(18));
+
+        TextView kicker = ui.text("ویژهٔ نفتلیکس", 11, Ui.BRAND, true);
+        kicker.setLetterSpacing(0.08f);
+        info.addView(kicker);
+
+        TextView title = ui.text(item.title, 27, Ui.TEXT, true);
+        title.setMaxLines(2);
+        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        info.addView(title, ui.withTop(-1, -2, 8));
+
+        LinearLayout tags = ui.row();
+        tags.addView(ui.tagPill(Ui.faType(item.contentType), Ui.BRAND, Ui.BRAND, Ui.TEXT, true));
+        if (item.meta != null && !item.meta.isEmpty()) {
+            TextView meta = ui.tagPill(item.meta, Ui.GLASS, Ui.HAIRLINE, Ui.TEXT_DIM, false);
+            LinearLayout.LayoutParams metaParams = ui.params(-2, -2);
+            metaParams.setMarginStart(ui.dp(8));
+            tags.addView(meta, metaParams);
+        }
+        info.addView(tags, ui.withTop(-1, -2, 14));
+
+        LinearLayout ctas = ui.row();
+        TextView watch = ui.primaryButton("تماشا و دانلود", R.drawable.ic_play);
+        watch.setOnClickListener(v -> openItem(item));
+        ctas.addView(watch, ui.params(-2, ui.dp(44)));
+        TextView browse = ui.ghostButton("مرور کاتالوگ", 0);
+        browse.setOnClickListener(v -> {
+            if (firstCard != null) firstCard.requestFocus();
+        });
+        LinearLayout.LayoutParams browseParams = ui.params(-2, ui.dp(44));
+        browseParams.setMarginStart(ui.dp(10));
+        ctas.addView(browse, browseParams);
+        info.addView(ctas, ui.withTop(-1, -2, 18));
+
+        FrameLayout.LayoutParams infoParams = new FrameLayout.LayoutParams(
+                ui.dp(560), -2, Gravity.START | Gravity.BOTTOM);
+        hero.addView(info, infoParams);
+        page.addView(hero, ui.params(-1, ui.dp(224)));
+    }
+
+    private void addSectionRail(BrowseSection section) {
+        List<View> cards = new ArrayList<>();
+        int limit = Math.min(section.items.size(), 20);
+        for (int i = 0; i < limit; i++) {
+            final BrowseItem item = section.items.get(i);
+            View card = ui.posterCard(item, Ui.CARD_W, true);
+            card.setOnClickListener(v -> openItem(item));
+            cards.add(card);
+        }
+        if (cards.isEmpty()) {
+            page.addView(ui.sectionHeader(section.title, null, null));
+            page.addView(note("موردی پیدا نشد."));
             return;
         }
-        List<BrowseItem> preview = section.items.size() > 20 ? section.items.subList(0, 20) : section.items;
-        addItemRow(preview);
+        if (firstCard == null) firstCard = cards.get(0);
+        TextView more = null;
         if (section.url != null && !section.url.isEmpty()) {
-            Button more = labeledIconButton("مشاهده همه", R.drawable.ic_chevron_end);
+            more = ui.ghostButton("مشاهده همه", R.drawable.ic_chevron_end);
+            more.setLayoutParams(ui.params(-2, ui.dp(34)));
             more.setOnClickListener(v -> openSection(section, 1));
-            page.addView(more, new LinearLayout.LayoutParams(-2, dp(46)));
         }
+        page.addView(ui.sectionHeader(section.title, Ui.fa(section.items.size()) + " عنوان", more));
+        page.addView(ui.rail(cards));
     }
+
+    private List<View> chipViews(List<BrowseCategory> categories) {
+        List<View> chips = new ArrayList<>();
+        for (final BrowseCategory category : categories) {
+            TextView chip = ui.chip(category.title, Ui.fa(category.count));
+            chip.setOnClickListener(view -> openCategory(category, 1));
+            chips.add(chip);
+        }
+        return chips;
+    }
+
+    private void openItem(BrowseItem item) {
+        Intent intent = new Intent(this, DetailsActivity.class);
+        intent.putExtra(DetailsActivity.EXTRA_URL, item.url);
+        intent.putExtra(DetailsActivity.EXTRA_TITLE, item.title);
+        startActivity(intent);
+    }
+
+    // ── زیرصفحه‌ها ───────────────────────────────────────────────────
 
     private void showSearchResults() {
         if (catalog == null) return;
@@ -608,14 +728,15 @@ public class MainActivity extends AppCompatActivity {
         if (query.isEmpty()) {
             page.removeAllViews();
             addBackButton();
-            addHeading("همه عنوان‌ها");
-            addItemRow(uniqueItems(catalog.sections));
+            addHeading("همه عنوان‌ها", Ui.fa(uniqueItems(catalog.sections).size()) + " عنوان");
+            addItemsGrid(uniqueItems(catalog.sections));
+            focusFirst();
             return;
         }
         page.removeAllViews();
         addBackButton();
-        addHeading("نتایج جست‌وجو: " + query);
-        showLoading("⏳ در حال جست‌وجو…");
+        addHeading("نتایج جست‌وجو", query);
+        showLoading("در حال جست‌وجو…");
         io.execute(() -> {
             List<BrowseItem> found = new ArrayList<>();
             try {
@@ -636,9 +757,9 @@ public class MainActivity extends AppCompatActivity {
                 hideLoading();
                 page.removeAllViews();
                 addBackButton();
-                addHeading("نتایج جست‌وجو: " + query);
-                status.setText(toFaDigits(direct.size()) + " نتیجه از " + source);
-                addItemRow(direct);
+                addHeading("نتایج جست‌وجو", query);
+                status.setText(Ui.fa(direct.size()) + " نتیجه از " + source);
+                addItemsGrid(direct);
                 focusFirst();
             });
         });
@@ -661,18 +782,18 @@ public class MainActivity extends AppCompatActivity {
         activeCategory = null;
         listingPage = pageNum;
         showingSubPage = true;
-        showLoading("⏳ در حال بارگذاری " + section.title + "…");
+        showLoading("در حال بارگذاری " + section.title + "…");
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(section.url, section.contentType, pageNum);
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    status.setText(section.title + " · صفحه " + toFaDigits(pageNum));
+                    status.setText(section.title + " · صفحه " + Ui.fa(pageNum));
                     page.removeAllViews();
                     addBackButton();
-                    addHeading(section.title);
-                    addItemRow(result.items);
+                    addHeading(section.title, "صفحه " + Ui.fa(pageNum));
+                    addItemsGrid(result.items);
                     addPaginationBar();
                     focusFirst();
                 });
@@ -690,19 +811,20 @@ public class MainActivity extends AppCompatActivity {
         activeSection = null;
         listingPage = pageNum;
         showingSubPage = true;
-        showLoading("⏳ در حال بارگذاری " + category.title + "…");
+        showLoading("در حال بارگذاری " + category.title + "…");
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(category.url, category.contentType, pageNum);
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    status.setText(category.title + " · صفحه " + toFaDigits(pageNum));
+                    status.setText(category.title + " · صفحه " + Ui.fa(pageNum));
                     page.removeAllViews();
                     addBackButton();
-                    String count = category.count == null || category.count.isEmpty() ? "" : "  (" + toFaDigits(category.count) + ")";
-                    addHeading(category.title + count);
-                    addItemRow(result.items);
+                    String count = category.count == null || category.count.isEmpty()
+                            ? "" : Ui.fa(category.count) + " عنوان";
+                    addHeading(category.title, count);
+                    addItemsGrid(result.items);
                     addPaginationBar();
                     focusFirst();
                 });
@@ -715,193 +837,100 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** شبکهٔ کارت‌ها برای صفحه‌های آرشیو، ژانر و نتیجهٔ جست‌وجو. */
+    private void addItemsGrid(List<BrowseItem> items) {
+        if (items == null || items.isEmpty()) {
+            page.addView(note("موردی پیدا نشد."));
+            return;
+        }
+        int columns = ui.gridColumns();
+        float cardWidth = ui.gridCardWidthDp(columns);
+        LinearLayout grid = ui.column();
+        List<View> rowCards = new ArrayList<>();
+        for (final BrowseItem item : items) {
+            View card = ui.posterCard(item, cardWidth, true);
+            card.setOnClickListener(v -> openItem(item));
+            rowCards.add(card);
+            if (rowCards.size() == columns) {
+                grid.addView(ui.gridRow(rowCards), bottomMargin());
+                rowCards = new ArrayList<>();
+            }
+        }
+        if (!rowCards.isEmpty()) grid.addView(ui.gridRow(rowCards), bottomMargin());
+        page.addView(grid);
+    }
+
+    private LinearLayout.LayoutParams bottomMargin() {
+        LinearLayout.LayoutParams params = ui.params(-1, -2);
+        params.bottomMargin = ui.dp(16);
+        return params;
+    }
+
     private void addPaginationBar() {
-        LinearLayout bar = new LinearLayout(this);
-        bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(0, dp(8), 0, dp(8));
+        LinearLayout bar = ui.row();
+        bar.setGravity(Gravity.CENTER);
+        bar.setPadding(0, ui.dp(6), 0, ui.dp(10));
 
         if (listingPage > 1) {
-            Button prev = toolbarButton("صفحه قبل");
+            TextView prev = ui.ghostButton("صفحه قبل", R.drawable.ic_back);
             prev.setOnClickListener(v -> {
                 if (activeSection != null) openSection(activeSection, listingPage - 1);
                 else if (activeCategory != null) openCategory(activeCategory, listingPage - 1);
             });
-            bar.addView(prev, new LinearLayout.LayoutParams(-2, dp(48)));
+            bar.addView(prev, ui.params(-2, ui.dp(42)));
         }
-        TextView num = new TextView(this);
-        num.setText("صفحه " + toFaDigits(listingPage));
-        num.setTextColor(Color.WHITE);
-        num.setTextSize(15);
-        num.setPadding(dp(14), 0, dp(14), 0);
+        TextView num = ui.text("صفحه " + Ui.fa(listingPage), 14, Ui.TEXT, true);
+        num.setPadding(ui.dp(18), 0, ui.dp(18), 0);
         bar.addView(num);
         if (listingHasNext) {
-            Button next = toolbarButton("صفحه بعد");
+            TextView next = ui.ghostButton("صفحه بعد", R.drawable.ic_chevron_end);
             next.setOnClickListener(v -> {
                 if (activeSection != null) openSection(activeSection, listingPage + 1);
                 else if (activeCategory != null) openCategory(activeCategory, listingPage + 1);
             });
-            bar.addView(next, new LinearLayout.LayoutParams(-2, dp(48)));
+            bar.addView(next, ui.params(-2, ui.dp(42)));
         }
         page.addView(bar);
     }
 
-    private void openItem(BrowseItem item) {
-        Intent intent = new Intent(this, DetailsActivity.class);
-        intent.putExtra(DetailsActivity.EXTRA_URL, item.url);
-        intent.putExtra(DetailsActivity.EXTRA_TITLE, item.title);
-        startActivity(intent);
-    }
-
-    private void addCategoryRow(List<BrowseCategory> categories) {
-        if (categories.isEmpty()) {
-            addSmallText("دسته‌ای پیدا نشد.");
-            return;
-        }
-        // ردیف‌های ثابت (بدون اسکرول افقی) تا ترتیب راست‌چین قطعی باشد
-        LinearLayout grid = new LinearLayout(this);
-        grid.setOrientation(LinearLayout.VERTICAL);
-        grid.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        LinearLayout row = null;
-        for (int i = 0; i < categories.size(); i++) {
-            if (i % 6 == 0) {
-                row = new LinearLayout(this);
-                row.setOrientation(LinearLayout.HORIZONTAL);
-                row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
-                rowParams.setMargins(0, 0, 0, dp(8));
-                grid.addView(row, rowParams);
-            }
-            BrowseCategory category = categories.get(i);
-            String label = category.title;
-            if (category.count != null && !category.count.isEmpty()) label += " (" + toFaDigits(category.count) + ")";
-            Button button = toolbarButton(label);
-            button.setOnClickListener(view -> openCategory(category, 1));
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(48), 1f);
-            params.setMargins(0, 0, dp(8), 0);
-            row.addView(button, params);
-        }
-        page.addView(grid);
-    }
-
-    private void addItemRow(List<BrowseItem> items) {
-        if (items.isEmpty()) {
-            addSmallText("موردی پیدا نشد.");
-            return;
-        }
-        // ۶ کارت در هر ردیف؛ بقیه در ردیف‌های بعدی
-        LinearLayout grid = new LinearLayout(this);
-        grid.setOrientation(LinearLayout.VERTICAL);
-        grid.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        LinearLayout row = null;
-        for (int i = 0; i < items.size(); i++) {
-            if (i % 6 == 0) {
-                row = new LinearLayout(this);
-                row.setOrientation(LinearLayout.HORIZONTAL);
-                row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-                LinearLayout.LayoutParams rowParams =
-                        new LinearLayout.LayoutParams(-1, -2);
-                rowParams.setMargins(0, 0, 0, dp(10));
-                grid.addView(row, rowParams);
-            }
-            row.addView(makeCard(items.get(i)));
-        }
-        page.addView(grid);
-    }
-
-    private View makeCard(BrowseItem item) {
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        card.setFocusable(true);
-        card.setClickable(true);
-        card.setBackgroundResource(android.R.drawable.list_selector_background);
-        card.setPadding(dp(5), dp(5), dp(5), dp(5));
-        card.setOnClickListener(view -> openItem(item));
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dp(148), -2);
-        cardParams.setMargins(0, 0, dp(10), 0);
-        card.setLayoutParams(cardParams);
-        card.setOnFocusChangeListener((v, hasFocus) -> v.setScaleX(hasFocus ? 1.05f : 1f));
-
-        ImageView poster = new ImageView(this);
-        poster.setBackgroundColor(Color.rgb(35, 45, 54));
-        poster.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        if (item.coverUrl != null && !item.coverUrl.isEmpty()) {
-            Glide.with(this).load(item.coverUrl).centerCrop().into(poster);
-        }
-        card.addView(poster, new LinearLayout.LayoutParams(-1, dp(176)));
-
-        TextView kind = new TextView(this);
-        kind.setText(faType(item.contentType));
-        kind.setTextColor(Color.rgb(229, 9, 20));
-        kind.setTextSize(11);
-        kind.setTextDirection(View.TEXT_DIRECTION_RTL);
-        kind.setPadding(0, dp(3), 0, 0);
-        card.addView(kind);
-
-        TextView name = new TextView(this);
-        name.setText(item.title);
-        name.setTextColor(Color.WHITE);
-        name.setTextSize(13);
-        name.setMaxLines(2);
-        name.setTextDirection(View.TEXT_DIRECTION_RTL);
-        card.addView(name);
-        if (item.meta != null && !item.meta.isEmpty()) {
-            TextView meta = new TextView(this);
-            meta.setText(item.meta);
-            meta.setTextColor(Color.LTGRAY);
-            meta.setTextSize(11);
-            meta.setMaxLines(1);
-            meta.setTextDirection(View.TEXT_DIRECTION_RTL);
-            card.addView(meta);
-        }
-        return card;
-    }
-
-    private String faType(String type) {
-        if ("series".equalsIgnoreCase(type)) return "سریال";
-        if ("movie".equalsIgnoreCase(type)) return "فیلم";
-        return "فیلم و سریال";
-    }
-
-    private String toFaDigits(Object value) {
-        String s = String.valueOf(value);
-        return s.replace('0', '۰').replace('1', '۱').replace('2', '۲')
-                .replace('3', '۳').replace('4', '۴').replace('5', '۵')
-                .replace('6', '۶').replace('7', '۷').replace('8', '۸').replace('9', '۹');
-    }
+    // ── اجزای مشترک ─────────────────────────────────────────────────
 
     private void addBackButton() {
-        Button back = labeledIconButton("بازگشت به فهرست", R.drawable.ic_back);
+        TextView back = ui.ghostButton("بازگشت به فهرست", R.drawable.ic_back);
         back.setTag("back");
         back.setOnClickListener(view -> renderHome());
-        page.addView(back, new LinearLayout.LayoutParams(-2, dp(48)));
+        LinearLayout.LayoutParams params = ui.params(-2, ui.dp(42));
+        params.topMargin = ui.dp(4);
+        page.addView(back, params);
     }
 
-    private void addHeading(String text) {
-        TextView heading = new TextView(this);
-        heading.setText(text);
-        heading.setTextColor(Color.WHITE);
-        heading.setTextSize(20);
-        heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        heading.setTextDirection(View.TEXT_DIRECTION_RTL);
-        heading.setPadding(0, dp(12), 0, dp(7));
-        page.addView(heading);
+    private void addHeading(String text, String countText) {
+        LinearLayout header = ui.row();
+        header.setPadding(0, ui.dp(16), 0, ui.dp(6));
+        View accent = new View(this);
+        accent.setBackground(ui.rounded(Ui.BRAND, 2));
+        LinearLayout.LayoutParams accentParams = ui.params(ui.dp(3), ui.dp(18));
+        accentParams.setMarginEnd(ui.dp(9));
+        header.addView(accent, accentParams);
+        header.addView(ui.heading(text));
+        if (countText != null && !countText.isEmpty()) {
+            TextView count = ui.dim(countText, 12);
+            LinearLayout.LayoutParams countParams = ui.params(-2, -2);
+            countParams.setMarginStart(ui.dp(8));
+            header.addView(count, countParams);
+        }
+        page.addView(header);
     }
 
-    private void addSmallText(String text) {
-        TextView label = new TextView(this);
-        label.setText(text);
-        label.setTextColor(Color.LTGRAY);
-        label.setTextSize(14);
-        label.setTextDirection(View.TEXT_DIRECTION_RTL);
-        page.addView(label);
+    private TextView note(String text) {
+        TextView view = ui.dim(text, 14);
+        view.setPadding(0, ui.dp(4), 0, ui.dp(12));
+        return view;
     }
 
     private void addMessage(String title, String message) {
-        addHeading(title);
-        addSmallText(message == null ? "" : message);
+        addHeading(title, null);
+        page.addView(note(message == null ? "" : message));
     }
 
     private void focusFirst() {
@@ -927,63 +956,6 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    private Button toolbarButton(String text) {
-        Button button = new Button(this);
-        button.setText(text);
-        button.setTextColor(Color.WHITE);
-        button.setTextDirection(View.TEXT_DIRECTION_RTL);
-        button.setAllCaps(false);
-        button.setFocusable(true);
-        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(0x33FFFFFF);
-        final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
-        button.setBackground(idleBg);
-        button.setOnFocusChangeListener((v, hasFocus) -> button.setBackground(hasFocus ? focusedBg : idleBg));
-        return button;
-    }
-
-    private Button iconButton(int iconRes, String desc) {
-        Button button = toolbarButton("");
-        button.setContentDescription(desc);
-        button.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
-        button.setGravity(Gravity.CENTER);
-        button.setPadding(0, 0, 0, 0);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(46), dp(46));
-        params.setMargins(dp(5), 0, dp(5), 0);
-        button.setLayoutParams(params);
-        return button;
-    }
-
-    private Button labeledIconButton(String text, int iconRes) {
-        Button button = toolbarButton(text);
-        button.setCompoundDrawablesRelativeWithIntrinsicBounds(iconRes, 0, 0, 0);
-        button.setCompoundDrawablePadding(dp(6));
-        return button;
-    }
-
-    private android.graphics.drawable.GradientDrawable roundedBg(int color) {
-        android.graphics.drawable.GradientDrawable drawable =
-                new android.graphics.drawable.GradientDrawable();
-        drawable.setColor(color);
-        drawable.setCornerRadius(dp(10));
-        return drawable;
-    }
-
-    private TextView makePill(String text, int fill, int stroke, int textColor) {
-        TextView pill = new TextView(this);
-        pill.setText(text);
-        pill.setTextColor(textColor);
-        pill.setTextSize(13);
-        pill.setTextDirection(View.TEXT_DIRECTION_RTL);
-        pill.setGravity(Gravity.CENTER);
-        android.graphics.drawable.GradientDrawable bg = roundedBg(fill);
-        bg.setStroke(dp(1), stroke);
-        pill.setBackground(bg);
-        int hPad = dp(12);
-        int vPad = dp(5);
-        pill.setPadding(hPad, vPad, hPad, vPad);
-        return pill;
-    }
-
     private List<BrowseItem> uniqueItems(List<BrowseSection> sections) {
         Map<String, BrowseItem> unique = new LinkedHashMap<>();
         for (BrowseSection section : sections) {
@@ -994,10 +966,6 @@ public class MainActivity extends AppCompatActivity {
 
     private int countItems(CatalogData data) {
         return uniqueItems(data.sections).size();
-    }
-
-    private int dp(float value) {
-        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
 
     @Override

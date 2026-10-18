@@ -27,10 +27,12 @@ public class PlayerActivity extends AppCompatActivity {
 
     private ExoPlayer player;
     private PlayerView playerView;
+    private Ui ui;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ui = new Ui(this);
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         String url = getIntent().getStringExtra(EXTRA_URL);
@@ -47,7 +49,8 @@ public class PlayerActivity extends AppCompatActivity {
         playerView = new PlayerView(this);
         playerView.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         playerView.setKeepContentOnPlayerReset(true);
-        // دکمه زیرنویس (CC) همیشه در کنترلر دیده شود
+        playerView.setShutterBackgroundColor(android.graphics.Color.BLACK);
+        playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);
         playerView.setShowSubtitleButton(true);
         FrameLayout.LayoutParams videoParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -154,12 +157,12 @@ public class PlayerActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             if (centerError == null) {
                 centerError = new android.widget.TextView(this);
-                centerError.setTextColor(android.graphics.Color.WHITE);
-                centerError.setTextSize(16);
+                centerError.setTextColor(Ui.TEXT);
+                centerError.setTextSize(15);
                 centerError.setGravity(android.view.Gravity.CENTER);
                 centerError.setTextDirection(View.TEXT_DIRECTION_RTL);
-                centerError.setBackgroundColor(0xCC000000);
-                centerError.setPadding(32, 24, 32, 24);
+                centerError.setBackground(ui.stroked(0xE6141415, 14, 1, Ui.HAIRLINE));
+                centerError.setPadding(ui.dp(28), ui.dp(20), ui.dp(28), ui.dp(20));
                 ((android.widget.FrameLayout) findViewById(android.R.id.content))
                         .addView(centerError, new android.widget.FrameLayout.LayoutParams(
                                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,

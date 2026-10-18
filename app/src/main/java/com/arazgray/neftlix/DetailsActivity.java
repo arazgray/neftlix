@@ -1,13 +1,11 @@
 package com.arazgray.neftlix;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
-import android.widget.HorizontalScrollView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -16,17 +14,18 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.bumptech.glide.Glide;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * صفحه جزئیات فیلم/سریال: راست‌چین و فارسی.
- * گروه‌ها و زیرگروه‌های دانلود به‌صورت پیش‌فرض جمع‌شده‌اند و با ریموت باز می‌شوند.
+ * صفحهٔ جزئیات فیلم/سریال: راست‌چین و فارسی.
+ *
+ * بالای صفحه: هنر پس‌زمینه، پوستر و عنوان با دکمه‌های «پخش رایگان» و «دانلودها».
+ * پایین صفحه دو ستون است: راست توضیحات، چپ گروه‌های دانلود. گروه‌ها، دسته‌ها و
+ * کیفیت‌ها پیش‌فرض جمع‌شده‌اند و با OK باز می‌شوند؛ لینک‌های هر کیفیت در شبکهٔ
+ * چندستونی (قسمت‌ها) نمایش داده می‌شوند.
  */
 public class DetailsActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "url";
@@ -34,88 +33,92 @@ public class DetailsActivity extends AppCompatActivity {
 
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final CatalogRepository repository = new CatalogRepository();
+    private Ui ui;
     private LinearLayout page;
     private TextView status;
+    private ImageView backdropView;
+    private FrameLayout loadingOverlay;
+    private TextView loadingLabel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         CrashLogger.install(this);
+        ui = new Ui(this);
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         String url = getIntent().getStringExtra(EXTRA_URL);
-        String fallbackTitle = getIntent().getStringExtra(EXTRA_TITLE);
+        final String fallbackTitle = getIntent().getStringExtra(EXTRA_TITLE);
         if (url == null || url.isEmpty()) {
             Toast.makeText(this, "نشانی صفحه نامعتبر است", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        root.setPadding(dp(22), dp(14), dp(22), dp(10));
+        LinearLayout root = ui.column();
 
-        LinearLayout toolbar = new LinearLayout(this);
-        toolbar.setOrientation(LinearLayout.HORIZONTAL);
-        toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        toolbar.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout toolbar = ui.row();
+        toolbar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(10), ui.dp(Ui.PAGE_PAD), ui.dp(4));
 
-        Button back = labeledIconButton("بازگشت", R.drawable.ic_back);
+        TextView back = ui.ghostButton("بازگشت", R.drawable.ic_back);
         back.setOnClickListener(v -> finish());
-        toolbar.addView(back);
+        toolbar.addView(back, ui.params(-2, ui.dp(42)));
 
-        ImageView topLogo = new ImageView(this);
-        topLogo.setImageResource(R.drawable.app_logo);
-        topLogo.setAdjustViewBounds(true);
-        topLogo.setScaleType(ImageView.ScaleType.FIT_START);
-        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(110), dp(38));
-        logoParams.gravity = Gravity.CENTER_VERTICAL;
-        logoParams.setMargins(dp(10), 0, 0, 0);
-        toolbar.addView(topLogo, logoParams);
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.app_logo);
+        logo.setAdjustViewBounds(true);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams logoParams = ui.params(ui.dp(96), ui.dp(34));
+        logoParams.setMarginStart(ui.dp(12));
+        toolbar.addView(logo, logoParams);
 
-        status = new TextView(this);
-        status.setTextColor(Color.LTGRAY);
-        status.setTextSize(14);
-        status.setTextDirection(View.TEXT_DIRECTION_RTL);
-        LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(0, dp(48), 1f);
-        statusParams.setMargins(dp(12), 0, 0, 0);
+        status = ui.text("", 13, Ui.TEXT_DIM);
+        status.setSingleLine(true);
+        status.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        LinearLayout.LayoutParams statusParams = ui.params(0, -2, 1f);
+        statusParams.setMarginStart(ui.dp(14));
         toolbar.addView(status, statusParams);
-        root.addView(toolbar);
+        root.addView(toolbar, ui.params(-1, -2));
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        page = new LinearLayout(this);
-        page.setOrientation(LinearLayout.VERTICAL);
-        page.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        scroll.setClipToPadding(false);
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        page = ui.column();
+        page.setClipChildren(false);
+        page.setPadding(0, ui.dp(4), 0, ui.dp(30));
         scroll.addView(page);
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
+        root.addView(scroll, ui.params(-1, 0, 1f));
 
         backdropView = new ImageView(this);
         backdropView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        backdropView.setAlpha(0.65f);
+        backdropView.setAlpha(0.42f);
 
-        android.widget.FrameLayout frame = new android.widget.FrameLayout(this);
-        frame.setBackgroundColor(Color.BLACK);
-        frame.addView(backdropView, new android.widget.FrameLayout.LayoutParams(-1, -1));
-        View shade = new View(this);
-        shade.setBackgroundColor(0x44000000);
-        frame.addView(shade, new android.widget.FrameLayout.LayoutParams(-1, -1));
-        frame.addView(root, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        FrameLayout frame = new FrameLayout(this);
+        frame.setBackgroundColor(Ui.BG);
+        frame.addView(backdropView, new FrameLayout.LayoutParams(-1, -1));
+        frame.addView(ui.scrim(GradientDrawable.Orientation.BOTTOM_TOP,
+                        0xFF0A0A0C, 0xB30A0A0C, 0x400A0A0C, 0x000A0A0C),
+                new FrameLayout.LayoutParams(-1, -1));
+        frame.addView(ui.scrim(GradientDrawable.Orientation.TOP_BOTTOM,
+                        0xD90A0A0C, 0x400A0A0C, 0x000A0A0C),
+                new FrameLayout.LayoutParams(-1, -1, Gravity.TOP));
+        frame.addView(root, new FrameLayout.LayoutParams(-1, -1));
 
-        loadingOverlay = centeredOverlay("⏳ در حال بارگذاری…");
-        frame.addView(loadingOverlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        loadingOverlay = centeredOverlay();
+        frame.addView(loadingOverlay, new FrameLayout.LayoutParams(-1, -1));
         setContentView(frame);
 
-        showLoading("⏳ در حال بارگذاری…");
+        showLoading("در حال بارگذاری…");
         io.execute(() -> {
             try {
-                ItemDetails details = repository.loadItem(url);
+                final ItemDetails details = repository.loadItem(url);
                 runOnUiThread(() -> {
                     try {
                         hideLoading();
                         if (details.backdropUrl != null && !details.backdropUrl.isEmpty()) {
-                            Glide.with(this).load(details.backdropUrl).into(backdropView);
+                            ui.loadCover(backdropView, details.backdropUrl);
                         }
                         renderItem(details, fallbackTitle);
                     } catch (Throwable error) {
@@ -134,278 +137,326 @@ public class DetailsActivity extends AppCompatActivity {
         });
     }
 
-    private ImageView backdropView;
-    private android.widget.FrameLayout loadingOverlay;
-    private TextView loadingText;
-
-    private android.widget.FrameLayout centeredOverlay(String text) {
-        android.widget.FrameLayout overlay = new android.widget.FrameLayout(this);
+    private FrameLayout centeredOverlay() {
+        FrameLayout overlay = new FrameLayout(this);
         overlay.setBackgroundColor(0xCC000000);
         overlay.setClickable(true);
         overlay.setFocusable(true);
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setGravity(Gravity.CENTER);
-        box.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        LinearLayout card = ui.column();
+        card.setGravity(Gravity.CENTER);
+        card.setBackground(ui.stroked(Ui.SURFACE, 14, 1, Ui.HAIRLINE));
+        card.setPadding(ui.dp(30), ui.dp(22), ui.dp(30), ui.dp(22));
         android.widget.ProgressBar spinner = new android.widget.ProgressBar(this);
-        android.widget.LinearLayout.LayoutParams spinnerParams =
-                new android.widget.LinearLayout.LayoutParams(dp(56), dp(56));
+        LinearLayout.LayoutParams spinnerParams = ui.params(ui.dp(42), ui.dp(42));
         spinnerParams.gravity = Gravity.CENTER_HORIZONTAL;
-        box.addView(spinner, spinnerParams);
-        loadingText = null;
-        overlay.addView(box, new android.widget.FrameLayout.LayoutParams(
-                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
-                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+        card.addView(spinner, spinnerParams);
+        loadingLabel = ui.text("", 13, Ui.TEXT_DIM);
+        loadingLabel.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelParams = ui.params(-2, -2);
+        labelParams.topMargin = ui.dp(12);
+        labelParams.gravity = Gravity.CENTER_HORIZONTAL;
+        card.addView(loadingLabel, labelParams);
+        overlay.addView(card, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
                 Gravity.CENTER));
-        overlay.setVisibility(View.GONE);
         return overlay;
     }
 
     private void showLoading(String text) {
-        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+        if (loadingOverlay == null) return;
+        if (text != null && loadingLabel != null) loadingLabel.setText(text);
+        loadingOverlay.setVisibility(View.VISIBLE);
     }
 
     private void hideLoading() {
         if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
     }
 
+    // ── ساخت صفحه ────────────────────────────────────────────────────
+
     private void renderItem(ItemDetails details, String fallbackTitle) {
         page.removeAllViews();
         String title = details.title == null || details.title.isEmpty() ? fallbackTitle : details.title;
-        status.setText("");
+        status.setText(summaryOf(details));
 
-        LinearLayout intro = new LinearLayout(this);
-        intro.setOrientation(LinearLayout.HORIZONTAL);
-        intro.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        intro.setGravity(Gravity.CENTER_VERTICAL);
-        intro.setPadding(0, 0, 0, dp(8));
+        final LinearLayout downloadsColumn = ui.column();
+        addHeader(title, details, downloadsColumn);
+
+        if (details.groups.isEmpty() && details.story.isEmpty()) {
+            page.addView(note("برای این عنوان اطلاعاتی پیدا نشد."));
+            return;
+        }
+
+        // راست: توضیحات — چپ: گروه‌های دانلود
+        LinearLayout columns = ui.row();
+        columns.setGravity(Gravity.TOP);
+        LinearLayout infoColumn = ui.column();
+        columns.addView(infoColumn, ui.params(0, -2, 1f));
+        LinearLayout.LayoutParams downloadsParams = ui.params(0, -2, 1.15f);
+        downloadsParams.setMarginStart(ui.dp(20));
+        columns.addView(downloadsColumn, downloadsParams);
+        page.addView(columns, ui.withTop(-1, -2, 4));
+
+        addInfoPanel(infoColumn, details);
+        addDownloadGroups(downloadsColumn, details);
+
+        if (!details.comments.isEmpty()) {
+            page.addView(ui.expandable("نظرات (" + Ui.fa(details.comments.size()) + ")",
+                    commentsView(details), 0), ui.withTop(-1, -2, 10));
+        }
+        focusFirst(downloadsColumn);
+    }
+
+    private String summaryOf(ItemDetails details) {
+        StringBuilder summary = new StringBuilder();
+        int links = countLinks(details);
+        if (!details.imdbRating.isEmpty()) summary.append("IMDb ").append(details.imdbRating);
+        if (!details.satisfaction.isEmpty()) {
+            if (summary.length() > 0) summary.append(" · ");
+            summary.append("رضایت ").append(details.satisfaction);
+        }
+        if (links > 0) {
+            if (summary.length() > 0) summary.append(" · ");
+            summary.append(Ui.fa(links)).append(" لینک دانلود");
+        }
+        return summary.toString();
+    }
+
+    /** پوستر + عنوان + دکمه‌های اصلی صفحه. */
+    private void addHeader(String title, ItemDetails details, LinearLayout downloadsColumn) {
+        LinearLayout header = ui.row();
+        header.setGravity(Gravity.TOP);
 
         if (details.coverUrl != null && !details.coverUrl.isEmpty()) {
             ImageView poster = new ImageView(this);
             poster.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            Glide.with(this).load(details.coverUrl).into(poster);
-            intro.addView(poster, new LinearLayout.LayoutParams(dp(140), dp(195)));
+            poster.setBackground(ui.rounded(Ui.SURFACE_2, Ui.RADIUS_CARD));
+            try {
+                poster.setClipToOutline(true);
+            } catch (Exception ignored) {
+            }
+            ui.loadCover(poster, details.coverUrl);
+            float posterWidth = 150f;
+            header.addView(poster, ui.params(ui.dp(posterWidth), ui.dp(posterWidth * 4f / 3f)));
         }
-        TextView titleView = new TextView(this);
-        titleView.setText(title == null ? "" : title);
-        titleView.setTextColor(Color.WHITE);
-        titleView.setTextSize(24);
-        titleView.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        titleView.setTextDirection(View.TEXT_DIRECTION_RTL);
-        titleView.setPadding(dp(16), 0, 0, 0);
-        intro.addView(titleView, new LinearLayout.LayoutParams(0, -2, 1f));
-        page.addView(intro);
 
-        // راست: توضیحات — چپ: گروه‌های دانلود
-        LinearLayout columns = new LinearLayout(this);
-        columns.setOrientation(LinearLayout.HORIZONTAL);
-        columns.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        LinearLayout rightCol = verticalContainer();
-        LinearLayout leftCol = verticalContainer();
-        columns.addView(rightCol, new LinearLayout.LayoutParams(0, -2, 1f));
-        columns.addView(leftCol, new LinearLayout.LayoutParams(0, -2, 1.1f));
-        page.addView(columns);
+        LinearLayout info = ui.column();
+        info.setPadding(ui.dp(20), ui.dp(2), 0, 0);
+        TextView titleView = ui.text(title, 23, Ui.TEXT, true);
+        titleView.setMaxLines(3);
+        titleView.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        info.addView(titleView);
 
-        addInfoBlock(rightCol, details);
-
-        if (details.groups.isEmpty() && details.story.isEmpty()) {
-            addSmallText("برای این عنوان اطلاعاتی پیدا نشد.");
-            return;
+        LinearLayout tags = ui.row();
+        tags.setPadding(0, ui.dp(12), 0, 0);
+        boolean first = true;
+        if (!details.imdbRating.isEmpty()) {
+            tags.addView(ui.tagPill("IMDb ‏" + details.imdbRating + "/10", Ui.BRAND, Ui.BRAND, Ui.TEXT, true));
+            first = false;
         }
+        if (!details.satisfaction.isEmpty()) {
+            first = addTag(tags, "رضایت " + details.satisfaction, first);
+        }
+        first = addTag(tags, Ui.faType(typeOf(details)), first);
+        int links = countLinks(details);
+        if (links > 0) {
+            addTag(tags, Ui.fa(links) + " لینک دانلود", first);
+        }
+        info.addView(tags);
+
+        LinearLayout actions = ui.row();
+        actions.setPadding(0, ui.dp(18), 0, 0);
+        final MediaLink playable = firstLink(details);
+        if (playable != null) {
+            TextView play = ui.primaryButton("پخش رایگان", R.drawable.ic_play);
+            play.setTag("play");
+            play.setOnClickListener(v -> play(playable));
+            actions.addView(play, ui.params(-2, ui.dp(44)));
+        }
+        if (!details.groups.isEmpty()) {
+            TextView downloads = ui.ghostButton("دانلودها", R.drawable.ic_download);
+            LinearLayout.LayoutParams downloadsButtonParams = ui.params(-2, ui.dp(44));
+            if (playable != null) downloadsButtonParams.setMarginStart(ui.dp(10));
+            downloads.setOnClickListener(v -> focusFirst(downloadsColumn));
+            actions.addView(downloads, downloadsButtonParams);
+        }
+        info.addView(actions);
+
+        header.addView(info, ui.params(0, -2, 1f));
+        page.addView(header, ui.withTop(-1, -2, 2));
+    }
+
+    private boolean addTag(LinearLayout row, String label, boolean first) {
+        TextView pill = ui.tagPill(label, Ui.GLASS, Ui.HAIRLINE, Ui.TEXT_DIM, false);
+        LinearLayout.LayoutParams params = ui.params(-2, -2);
+        if (!first) params.setMarginStart(ui.dp(8));
+        row.addView(pill, params);
+        return false;
+    }
+
+    private String typeOf(ItemDetails details) {
+        for (DownloadGroup group : details.groups) {
+            if (group.season) return "series";
+        }
+        return details.url != null && details.url.contains("/series/") ? "series" : "movie";
+    }
+
+    // ── ستون توضیحات ─────────────────────────────────────────────────
+
+    private void addInfoPanel(LinearLayout parent, ItemDetails details) {
+        LinearLayout panel = ui.panel();
+
+        if (!details.genres.isEmpty() || !details.flags.isEmpty()) {
+            LinearLayout genres = ui.row();
+            genres.setGravity(Gravity.TOP);
+            boolean first = true;
+            for (String genre : details.genres) {
+                TextView pill = ui.tagPill(genre, 0x00000000, Ui.BRAND, Ui.TEXT, false);
+                LinearLayout.LayoutParams params = ui.params(-2, -2);
+                if (!first) params.setMarginStart(ui.dp(8));
+                genres.addView(pill, params);
+                first = false;
+            }
+            panel.addView(genres);
+
+            LinearLayout flags = ui.row();
+            flags.setGravity(Gravity.TOP);
+            flags.setPadding(0, ui.dp(8), 0, 0);
+            first = true;
+            for (String flag : details.flags) {
+                TextView pill = ui.tagPill(flag, Ui.GLASS, Ui.HAIRLINE, Ui.TEXT_DIM, false);
+                LinearLayout.LayoutParams params = ui.params(-2, -2);
+                if (!first) params.setMarginStart(ui.dp(8));
+                flags.addView(pill, params);
+                first = false;
+            }
+            panel.addView(flags);
+        }
+
+        if (!details.story.isEmpty()) {
+            TextView story = ui.text(details.story, 14, 0xFFE6E6EC);
+            story.setLineSpacing(0, 1.5f);
+            story.setTextDirection(View.TEXT_DIRECTION_RTL);
+            panel.addView(story, ui.withTop(-1, -2, 14));
+        }
+
+        parent.addView(panel);
+    }
+
+    // ── گروه‌های دانلود ──────────────────────────────────────────────
+
+    private void addDownloadGroups(LinearLayout parent, ItemDetails details) {
         for (DownloadGroup group : details.groups) {
             if (group.season) {
-                LinearLayout seasonContent = verticalContainer();
-                for (DownloadCategory category : group.categories) addCategoryDetails(seasonContent, category);
-                String t = group.title + (group.status == null || group.status.isEmpty() ? "" : "  ·  " + group.status);
-                leftCol.addView(expandable(t, seasonContent));
+                LinearLayout seasonContent = ui.column();
+                for (DownloadCategory category : group.categories) addCategory(seasonContent, category);
+                String title = group.title
+                        + (group.status == null || group.status.isEmpty() ? "" : "  ·  " + group.status);
+                parent.addView(ui.expandable(title, seasonContent, 0));
             } else {
-                for (DownloadCategory category : group.categories) addCategoryDetails(leftCol, category);
+                for (DownloadCategory category : group.categories) addCategory(parent, category);
             }
-        }
-        if (!details.comments.isEmpty()) {
-            page.addView(expandable("نظرات (" + toFa(details.comments.size()) + ")", commentsView(details)));
-        }
-        // فوکوس اولیه روی اولین گروه برای راحتی کار با ریموت
-        if (leftCol.getChildCount() > 0) leftCol.getChildAt(0).requestFocus();
-    }
-
-    private void addInfoBlock(LinearLayout parent, ItemDetails details) {
-        if (!details.imdbRating.isEmpty() || !details.satisfaction.isEmpty()) {
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-            if (!details.imdbRating.isEmpty()) {
-                row.addView(makePill("IMDb ‏" + details.imdbRating + "/10",
-                        Color.rgb(229, 9, 20), Color.rgb(229, 9, 20), Color.WHITE));
-            }
-            if (!details.satisfaction.isEmpty()) {
-                TextView gap = new TextView(this);
-                gap.setText("  ");
-                row.addView(gap);
-                row.addView(makePill("رضایت " + details.satisfaction,
-                        Color.rgb(45, 45, 45), Color.rgb(120, 120, 120), Color.WHITE));
-            }
-            row.setPadding(0, dp(8), 0, 0);
-            parent.addView(row);
-        }
-        if (!details.genres.isEmpty() || !details.flags.isEmpty()) {
-            HorizontalScrollView scroll = new HorizontalScrollView(this);
-            scroll.setHorizontalScrollBarEnabled(false);
-            scroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-            boolean first = true;
-            for (String tag : details.genres) {
-                if (!first) row.addView(gapView());
-                row.addView(makePill(tag, Color.TRANSPARENT, Color.rgb(229, 9, 20), Color.WHITE));
-                first = false;
-            }
-            for (String tag : details.flags) {
-                if (!first) row.addView(gapView());
-                row.addView(makePill(tag, Color.rgb(45, 45, 45), Color.rgb(45, 45, 45), Color.LTGRAY));
-                first = false;
-            }
-            scroll.addView(row);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-            params.setMargins(0, dp(8), 0, 0);
-            parent.addView(scroll, params);
-        }
-        if (!details.story.isEmpty()) {
-            TextView story = new TextView(this);
-            story.setText(details.story);
-            story.setTextColor(Color.WHITE);
-            story.setTextSize(15);
-            story.setTextDirection(View.TEXT_DIRECTION_RTL);
-            story.setLineSpacing(0, 1.35f);
-            story.setPadding(0, dp(10), 0, dp(4));
-            parent.addView(story);
-        }
-        int linkCount = countLinks(details);
-        if (linkCount > 0) {
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-            row.addView(makePill(toFa(linkCount) + " لینک دانلود",
-                    Color.rgb(229, 9, 20), Color.rgb(229, 9, 20), Color.WHITE));
-            row.addView(gapView());
-            row.addView(makePill(toFa(details.groups.size()) + " گروه",
-                    Color.rgb(45, 45, 45), Color.rgb(120, 120, 120), Color.WHITE));
-            row.setPadding(0, 0, 0, dp(4));
-            parent.addView(row);
         }
     }
 
-    private TextView gapView() {
-        TextView gap = new TextView(this);
-        gap.setText("  ");
-        return gap;
-    }
-
-    private TextView makePill(String text, int fill, int stroke, int textColor) {
-        TextView pill = new TextView(this);
-        pill.setText(text);
-        pill.setTextColor(textColor);
-        pill.setTextSize(13);
-        pill.setTextDirection(View.TEXT_DIRECTION_RTL);
-        pill.setGravity(Gravity.CENTER);
-        android.graphics.drawable.GradientDrawable bg =
-                new android.graphics.drawable.GradientDrawable();
-        bg.setColor(fill);
-        bg.setStroke(dp(1), stroke);
-        bg.setCornerRadius(dp(14));
-        pill.setBackground(bg);
-        int hPad = dp(12);
-        int vPad = dp(5);
-        pill.setPadding(hPad, vPad, hPad, vPad);
-        return pill;
-    }
-
-    private View commentsView(ItemDetails details) {
-        LinearLayout container = verticalContainer();
-        for (CommentItem comment : details.comments) {
-            TextView head = new TextView(this);
-            String who = comment.author.isEmpty() ? "کاربر" : comment.author;
-            head.setText(who + (comment.time.isEmpty() ? "" : " · " + comment.time));
-            head.setTextColor(Color.rgb(229, 9, 20));
-            head.setTextSize(13);
-            head.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-            head.setTextDirection(View.TEXT_DIRECTION_RTL);
-            head.setPadding(0, dp(8), 0, 0);
-            container.addView(head);
-            TextView body = new TextView(this);
-            body.setText(comment.text);
-            body.setTextColor(Color.LTGRAY);
-            body.setTextSize(14);
-            body.setTextDirection(View.TEXT_DIRECTION_RTL);
-            body.setLineSpacing(0, 1.3f);
-            container.addView(body);
+    private void addCategory(LinearLayout parent, DownloadCategory category) {
+        LinearLayout content = ui.column();
+        for (DownloadOption option : category.options) {
+            content.addView(ui.expandable(optionLabel(option), linkGrid(option), 2));
         }
+        String title = category.title == null || category.title.isEmpty() ? "دانلودها" : category.title;
+        parent.addView(ui.expandable(title, content, 1));
+    }
+
+    private String optionLabel(DownloadOption option) {
+        StringBuilder label = new StringBuilder();
+        if (option.quality != null && !option.quality.isEmpty()) label.append(option.quality);
+        if (option.encoder != null && !option.encoder.isEmpty()) {
+            if (label.length() > 0) label.append("  ·  ");
+            label.append(option.encoder);
+        }
+        if (label.length() == 0) label.append("دانلود");
+        label.append("  ·  ").append(Ui.fa(option.links.size())).append(" لینک");
+        return label.toString();
+    }
+
+    /** لینک‌های یک کیفیت، سه ستون در صفحه. */
+    private View linkGrid(DownloadOption option) {
+        int columns = 3;
+        LinearLayout container = ui.column();
+        container.setPadding(0, ui.dp(8), 0, ui.dp(2));
+        List<View> rowCards = new ArrayList<>();
+        for (final MediaLink link : option.links) {
+            String label = "دانلود مستقیم".equals(link.label) ? "پخش رایگان" : link.label;
+            TextView button = ui.gridButton(label, R.drawable.ic_play);
+            button.setOnClickListener(v -> play(link));
+            rowCards.add(button);
+            if (rowCards.size() == columns) {
+                container.addView(linkRow(rowCards, columns));
+                rowCards = new ArrayList<>();
+            }
+        }
+        if (!rowCards.isEmpty()) container.addView(linkRow(rowCards, columns));
         return container;
     }
 
-    private String toFa(int n) {
-        return String.valueOf(n).replace('0', '۰').replace('1', '۱').replace('2', '۲')
-                .replace('3', '۳').replace('4', '۴').replace('5', '۵')
-                .replace('6', '۶').replace('7', '۷').replace('8', '۸').replace('9', '۹');
-    }
-
-    private void addCategoryDetails(LinearLayout parent, DownloadCategory category) {
-        LinearLayout categoryContent = verticalContainer();
-        for (DownloadOption option : category.options) {
-            LinearLayout optionContent = verticalContainer();
-            for (MediaLink link : option.links) {
-                String displayLabel = "دانلود مستقیم".equals(link.label) ? "پخش رایگان" : link.label;
-                Button play = labeledIconButton(displayLabel, R.drawable.ic_play);
-                play.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-                play.setTextDirection(View.TEXT_DIRECTION_RTL);
-                play.setOnClickListener(v -> {
-                    Intent intent = new Intent(this, PlayerActivity.class);
-                    intent.putExtra(PlayerActivity.EXTRA_URL, link.url);
-                    intent.putExtra(PlayerActivity.EXTRA_TITLE, link.label);
-                    startActivity(intent);
-                });
-                optionContent.addView(play, new LinearLayout.LayoutParams(-1, dp(56)));
-            }
-            String quality = option.quality == null || option.quality.isEmpty() ? "دانلود" : option.quality;
-            if (option.encoder != null && !option.encoder.isEmpty()) quality += "  ·  " + option.encoder;
-            categoryContent.addView(expandable(quality, optionContent));
+    private LinearLayout linkRow(List<View> buttons, int columns) {
+        List<View> cells = new ArrayList<>(buttons);
+        while (cells.size() < columns) {
+            // جای خالی تا دکمه‌های ردیف آخر هم‌اندازهٔ بقیه بمانند
+            cells.add(new View(this));
         }
-        String title = category.title == null ? "دانلودها" : category.title;
-        parent.addView(expandable(title, categoryContent));
+        LinearLayout row = ui.gridRow(cells);
+        LinearLayout.LayoutParams params = ui.params(-1, -2);
+        params.bottomMargin = ui.dp(8);
+        params.setMarginStart(ui.dp(8));
+        row.setLayoutParams(params);
+        return row;
     }
 
-    private View expandable(String title, View content) {
-        LinearLayout box = verticalContainer();
-        TextView summary = new TextView(this);
-        summary.setText(title);
-        summary.setTextColor(Color.WHITE);
-        summary.setTextSize(17);
-        summary.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        summary.setTextDirection(View.TEXT_DIRECTION_RTL);
-        summary.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                R.drawable.ic_chevron_end, 0, 0, 0);
-        summary.setCompoundDrawablePadding(dp(8));
-        summary.setPadding(dp(14), dp(13), dp(14), dp(13));
-        summary.setFocusable(true);
-        summary.setClickable(true);
-        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(0x33FFFFFF);
-        final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
-        summary.setBackground(idleBg);
-        summary.setOnFocusChangeListener((v, hasFocus) -> summary.setBackground(hasFocus ? focusedBg : idleBg));
-        content.setVisibility(View.GONE);
-        summary.setOnClickListener(v -> {
-            boolean expand = content.getVisibility() != View.VISIBLE;
-            content.setVisibility(expand ? View.VISIBLE : View.GONE);
-            summary.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    expand ? R.drawable.ic_chevron_down : R.drawable.ic_chevron_end, 0, 0, 0);
-        });
-        box.addView(summary);
-        box.addView(content);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.setMargins(0, dp(3), 0, dp(3));
-        box.setLayoutParams(params);
-        return box;
+    private void play(MediaLink link) {
+        Intent intent = new Intent(this, PlayerActivity.class);
+        intent.putExtra(PlayerActivity.EXTRA_URL, link.url);
+        intent.putExtra(PlayerActivity.EXTRA_TITLE, link.label);
+        startActivity(intent);
+    }
+
+    private MediaLink firstLink(ItemDetails details) {
+        for (DownloadGroup group : details.groups) {
+            for (DownloadCategory category : group.categories) {
+                for (DownloadOption option : category.options) {
+                    if (!option.links.isEmpty()) return option.links.get(0);
+                }
+            }
+        }
+        return null;
+    }
+
+    // ── نظرات ────────────────────────────────────────────────────────
+
+    private View commentsView(ItemDetails details) {
+        LinearLayout container = ui.column();
+        container.setPadding(0, ui.dp(4), 0, 0);
+        for (CommentItem comment : details.comments) {
+            LinearLayout card = ui.column();
+            card.setBackground(ui.stroked(Ui.SURFACE, Ui.RADIUS_CARD, 1, 0x14FFFFFF));
+            card.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(14));
+            LinearLayout.LayoutParams cardParams = ui.params(-1, -2);
+            cardParams.bottomMargin = ui.dp(10);
+            card.setLayoutParams(cardParams);
+
+            String who = comment.author.isEmpty() ? "کاربر" : comment.author;
+            TextView head = ui.text(who + (comment.time.isEmpty() ? "" : "  ·  " + comment.time),
+                    12, Ui.BRAND, true);
+            card.addView(head);
+
+            TextView body = ui.text(comment.text, 14, Ui.TEXT_DIM);
+            body.setLineSpacing(0, 1.35f);
+            card.addView(body, ui.withTop(-1, -2, 6));
+            container.addView(card);
+        }
+        return container;
     }
 
     private int countLinks(ItemDetails details) {
@@ -416,53 +467,38 @@ public class DetailsActivity extends AppCompatActivity {
         return n;
     }
 
+    private TextView note(String text) {
+        TextView view = ui.dim(text, 14);
+        view.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(8), ui.dp(Ui.PAGE_PAD), ui.dp(12));
+        return view;
+    }
+
     private void addSmallText(String text) {
-        TextView label = new TextView(this);
-        label.setText(text);
-        label.setTextColor(Color.LTGRAY);
-        label.setTextSize(14);
-        label.setTextDirection(View.TEXT_DIRECTION_RTL);
-        page.addView(label);
+        page.addView(note(text == null ? "" : text));
     }
 
-    private Button toolbarButton(String text) {
-        Button button = new Button(this);
-        button.setText(text);
-        button.setTextColor(Color.WHITE);
-        button.setTextDirection(View.TEXT_DIRECTION_RTL);
-        button.setAllCaps(false);
-        button.setFocusable(true);
-        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(0x33FFFFFF);
-        final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
-        button.setBackground(idleBg);
-        button.setOnFocusChangeListener((v, hasFocus) -> button.setBackground(hasFocus ? focusedBg : idleBg));
-        return button;
+    /** فوکوس اولیه: دکمهٔ پخش، وگرنه اولین گروه دانلود. */
+    private void focusFirst(final LinearLayout downloadsColumn) {
+        page.post(() -> {
+            View play = findTagged(page, "play");
+            if (play != null) {
+                play.requestFocus();
+                return;
+            }
+            if (downloadsColumn.getChildCount() > 0) downloadsColumn.getChildAt(0).requestFocus();
+        });
     }
 
-    private Button labeledIconButton(String text, int iconRes) {
-        Button button = toolbarButton(text);
-        button.setCompoundDrawablesRelativeWithIntrinsicBounds(iconRes, 0, 0, 0);
-        button.setCompoundDrawablePadding(dp(6));
-        return button;
-    }
-
-    private android.graphics.drawable.GradientDrawable roundedBg(int color) {
-        android.graphics.drawable.GradientDrawable drawable =
-                new android.graphics.drawable.GradientDrawable();
-        drawable.setColor(color);
-        drawable.setCornerRadius(dp(10));
-        return drawable;
-    }
-
-    private LinearLayout verticalContainer() {
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        return container;
-    }
-
-    private int dp(float value) {
-        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    private View findTagged(View root, String tag) {
+        if (tag.equals(root.getTag()) && root.isFocusable()) return root;
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = findTagged(group.getChildAt(i), tag);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     @Override
