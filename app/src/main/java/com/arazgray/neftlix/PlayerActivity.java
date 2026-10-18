@@ -219,7 +219,7 @@ public class PlayerActivity extends AppCompatActivity {
             return;
         }
 
-        final boolean[] chosen = {-2};
+        final int[] chosen = {-2};
         for (int i = 0; i < labels.size(); i++) {
             Button option = subtitleButton(labels.get(i) + (selected.contains(i) ? " (فعال)" : ""));
             final int trackIndex = i;
