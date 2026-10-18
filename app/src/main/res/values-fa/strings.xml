@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">نفتلیکس</string>
+    <string name="brand">نفتلیکس</string>
+    <string name="search_hint">جست‌وجوی فیلم و سریال…</string>
+    <string name="search">جست‌وجو</string>
+    <string name="all">همه</string>
+    <string name="refresh">به‌روزرسانی</string>
+    <string name="movies">فیلم‌ها</string>
+    <string name="series">سریال‌ها</string>
+    <string name="movie_categories">دسته‌بندی فیلم‌ها</string>
+    <string name="series_categories">دسته‌بندی سریال‌ها</string>
+    <string name="back">بازگشت</string>
+    <string name="loading">در حال بارگذاری…</string>
+    <string name="no_items">موردی پیدا نشد.</string>
+</resources>

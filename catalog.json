@@ -1,0 +1,1750 @@
+{
+    "source": "https://www.myf2mi.top/",
+    "generated_at": "2026-10-11T12:16:45+00:00",
+    "crawl_options": {
+        "start_url": "https://www.myf2mi.top/",
+        "archive_pages_per_section": 1,
+        "delay_seconds": 1
+    },
+    "categories": [
+        {
+            "name": "اکشن",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/action/?type=movie",
+            "item_count": 2509
+        },
+        {
+            "name": "انیمه",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/anime/?type=movie",
+            "item_count": 16
+        },
+        {
+            "name": "انیمیشن",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/animation/?type=movie",
+            "item_count": 586
+        },
+        {
+            "name": "برنامه‌ تلویزیونی‌",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/reality-tv/?type=movie",
+            "item_count": 8
+        },
+        {
+            "name": "بیوگرافی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/biography/?type=movie",
+            "item_count": 559
+        },
+        {
+            "name": "تاریخی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/history/?type=movie",
+            "item_count": 471
+        },
+        {
+            "name": "تاک شو",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/talk-show/?type=movie",
+            "item_count": 2
+        },
+        {
+            "name": "ترسناک",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/horror/?type=movie",
+            "item_count": 1271
+        },
+        {
+            "name": "جنایی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/crime/?type=movie",
+            "item_count": 1647
+        },
+        {
+            "name": "جنگی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/war/?type=movie",
+            "item_count": 328
+        },
+        {
+            "name": "خانوادگی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/family/?type=movie",
+            "item_count": 646
+        },
+        {
+            "name": "درام",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/drama/?type=movie",
+            "item_count": 4789
+        },
+        {
+            "name": "عاشقانه",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/romance/?type=movie",
+            "item_count": 1267
+        },
+        {
+            "name": "علمی تخیلی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/sci-fi/?type=movie",
+            "item_count": 835
+        },
+        {
+            "name": "فانتزی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/fantasy/?type=movie",
+            "item_count": 871
+        },
+        {
+            "name": "فراطبیعی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/supernatural/?type=movie",
+            "item_count": 1
+        },
+        {
+            "name": "فیلم-نوآر",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/film-noir/?type=movie",
+            "item_count": 46
+        },
+        {
+            "name": "کمدی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/comedy/?type=movie",
+            "item_count": 2067
+        },
+        {
+            "name": "کوتاه",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/short/?type=movie",
+            "item_count": 45
+        },
+        {
+            "name": "ماجراجویی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/adventure/?type=movie",
+            "item_count": 1490
+        },
+        {
+            "name": "مستند",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/documentary/?type=movie",
+            "item_count": 111
+        },
+        {
+            "name": "معمایی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/mystery/?type=movie",
+            "item_count": 1198
+        },
+        {
+            "name": "ملودرام",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/%d9%90drama/?type=movie",
+            "item_count": 60
+        },
+        {
+            "name": "موزیک",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/music/?type=movie",
+            "item_count": 209
+        },
+        {
+            "name": "موزیکال",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/musical/?type=movie",
+            "item_count": 145
+        },
+        {
+            "name": "نامشخص",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/n-a/?type=movie",
+            "item_count": 25
+        },
+        {
+            "name": "هیجان انگیز",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/thriller/?type=movie",
+            "item_count": 2908
+        },
+        {
+            "name": "ورزشی",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/sport/?type=movie",
+            "item_count": 195
+        },
+        {
+            "name": "وسترن",
+            "type": "movie",
+            "url": "https://www.myf2mi.top/genres/western/?type=movie",
+            "item_count": 200
+        },
+        {
+            "name": "adult",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/adult/?type=series",
+            "item_count": 2
+        },
+        {
+            "name": "diy",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/diy/?type=series",
+            "item_count": 1
+        },
+        {
+            "name": "science-fiction",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/science-fiction/?type=series",
+            "item_count": 185
+        },
+        {
+            "name": "sports",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/sports/?type=series",
+            "item_count": 20
+        },
+        {
+            "name": "اکشن",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/action/?type=series",
+            "item_count": 503
+        },
+        {
+            "name": "انیمه",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/anime/?type=series",
+            "item_count": 92
+        },
+        {
+            "name": "انیمیشن",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/animation/?type=series",
+            "item_count": 253
+        },
+        {
+            "name": "برنامه‌ تلویزیونی‌",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/reality-tv/?type=series",
+            "item_count": 9
+        },
+        {
+            "name": "بیوگرافی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/biography/?type=series",
+            "item_count": 56
+        },
+        {
+            "name": "پزشکی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/medical/?type=series",
+            "item_count": 21
+        },
+        {
+            "name": "تاریخی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/history/?type=series",
+            "item_count": 151
+        },
+        {
+            "name": "تاک شو",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/talk-show/?type=series",
+            "item_count": 1
+        },
+        {
+            "name": "ترسناک",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/horror/?type=series",
+            "item_count": 113
+        },
+        {
+            "name": "جاسوسی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/espionage/?type=series",
+            "item_count": 33
+        },
+        {
+            "name": "جنایی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/crime/?type=series",
+            "item_count": 474
+        },
+        {
+            "name": "جنگی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/war/?type=series",
+            "item_count": 34
+        },
+        {
+            "name": "حقوقی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/legal/?type=series",
+            "item_count": 22
+        },
+        {
+            "name": "خانوادگی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/family/?type=series",
+            "item_count": 64
+        },
+        {
+            "name": "درام",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/drama/?type=series",
+            "item_count": 1397
+        },
+        {
+            "name": "سفر",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/travel/?type=series",
+            "item_count": 3
+        },
+        {
+            "name": "طبیعت",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/nature/?type=series",
+            "item_count": 5
+        },
+        {
+            "name": "عاشقانه",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/romance/?type=series",
+            "item_count": 420
+        },
+        {
+            "name": "علمی تخیلی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/sci-fi/?type=series",
+            "item_count": 218
+        },
+        {
+            "name": "غذا",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/food/?type=series",
+            "item_count": 4
+        },
+        {
+            "name": "فانتزی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/fantasy/?type=series",
+            "item_count": 276
+        },
+        {
+            "name": "فراطبیعی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/supernatural/?type=series",
+            "item_count": 62
+        },
+        {
+            "name": "کمدی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/comedy/?type=series",
+            "item_count": 459
+        },
+        {
+            "name": "کوتاه",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/short/?type=series",
+            "item_count": 9
+        },
+        {
+            "name": "کودک و نوجوان",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/children/?type=series",
+            "item_count": 5
+        },
+        {
+            "name": "ماجراجویی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/adventure/?type=series",
+            "item_count": 311
+        },
+        {
+            "name": "مسابقه‌ ها",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/game-show/?type=series",
+            "item_count": 3
+        },
+        {
+            "name": "مستند",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/documentary/?type=series",
+            "item_count": 17
+        },
+        {
+            "name": "معمایی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/mystery/?type=series",
+            "item_count": 319
+        },
+        {
+            "name": "ملودرام",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/%d9%90drama/?type=series",
+            "item_count": 10
+        },
+        {
+            "name": "موزیک",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/music/?type=series",
+            "item_count": 15
+        },
+        {
+            "name": "موزیکال",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/musical/?type=series",
+            "item_count": 3
+        },
+        {
+            "name": "نامشخص",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/n-a/?type=series",
+            "item_count": 1
+        },
+        {
+            "name": "هیجان انگیز",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/thriller/?type=series",
+            "item_count": 513
+        },
+        {
+            "name": "ورزشی",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/sport/?type=series",
+            "item_count": 18
+        },
+        {
+            "name": "وسترن",
+            "type": "series",
+            "url": "https://www.myf2mi.top/genres/western/?type=series",
+            "item_count": 26
+        }
+    ],
+    "sections": [
+        {
+            "name": "Featured",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/",
+            "items": [
+                {
+                    "title": "East of Eden",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/6o786rTQZCpdZoPM5zv7A7EOMZn.jpg",
+                    "url": "https://www.myf2mi.top/series/east-of-eden/"
+                },
+                {
+                    "title": "Matchbox the Movie 2026",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/jdJsnhHfkIi3J7jwfiCFT4gXNx5.jpg",
+                    "url": "https://www.myf2mi.top/87822/matchbox-the-movie-2026/"
+                },
+                {
+                    "title": "Dark Matter",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2024/06/nbY7k4L6xNFXakjJf0uwEnPh2S-1.jpg",
+                    "url": "https://www.myf2mi.top/series/dark-matter/"
+                },
+                {
+                    "title": "Spider-Man: Brand New Day",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/mfo3LxD1t4TwFGl2MqDEYwkL5if.jpg",
+                    "url": "https://www.myf2mi.top/76906/spider-man-brand-new-day/"
+                },
+                {
+                    "title": "MobLand",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2025/06/Mobland-Tom-Hardy.jpg",
+                    "url": "https://www.myf2mi.top/series/mobland/"
+                },
+                {
+                    "title": "Carrie",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/5Zwl8JqCAgsljpqsZzczBCc4cuy.jpg",
+                    "url": "https://www.myf2mi.top/series/carrie/"
+                },
+                {
+                    "title": "Slow Horses",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/gPQppUnLx9vqPDLz3WwZ2HJsNbt.jpg",
+                    "url": "https://www.myf2mi.top/series/slow-horses/"
+                },
+                {
+                    "title": "Fall 2: Deadpoint 2026",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/j5PqG9rD0aUUIKEkGkWt7AaKnRa.jpg",
+                    "url": "https://www.myf2mi.top/87640/fall-2-deadpoint-2026/"
+                },
+                {
+                    "title": "Lanterns",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/eYvhRHD06mNUJAfAMyRVwtxIWQx.jpg",
+                    "url": "https://www.myf2mi.top/series/lanterns/"
+                },
+                {
+                    "title": "Insidious: Out of the Further 2026",
+                    "page_title": null,
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/Image_ikihr7ikihr7ikih.jpg",
+                    "url": "https://www.myf2mi.top/87604/insidious-out-of-the-further-2026/"
+                }
+            ]
+        },
+        {
+            "name": "فیلم‌های به روز شده",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/movies/",
+            "items": [
+                {
+                    "title": "Capture 2026",
+                    "page_title": "دانلود فیلم تسخیر Capture 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-30-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87982/capture-2026/"
+                },
+                {
+                    "title": "Bring Him Down to a Portable Size 2025",
+                    "page_title": "دانلود فیلم Bring Him Down to a Portable Size 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-28-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87944/bring-him-down-to-a-portable-size-2025/"
+                },
+                {
+                    "title": "Photographer 2026",
+                    "page_title": "دانلود فیلم عکاس Photographer 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/3-6-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87861/photographer-2026/"
+                },
+                {
+                    "title": "Ram and Leela 2026",
+                    "page_title": "دانلود فیلم رام و لیلا Ram and Leela 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-24-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87864/ram-and-leela-2026/"
+                },
+                {
+                    "title": "Accursed 2026",
+                    "page_title": "دانلود فیلم نفرین شده Accursed 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-27-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87923/accursed-2026/"
+                },
+                {
+                    "title": "Until We Meet Again 2026",
+                    "page_title": "دانلود فیلم تا دوباره ملاقات کنیم Until We Meet Again 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-26-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87917/until-we-meet-again-2026/"
+                },
+                {
+                    "title": "Baby Do Die Do 2026",
+                    "page_title": "دانلود فیلم بیبی آدمکش Baby Do Die Do 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-21-180x280.jpg",
+                    "url": "https://www.myf2mi.top/86924/baby-do-die-do-2026/"
+                },
+                {
+                    "title": "Animals 2026",
+                    "page_title": "دانلود فیلم Animals 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/cyltXU1lAGhRFBuHQIMWBAPj8fI-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87899/animals-2026/"
+                },
+                {
+                    "title": "Your Mother Your Mother Your Mother 2026",
+                    "page_title": "دانلود فیلم مادرت مادرت مادرت Your Mother Your Mother Your Mother 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/5-1-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87832/your-mother-your-mother-your-mother-2026/"
+                },
+                {
+                    "title": "Racewalkers 2025",
+                    "page_title": "دانلود فیلم Racewalkers 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/3-7-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87875/racewalkers-2025/"
+                },
+                {
+                    "title": "The Swan: Behind the Mirror 2026",
+                    "page_title": "دانلود فیلم قو: پشت آینه The Swan: Behind the Mirror 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-28-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87302/the-swan-behind-the-mirror-2026/"
+                },
+                {
+                    "title": "Sardar 2 2026",
+                    "page_title": "دانلود فیلم سردار 2 Sardar 2 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-25-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87871/sardar-2-2026/"
+                },
+                {
+                    "title": "Redline Fury 2026",
+                    "page_title": "دانلود فیلم خط قرمز انتقام Redline Fury 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-23-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87851/redline-fury-2026/"
+                },
+                {
+                    "title": "Timur",
+                    "page_title": "دانلود فیلم تیمور Timur 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/1-16-180x280.jpg",
+                    "url": "https://www.myf2mi.top/73245/timur-2025/"
+                },
+                {
+                    "title": "Ohh My Dog 2026",
+                    "page_title": "دانلود فیلم اوه سگ من Ohh My Dog 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-20-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87774/ohh-my-dog-2026/"
+                },
+                {
+                    "title": "Matchbox the Movie 2026",
+                    "page_title": "دانلود فیلم Matchbox the Movie 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-21-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87822/matchbox-the-movie-2026/"
+                }
+            ]
+        },
+        {
+            "name": "سریال‌های به روز شده",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/series/",
+            "items": [
+                {
+                    "title": "Aoashi",
+                    "page_title": "دانلود انیمه Aoashi",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/erwRgEPtUtyv3Vkmxt0MhjKi5kA-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/aoashi/"
+                },
+                {
+                    "title": "Jaadugar: A Witch in Mongolia",
+                    "page_title": "دانلود سریال جادوگر یک ساحره در مغولستان Jaadugar: A Witch in Mongolia بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/z6mwpBvWRqUdGS7rrZHeyeYf4rZ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/jaadugar-a-witch-in-mongolia/"
+                },
+                {
+                    "title": "Treasure Island",
+                    "page_title": "دانلود سریال جزیره گنج Treasure Island",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/7qtWFcBHboglQ3LVF1CZv6xBbqp-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/treasure-island/"
+                },
+                {
+                    "title": "The Drop: A Snowfall Saga",
+                    "page_title": "دانلود سریال The Drop: A Snowfall Saga بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/naCJhAWRtxBWBfMYdFpM5sPwczI-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-drop-a-snowfall-saga/"
+                },
+                {
+                    "title": "Adventure Time: Side Quests",
+                    "page_title": "دانلود سریال Adventure Time: Side Quests بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/tDAObAvUx2tw4ZM6ohqo06pqQyW-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/adventure-time-side-quests/"
+                },
+                {
+                    "title": "Kill Jackie",
+                    "page_title": "دانلود سریال Kill Jackie بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/vvMpr6wO4EMtA7lqftffTel5c1R-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/kill-jackie/"
+                },
+                {
+                    "title": "The Audacity",
+                    "page_title": "دانلود سریال The Audacity بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/ea6hHjW8yWjROSYwynpWsYc4mYZ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-audacity/"
+                },
+                {
+                    "title": "Cranberry Sorbet/Kizilcik Serbeti",
+                    "page_title": "دانلود سریال شربت زغال اخته Cranberry Sorbet/Kizilcik Serbeti بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/Image_zcdiavzcdiavzcdi-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/cranberry-sorbet/"
+                },
+                {
+                    "title": "The Vermillion Mask",
+                    "page_title": "دانلود سریال نقاب سرخ The Vermillion Mask بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/jIQ8cnTs7sCMzEfBviyyD4eXMiY-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-vermillion-mask/"
+                },
+                {
+                    "title": "100 Days of Lies",
+                    "page_title": "دانلود سریال صد روز فریب 100 Days of Lies بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/cX9O60aya6MipGJyX66ViFwcjtn-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/100-days-of-lies/"
+                },
+                {
+                    "title": "Magical Explorer",
+                    "page_title": "دانلود انیمه Magical Explorer بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1mcErCeGi77UmV50E81fwvftdp2-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/magical-explorer/"
+                },
+                {
+                    "title": "Romelia War Chronicle",
+                    "page_title": "دانلود انیمه Romelia War Chronicle بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/xOhx5KpSAlrEbqsu9TaCdmdIb72-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/romelia-war-chronicle/"
+                },
+                {
+                    "title": "A Wild Last Boss Appeared!",
+                    "page_title": "دانلود انیمه A Wild Last Boss Appeared! بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/vrI5vaabJ928ka3icedsiBhYugc-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-wild-last-boss-appeared/"
+                },
+                {
+                    "title": "A Tale of the Secret Saint",
+                    "page_title": "دانلود انیمه A Tale of the Secret Saint بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1GVr3SPCgOveV2ay1CcFtSphf4m-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-tale-of-the-secret-saint/"
+                },
+                {
+                    "title": "Doctor X: Mafia in White/Doctor X: Age of the White Mafia",
+                    "page_title": "دانلود سریال دکتر ایکس مافیا سفید پوش Doctor X: Mafia in White/Doctor X: Age of the White Mafia",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/a5kWnqgoTOWrv2xZoruQgTSbGgA-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/doctor-x-mafia-in-white-doctor-x-age-of-the-white-mafia/"
+                },
+                {
+                    "title": "A Love Other Than Yours",
+                    "page_title": "دانلود سریال عشقی غیر از تو A Love Other Than Yours بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/jvNFIc9qy9ynCuKMar9YC258gJP-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-love-other-than-yours/"
+                }
+            ]
+        },
+        {
+            "name": "برترین فیلم‌های 2026",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/category/f2m-top-movies/",
+            "items": [
+                {
+                    "title": "Matchbox the Movie 2026",
+                    "page_title": "دانلود فیلم Matchbox the Movie 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-21-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87822/matchbox-the-movie-2026/"
+                },
+                {
+                    "title": "Heart of the Beast 2026",
+                    "page_title": "دانلود فیلم قلب هیولا Heart of the Beast 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-18-180x280.jpg",
+                    "url": "https://www.myf2mi.top/86861/heart-of-the-beast-2026/"
+                },
+                {
+                    "title": "Spider-Man: Brand New Day",
+                    "page_title": "دانلود فیلم مرد عنکبوتی روز کاملا جدید Spider-Man: Brand New Day 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/bjiS5ipwxb9JFy3XRRN4OAilSeX-180x280.jpg",
+                    "url": "https://www.myf2mi.top/76906/spider-man-brand-new-day/"
+                },
+                {
+                    "title": "Colony 2026",
+                    "page_title": "دانلود فیلم کلونی Colony 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/1-63-180x280.jpg",
+                    "url": "https://www.myf2mi.top/82937/colony-2026/"
+                },
+                {
+                    "title": "Onslaught 2026",
+                    "page_title": "دانلود فیلم یورش Onslaught 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-14-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87646/onslaught-2026/"
+                },
+                {
+                    "title": "Fall 2: Deadpoint 2026",
+                    "page_title": "دانلود فیلم سقوط 2: نقطه مرگ Fall 2: Deadpoint 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-13-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87640/fall-2-deadpoint-2026/"
+                },
+                {
+                    "title": "Insidious: Out of the Further 2026",
+                    "page_title": "دانلود فیلم توطئه‌ آمیز: از دنیای ماوراء Insidious: Out of the Further 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-12-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87604/insidious-out-of-the-further-2026/"
+                },
+                {
+                    "title": "De Gaulle: Résistance 2026",
+                    "page_title": "دانلود فیلم De Gaulle: Résistance 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-10-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87537/de-gaulle-resistance-2026/"
+                },
+                {
+                    "title": "Moana 2026",
+                    "page_title": "دانلود فیلم موانا Moana 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/1-39-180x280.jpg",
+                    "url": "https://www.myf2mi.top/82568/moana-2026/"
+                },
+                {
+                    "title": "The Rivals of Amziah King 2025",
+                    "page_title": "دانلود فیلم رقبای امزایا کینگ The Rivals of Amziah King 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-12-180x280.jpg",
+                    "url": "https://www.myf2mi.top/86388/the-rivals-of-amziah-king-2025/"
+                },
+                {
+                    "title": "The Uprising 2026",
+                    "page_title": "دانلود فیلم قیام The Uprising 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/1-80-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87259/the-uprising-2026/"
+                },
+                {
+                    "title": "Minions & Monsters 2026",
+                    "page_title": "دانلود انیمیشن مینیون ها و هیولاها Minions & Monsters 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/1-8-180x280.jpg",
+                    "url": "https://www.myf2mi.top/81868/minions-monsters-2026/"
+                },
+                {
+                    "title": "Coyote vs. Acme 2026",
+                    "page_title": "دانلود فیلم کایوت در برابر اکمی Coyote vs. Acme 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/fOCkDeZx7VuPhLHiIElRHQl7Wkk-180x280.jpg",
+                    "url": "https://www.myf2mi.top/85653/coyote-vs-acme-2026/"
+                },
+                {
+                    "title": "Unabomber 2026",
+                    "page_title": "دانلود فیلم یونابامبر Unabomber 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-27-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87052/unabomber-2026/"
+                },
+                {
+                    "title": "Forbidden Fruits",
+                    "page_title": "دانلود فیلم Forbidden Fruits 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/1-87-180x280.jpg",
+                    "url": "https://www.myf2mi.top/76477/forbidden-fruits-2026/"
+                },
+                {
+                    "title": "Runner 2026",
+                    "page_title": "دانلود فیلم دونده Runner 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/1-74-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87143/runner-2026/"
+                }
+            ]
+        },
+        {
+            "name": "سریال‌های جهانی",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/series/",
+            "items": [
+                {
+                    "title": "Treasure Island",
+                    "page_title": "دانلود سریال جزیره گنج Treasure Island",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/7qtWFcBHboglQ3LVF1CZv6xBbqp-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/treasure-island/"
+                },
+                {
+                    "title": "The Drop: A Snowfall Saga",
+                    "page_title": "دانلود سریال The Drop: A Snowfall Saga بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/naCJhAWRtxBWBfMYdFpM5sPwczI-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-drop-a-snowfall-saga/"
+                },
+                {
+                    "title": "Adventure Time: Side Quests",
+                    "page_title": "دانلود سریال Adventure Time: Side Quests بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/tDAObAvUx2tw4ZM6ohqo06pqQyW-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/adventure-time-side-quests/"
+                },
+                {
+                    "title": "Kill Jackie",
+                    "page_title": "دانلود سریال Kill Jackie بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/vvMpr6wO4EMtA7lqftffTel5c1R-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/kill-jackie/"
+                },
+                {
+                    "title": "The Audacity",
+                    "page_title": "دانلود سریال The Audacity بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/ea6hHjW8yWjROSYwynpWsYc4mYZ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-audacity/"
+                },
+                {
+                    "title": "Cupertino",
+                    "page_title": "دانلود سریال Cupertino بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/70AhJpOqU2oKyQF2paJA764CSje-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/cupertino/"
+                },
+                {
+                    "title": "Lego One Piece",
+                    "page_title": "دانلود سریال وان پیس لگویی Lego One Piece بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/hTUHZ337JzqPvRXBQ3lu0GBkOvz-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/lego-one-piece/"
+                },
+                {
+                    "title": "Avatar: Seven Havens",
+                    "page_title": "دانلود سریال آواتار هفت پناهگاه Avatar: Seven Havens بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/rZKNodF7Rxr9Sk88fDpgnbTgbpS-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/avatar-seven-havens/"
+                },
+                {
+                    "title": "American Horror Story",
+                    "page_title": "دانلود سریال داستان ترسناک آمریکایی American Horror Story بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2024/04/6wlK2qwnsiMlNUWtcgClpY0YlhQ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/american-horror-story-2/"
+                },
+                {
+                    "title": "The Sisters Grimm",
+                    "page_title": "دانلود سریال The Sisters Grimm بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2025/10/xLWppjhMb8ZgUE4WjlvAkYgvj16-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-sisters-grimm/"
+                },
+                {
+                    "title": "Marshals",
+                    "page_title": "دانلود سریال مارشال ها Marshals بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/05/zV1MRb6eqx6Uj3NSXquZFfz75pa-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/marshals/"
+                },
+                {
+                    "title": "East of Eden",
+                    "page_title": "دانلود سریال شرق بهشت East of Eden بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/VMyZWR0GBHGY9WIwcaj232ALAl-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/east-of-eden/"
+                },
+                {
+                    "title": "War",
+                    "page_title": "دانلود سریال War بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/AtCR5LMuvwepTi1kipKq878Rbuq-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/war/"
+                },
+                {
+                    "title": "Scrubs",
+                    "page_title": "دانلود سریال Scrubs بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/02/nNNM50G7p9C3n4vgidCiybsIdHA-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/scrubs-2/"
+                },
+                {
+                    "title": "Below",
+                    "page_title": "دانلود سریال Below بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/ccAzLrruF3UaXjZUEjyfn7FSxCe-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/below/"
+                },
+                {
+                    "title": "Last Seen",
+                    "page_title": "دانلود سریال Last Seen بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/6BZgHA0iB5kAN90TteA37HEnPnx-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/last-seen/"
+                }
+            ]
+        },
+        {
+            "name": "سریال‌های کره‌ای",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/category/korean-tv-series/",
+            "items": [
+                {
+                    "title": "100 Days of Lies",
+                    "page_title": "دانلود سریال صد روز فریب 100 Days of Lies بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/cX9O60aya6MipGJyX66ViFwcjtn-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/100-days-of-lies/"
+                },
+                {
+                    "title": "Doctor X: Mafia in White/Doctor X: Age of the White Mafia",
+                    "page_title": "دانلود سریال دکتر ایکس مافیا سفید پوش Doctor X: Mafia in White/Doctor X: Age of the White Mafia",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/a5kWnqgoTOWrv2xZoruQgTSbGgA-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/doctor-x-mafia-in-white-doctor-x-age-of-the-white-mafia/"
+                },
+                {
+                    "title": "A Love Other Than Yours",
+                    "page_title": "دانلود سریال عشقی غیر از تو A Love Other Than Yours بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/jvNFIc9qy9ynCuKMar9YC258gJP-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-love-other-than-yours/"
+                },
+                {
+                    "title": "Dive Into You",
+                    "page_title": "دانلود سریال غرق در تو Dive Into You بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/6OAuQOGqjYY1JXbkTlWz4Mm2Kmi-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/dive-into-you/"
+                },
+                {
+                    "title": "Take Charge of My Heart",
+                    "page_title": "دانلود سریال شارژر قلب من/قلبم را به دست بگیر Take Charge of My Heart بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/ecRrKGXfflZmDZBD4irdkybClT-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/take-charge-of-my-heart/"
+                },
+                {
+                    "title": "The Ordinary Jackpot",
+                    "page_title": "دانلود سریال The Ordinary Jackpot بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/hub0e50sPTkEH8FKhJmXCW60xVl-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-ordinary-jackpot/"
+                },
+                {
+                    "title": "Merry Berry Love",
+                    "page_title": "دانلود سریال Merry Berry Love بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/av7wQdYaicBCCUFQ6jRlm9ylZx4-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/merry-berry-l/"
+                },
+                {
+                    "title": "Between Steps/Doctor of Love",
+                    "page_title": "دانلود سریال میان قدم ها/دکتر عشق Between Steps/Doctor of Love",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/pGqcErS76y8bcvZZSFUefdZOg2x-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/between-steps-doctor-of-love/"
+                },
+                {
+                    "title": "Love on the Menu",
+                    "page_title": "دانلود سریال عشق در منو Love on the Menu بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/pGEz6J7GFT0LXGBd6ZSHvJtTsAS-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/l-on-the-menu/"
+                },
+                {
+                    "title": "Family Register",
+                    "page_title": "دانلود سریال شناسنامه خانوادگی Family Register بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/1NyZYjWNfFmnXBpkdIg4iKIhHqy-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/family-register/"
+                },
+                {
+                    "title": "My Bias, My Boss",
+                    "page_title": "دانلود سریال بایس من، رئیس من/بایسم، رئیسمه My Bias My Boss بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/A4Y4xlDHS4xi2WI9265vRyIYLoo-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/my-bias-my-boss/"
+                },
+                {
+                    "title": "Four Hands, Two Sonatas",
+                    "page_title": "دانلود سریال چهار دست دو سونات Four Hands, Two Sonatas بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/eTzC7L3HgsNNBEkTpl9s3tVJUYv-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/four-hands-two-sonatas/"
+                },
+                {
+                    "title": "Mousetrap",
+                    "page_title": "دانلود سریال تله موش Mousetrap بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/dXpDkHr8mUAabDVPoEstJ3gzSf6-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/mousetrap/"
+                },
+                {
+                    "title": "Spooky in Love/Chilling Romance",
+                    "page_title": "دانلود سریال عشق وهم آلود Chilling Romance/Spooky in Love بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/8O8dug8mQur6sBMDUgfHXaBgaZb-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/spooky-in-l/"
+                },
+                {
+                    "title": "Made in Korea",
+                    "page_title": "دانلود سریال ساخت کره Made in Korea بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/02/v4oWws9TUenhu6Av5bMQglogpz8-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/made-in-korea/"
+                },
+                {
+                    "title": "Our Sticky Love",
+                    "page_title": "دانلود سریال عشق جدانشدنی ما Our Sticky Love بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/tSZ4aFpTGc8Oj52SuzPUUZ7WKL0-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/our-sticky-l/"
+                }
+            ]
+        },
+        {
+            "name": "سریال‌های ترکی",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/category/turkish-tv-series/",
+            "items": [
+                {
+                    "title": "Cranberry Sorbet/Kizilcik Serbeti",
+                    "page_title": "دانلود سریال شربت زغال اخته Cranberry Sorbet/Kizilcik Serbeti بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/Image_zcdiavzcdiavzcdi-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/cranberry-sorbet/"
+                },
+                {
+                    "title": "Tasacak Bu Deniz",
+                    "page_title": "دانلود سریال این دریا طغیان خواهد کرد Tasacak Bu Deniz بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Gemini_Generated_Image_m0aic9m0aic9m0ai-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/tasacak-bu-deniz/"
+                },
+                {
+                    "title": "Halef",
+                    "page_title": "دانلود سریال خلیفه Halef/Halef: Koklerin Cagrisi بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/21MFceyZdUZmt6W83mVoJYG6NGgr-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/halef/"
+                },
+                {
+                    "title": "Sevdigim sensin/You Are the One I Love",
+                    "page_title": "دانلود سریال کسی که دوستش دارم تویی You Are the One I Love/Sevdigim sensin بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Image_xosnqexosnqexosn1-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/sevdigim-sensin/"
+                },
+                {
+                    "title": "Gunesin Dogdugu Yer",
+                    "page_title": "دانلود سریال جایی که خورشید طلوع میکند Günesin Dogdugu Yer بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Gemini_Generated_Image_u6l7n5u6l7n5u6l7-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/gunesin-dogdugu-yer/"
+                },
+                {
+                    "title": "Ask ve Taht",
+                    "page_title": "دانلود سریال عشق و تخت Ask ve Taht بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/2_Image_k8jjlkk8jjlkk8jj-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/ask-ve-taht/"
+                },
+                {
+                    "title": "Underground",
+                    "page_title": "دانلود سریال ترکی زیرزمین Underground/Yeralti بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/20mscet77fHusfnhjKWcR6Cjeao-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/yeralti/"
+                },
+                {
+                    "title": "Tuzlu Kahve",
+                    "page_title": "دانلود سریال قهوه شور Tuzlu Kahve بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Gemini_Generated_Image_ul943nul943nul94-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/tuzlu-kahve/"
+                },
+                {
+                    "title": "Sevdan Bir Ates",
+                    "page_title": "دانلود سریال عشقت یک آتش است Sevdan Bir Ates بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Gemini_Generated_Image_phq2dlphq2dlphq2-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/sevdan-bir-ates/"
+                },
+                {
+                    "title": "Anne Yarisi",
+                    "page_title": "دانلود سریال نیمه مادر Anne Yarisi بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Gemini_Generated_Image_fbxuyifbxuyifbxu-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/anne-yarisi/"
+                },
+                {
+                    "title": "Haysiyet",
+                    "page_title": "دانلود سریال حیثیت Haysiyet بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Gemini_Generated_Image_y95bsry95bsry95b-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/haysiyet/"
+                },
+                {
+                    "title": "Evlilik Guzeldir",
+                    "page_title": "دانلود سریال ازدواج زیباست Evlilik Güzeldir بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Image_p7kbhjp7kbhjp7kb-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/evlilik-guzeldir/"
+                },
+                {
+                    "title": "Uzak Sehir",
+                    "page_title": "دانلود سریال شهر دور Uzak Sehir بدون سانسور",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2025/08/irduRSwc7EN9H8lqC0ey7UNz4Pz-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/uzak-sehir/"
+                },
+                {
+                    "title": "Omur Usta",
+                    "page_title": "دانلود سریال Omur Usta بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/mage_rpzyztrpzyztrpzy-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/omur-usta/"
+                },
+                {
+                    "title": "Cirkin",
+                    "page_title": "دانلود سریال Cirkin/Ugly بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/06/Gemini_Generated_Image_3by5py3by5py3by5-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/cirkin/"
+                },
+                {
+                    "title": "Teskilat/The Shadow Team",
+                    "page_title": "دانلود سریال تشکیلات Teskilat/The Shadow Team بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Image_uh4ratuh4ratuh4r-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/teskilat/"
+                }
+            ]
+        },
+        {
+            "name": "انیمه",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/category/anime-series/",
+            "items": [
+                {
+                    "title": "Aoashi",
+                    "page_title": "دانلود انیمه Aoashi",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/erwRgEPtUtyv3Vkmxt0MhjKi5kA-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/aoashi/"
+                },
+                {
+                    "title": "Jaadugar: A Witch in Mongolia",
+                    "page_title": "دانلود سریال جادوگر یک ساحره در مغولستان Jaadugar: A Witch in Mongolia بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/z6mwpBvWRqUdGS7rrZHeyeYf4rZ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/jaadugar-a-witch-in-mongolia/"
+                },
+                {
+                    "title": "The Vermillion Mask",
+                    "page_title": "دانلود سریال نقاب سرخ The Vermillion Mask بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/jIQ8cnTs7sCMzEfBviyyD4eXMiY-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-vermillion-mask/"
+                },
+                {
+                    "title": "Magical Explorer",
+                    "page_title": "دانلود انیمه Magical Explorer بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1mcErCeGi77UmV50E81fwvftdp2-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/magical-explorer/"
+                },
+                {
+                    "title": "Romelia War Chronicle",
+                    "page_title": "دانلود انیمه Romelia War Chronicle بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/xOhx5KpSAlrEbqsu9TaCdmdIb72-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/romelia-war-chronicle/"
+                },
+                {
+                    "title": "A Wild Last Boss Appeared!",
+                    "page_title": "دانلود انیمه A Wild Last Boss Appeared! بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/vrI5vaabJ928ka3icedsiBhYugc-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-wild-last-boss-appeared/"
+                },
+                {
+                    "title": "A Tale of the Secret Saint",
+                    "page_title": "دانلود انیمه A Tale of the Secret Saint بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1GVr3SPCgOveV2ay1CcFtSphf4m-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-tale-of-the-secret-saint/"
+                },
+                {
+                    "title": "Black Clover",
+                    "page_title": "دانلود انیمه شبدر سیاه Black Clover بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/kaMisKeOoTBPxPkbC3OW7Wgt6ON-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/black-clover/"
+                },
+                {
+                    "title": "Firefly Wedding",
+                    "page_title": "دانلود انیمه عروسی کرم شب تاب Firefly Wedding بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/954dt0dTqoUhIW0EvMFZ0KvVQmk-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/firefly-wedding/"
+                },
+                {
+                    "title": "Tougen Anki: Dark Demon of Paradise",
+                    "page_title": "دانلود انیمه توگن آنکی Tougen Anki Dark Demon of Paradise بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/01/wkp5nALg2JP8qlseacdmDL8h2BC-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/tougen-anki-dark-demon-of-paradise/"
+                },
+                {
+                    "title": "The Apothecary Diaries",
+                    "page_title": "دانلود انیمه خاطرات داروساز The Apothecary Diaries بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2025/08/2p6biowIL0kGP3ZlJqDoKvOYcidU-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-apothecary-diaries/"
+                },
+                {
+                    "title": "Tokyo Revengers",
+                    "page_title": "دانلود سریال انتقام جویان توکیو Tokyo Revengers بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/6nSOUw8pHCbfigtVeG2SgtSGmrH-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/tokyo-revengers/"
+                },
+                {
+                    "title": "Steel Ball Run: JoJo’s Bizarre Adventure",
+                    "page_title": "دانلود انیمه Steel Ball Run: JoJo’s Bizarre Adventure بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/03/uLee9HwiGn9LcmZe0kOddlbIPsn-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/steel-ball-run-jojos-bizarre-adventure/"
+                },
+                {
+                    "title": "Link Click",
+                    "page_title": "دانلود سریال لینک کلیک Link Click بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/au5LmnOXHIe2iUTPydG1QIZMD5P-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/link-click/"
+                },
+                {
+                    "title": "Clevatess",
+                    "page_title": "دانلود سریال کلیواتس Clevatess بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2025/07/31I6eGFgYbbn5FMwzxOVlZfYETW-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/clevatess/"
+                },
+                {
+                    "title": "The Exiled Heavy Knight Knows How to Game the System",
+                    "page_title": "دانلود سریال The Exiled Heavy Knight Knows How to Game the System بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/bADzMfofNWYdxLnlqNuMkO6du34-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-exiled-heavy-knight-knows-how-to-game-the-system/"
+                }
+            ]
+        },
+        {
+            "name": "سریال‌های چینی",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/category/chinese_series/",
+            "items": [
+                {
+                    "title": "The Vanishing Beauty",
+                    "page_title": "دانلود سریال زیبایی رو به زوال The Vanishing Beauty بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/zMkr2I2AEPOA97CUM7Pl9bCROmP-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-vanishing-beauty/"
+                },
+                {
+                    "title": "Irreplaceable",
+                    "page_title": "دانلود سریال چینی بی همتا Irreplaceable بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/rdRY4JsX1hJFpGtnzDfDL9fq9ks-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/irreplaceable/"
+                },
+                {
+                    "title": "Shadow Punisher",
+                    "page_title": "دانلود سریال مجازاتگر سایه ها Shadow Punisher بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/802565312_2183053465977718_4620100405614881464_n-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/shadow-punisher/"
+                },
+                {
+                    "title": "Zhan Zhao Adventures",
+                    "page_title": "دانلود سریال ماجراجویی جان جائو Zhan Zhao Adventures بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/06/jeSvTYUjRtV0xNjEupHpMgrBwsZ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/zhan-zhao-adventures/"
+                },
+                {
+                    "title": "Against the Current",
+                    "page_title": "دانلود سریال Against the Current بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3T3oqZsxlh1EAL4CQt4Od1Zxlzz-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/against-the-current/"
+                },
+                {
+                    "title": "A Prophet",
+                    "page_title": "دانلود سریال پیشگو A Prophet بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3cVHbWq6nIXX3ClFEfLxoEMdVF5-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-prophet/"
+                },
+                {
+                    "title": "Spring of the Blade",
+                    "page_title": "دانلود سریال تیغه‌ بهار Spring of the Blade بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/7KjVhRaarZ5L3CBirQEmt89ioiz-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/spring-of-the-blade/"
+                },
+                {
+                    "title": "Love Beyond the Grave",
+                    "page_title": "دانلود سریال عشقی فراتر از مرگ Love Beyond the Grave بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/03/ltbd2cH8bNN2ASvYXuhfpPC4f7U-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/love-beyond-the-grave/"
+                },
+                {
+                    "title": "Love in the Clouds",
+                    "page_title": "دانلود سریال عشق در میان ابرها Love in the Clouds بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/itEe56Z95Sc7Guy53HwK3pGCrFL-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/love-in-the-clouds/"
+                },
+                {
+                    "title": "In My Prime",
+                    "page_title": "دانلود سریال In My Prime بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/117HXIhc3aRr1v7KmOrCulszXf3YP-180x280.jpeg",
+                    "url": "https://www.myf2mi.top/series/in-my-prime/"
+                },
+                {
+                    "title": "Blossoms of Power",
+                    "page_title": "دانلود سریال شکوفایی قدرت Blossoms of Power بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/dIHTHoiEJwjQRpYaaP2d50Nyggv-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/blossoms-of-power/"
+                },
+                {
+                    "title": "Blossom Through the Cloud",
+                    "page_title": "دانلود سریال شکوفایی در میان ابرها Blossom Through the Cloud بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/xX825RTjwGqkCiPiUCnJvT4mgxq-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/blossom-through-the-cloud/"
+                },
+                {
+                    "title": "The One",
+                    "page_title": "دانلود سریال نیمه گمشده The One 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/uh8y1IXW2IDLiynJvzNvinjlMBO-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-on1e-2026/"
+                },
+                {
+                    "title": "The Early Spring",
+                    "page_title": "دانلود سریال بهار زودهنگام The Early Spring بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/yiAzR6wGqjyAotZ4DvFvFeo8QS0-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-early-spring/"
+                },
+                {
+                    "title": "Remnants of Gold",
+                    "page_title": "دانلود سریال Remnants of Gold بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/aNlaMTfbII0eu4l42JUGd5xrCi8-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/remnants-of-gold/"
+                },
+                {
+                    "title": "Hidden Love 2023",
+                    "page_title": "دانلود سریال عشق پنهان/عشق مخفی Hidden Love بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/fkqcOXJ2NUw4nnLDpOLQwX4rTmU-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/hidden-l/"
+                }
+            ]
+        },
+        {
+            "name": "فیلم‌های دوبله فارسی",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/movies/?dubbled=1",
+            "items": [
+                {
+                    "title": "Photographer 2026",
+                    "page_title": "دانلود فیلم عکاس Photographer 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/3-6-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87861/photographer-2026/"
+                },
+                {
+                    "title": "Ram and Leela 2026",
+                    "page_title": "دانلود فیلم رام و لیلا Ram and Leela 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-24-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87864/ram-and-leela-2026/"
+                },
+                {
+                    "title": "Baby Do Die Do 2026",
+                    "page_title": "دانلود فیلم بیبی آدمکش Baby Do Die Do 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-21-180x280.jpg",
+                    "url": "https://www.myf2mi.top/86924/baby-do-die-do-2026/"
+                },
+                {
+                    "title": "Your Mother Your Mother Your Mother 2026",
+                    "page_title": "دانلود فیلم مادرت مادرت مادرت Your Mother Your Mother Your Mother 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/5-1-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87832/your-mother-your-mother-your-mother-2026/"
+                },
+                {
+                    "title": "Sardar 2 2026",
+                    "page_title": "دانلود فیلم سردار 2 Sardar 2 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-25-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87871/sardar-2-2026/"
+                },
+                {
+                    "title": "Redline Fury 2026",
+                    "page_title": "دانلود فیلم خط قرمز انتقام Redline Fury 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-23-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87851/redline-fury-2026/"
+                },
+                {
+                    "title": "Timur",
+                    "page_title": "دانلود فیلم تیمور Timur 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/1-16-180x280.jpg",
+                    "url": "https://www.myf2mi.top/73245/timur-2025/"
+                },
+                {
+                    "title": "Ohh My Dog 2026",
+                    "page_title": "دانلود فیلم اوه سگ من Ohh My Dog 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-20-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87774/ohh-my-dog-2026/"
+                },
+                {
+                    "title": "Heart of the Beast 2026",
+                    "page_title": "دانلود فیلم قلب هیولا Heart of the Beast 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-18-180x280.jpg",
+                    "url": "https://www.myf2mi.top/86861/heart-of-the-beast-2026/"
+                },
+                {
+                    "title": "Spider-Man: Brand New Day",
+                    "page_title": "دانلود فیلم مرد عنکبوتی روز کاملا جدید Spider-Man: Brand New Day 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/bjiS5ipwxb9JFy3XRRN4OAilSeX-180x280.jpg",
+                    "url": "https://www.myf2mi.top/76906/spider-man-brand-new-day/"
+                },
+                {
+                    "title": "Colony 2026",
+                    "page_title": "دانلود فیلم کلونی Colony 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/1-63-180x280.jpg",
+                    "url": "https://www.myf2mi.top/82937/colony-2026/"
+                },
+                {
+                    "title": "The Pout-Pout Fish",
+                    "page_title": "دانلود انیمیشن ماهی اخمو The Pout-Pout Fish 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/1-8-180x280.jpg",
+                    "url": "https://www.myf2mi.top/72511/the-pout-pout-fish-2026/"
+                },
+                {
+                    "title": "Onslaught 2026",
+                    "page_title": "دانلود فیلم یورش Onslaught 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-14-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87646/onslaught-2026/"
+                },
+                {
+                    "title": "Fall 2: Deadpoint 2026",
+                    "page_title": "دانلود فیلم سقوط 2: نقطه مرگ Fall 2: Deadpoint 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-13-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87640/fall-2-deadpoint-2026/"
+                },
+                {
+                    "title": "Sarpanch 2026",
+                    "page_title": "دانلود فیلم رئیس روستا Sarpanch 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/3-4-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87738/sarpanch-2026/"
+                },
+                {
+                    "title": "Insidious: Out of the Further 2026",
+                    "page_title": "دانلود فیلم توطئه‌ آمیز: از دنیای ماوراء Insidious: Out of the Further 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-12-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87604/insidious-out-of-the-further-2026/"
+                }
+            ]
+        },
+        {
+            "name": "بزودی",
+            "type": "homepage",
+            "url": "https://www.myf2mi.top/category/coming-soon/",
+            "items": [
+                {
+                    "title": "Street Fighter 2026",
+                    "page_title": "دانلود فیلم مبارز خیابانی Street Fighter 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/1-20-180x280.jpg",
+                    "url": "https://www.myf2mi.top/85762/street-fighter-2026/"
+                },
+                {
+                    "title": "Avengers: Doomsday 2026",
+                    "page_title": "دانلود فیلم انتقام‌ جویان روز نابودی Avengers: Doomsday 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/06/1-1-180x280.webp",
+                    "url": "https://www.myf2mi.top/80228/avengers-doomsday-2026/"
+                },
+                {
+                    "title": "The Hunger Games: Sunrise on the Reaping",
+                    "page_title": "دانلود فیلم بازی های عطش: طلوع در روز برداشت The Hunger Games: Sunrise on the Reaping 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2025/12/kONfwpf0AZzvL1zqjZV9C89g1PY-180x280.webp",
+                    "url": "https://www.myf2mi.top/61573/the-hunger-games-sunrise-on-the-reaping-2026/"
+                }
+            ]
+        },
+        {
+            "name": "Movies",
+            "type": "archive",
+            "url": "https://www.myf2mi.top/movies/",
+            "pages_crawled": 1,
+            "items": [
+                {
+                    "title": "Capture 2026",
+                    "page_title": "دانلود فیلم تسخیر Capture 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-30-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87982/capture-2026/"
+                },
+                {
+                    "title": "Bring Him Down to a Portable Size 2025",
+                    "page_title": "دانلود فیلم Bring Him Down to a Portable Size 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-28-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87944/bring-him-down-to-a-portable-size-2025/"
+                },
+                {
+                    "title": "Photographer 2026",
+                    "page_title": "دانلود فیلم عکاس Photographer 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/3-6-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87861/photographer-2026/"
+                },
+                {
+                    "title": "Ram and Leela 2026",
+                    "page_title": "دانلود فیلم رام و لیلا Ram and Leela 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-24-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87864/ram-and-leela-2026/"
+                },
+                {
+                    "title": "Accursed 2026",
+                    "page_title": "دانلود فیلم نفرین شده Accursed 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-27-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87923/accursed-2026/"
+                },
+                {
+                    "title": "Until We Meet Again 2026",
+                    "page_title": "دانلود فیلم تا دوباره ملاقات کنیم Until We Meet Again 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-26-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87917/until-we-meet-again-2026/"
+                },
+                {
+                    "title": "Baby Do Die Do 2026",
+                    "page_title": "دانلود فیلم بیبی آدمکش Baby Do Die Do 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-21-180x280.jpg",
+                    "url": "https://www.myf2mi.top/86924/baby-do-die-do-2026/"
+                },
+                {
+                    "title": "Animals 2026",
+                    "page_title": "دانلود فیلم Animals 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/cyltXU1lAGhRFBuHQIMWBAPj8fI-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87899/animals-2026/"
+                },
+                {
+                    "title": "Your Mother Your Mother Your Mother 2026",
+                    "page_title": "دانلود فیلم مادرت مادرت مادرت Your Mother Your Mother Your Mother 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/5-1-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87832/your-mother-your-mother-your-mother-2026/"
+                },
+                {
+                    "title": "Racewalkers 2025",
+                    "page_title": "دانلود فیلم Racewalkers 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/3-7-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87875/racewalkers-2025/"
+                },
+                {
+                    "title": "The Swan: Behind the Mirror 2026",
+                    "page_title": "دانلود فیلم قو: پشت آینه The Swan: Behind the Mirror 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-28-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87302/the-swan-behind-the-mirror-2026/"
+                },
+                {
+                    "title": "Sardar 2 2026",
+                    "page_title": "دانلود فیلم سردار 2 Sardar 2 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-25-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87871/sardar-2-2026/"
+                },
+                {
+                    "title": "Redline Fury 2026",
+                    "page_title": "دانلود فیلم خط قرمز انتقام Redline Fury 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-23-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87851/redline-fury-2026/"
+                },
+                {
+                    "title": "Timur",
+                    "page_title": "دانلود فیلم تیمور Timur 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/1-16-180x280.jpg",
+                    "url": "https://www.myf2mi.top/73245/timur-2025/"
+                },
+                {
+                    "title": "Ohh My Dog 2026",
+                    "page_title": "دانلود فیلم اوه سگ من Ohh My Dog 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-20-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87774/ohh-my-dog-2026/"
+                },
+                {
+                    "title": "Matchbox the Movie 2026",
+                    "page_title": "دانلود فیلم Matchbox the Movie 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-21-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87822/matchbox-the-movie-2026/"
+                },
+                {
+                    "title": "2025 8",
+                    "page_title": "دانلود فیلم 8 2025 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/7-1-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87837/8-2025/"
+                },
+                {
+                    "title": "Heart of the Beast 2026",
+                    "page_title": "دانلود فیلم قلب هیولا Heart of the Beast 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/3-18-180x280.jpg",
+                    "url": "https://www.myf2mi.top/86861/heart-of-the-beast-2026/"
+                },
+                {
+                    "title": "Spider-Man: Brand New Day",
+                    "page_title": "دانلود فیلم مرد عنکبوتی روز کاملا جدید Spider-Man: Brand New Day 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/bjiS5ipwxb9JFy3XRRN4OAilSeX-180x280.jpg",
+                    "url": "https://www.myf2mi.top/76906/spider-man-brand-new-day/"
+                },
+                {
+                    "title": "Colony 2026",
+                    "page_title": "دانلود فیلم کلونی Colony 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/1-63-180x280.jpg",
+                    "url": "https://www.myf2mi.top/82937/colony-2026/"
+                },
+                {
+                    "title": "The Pout-Pout Fish",
+                    "page_title": "دانلود انیمیشن ماهی اخمو The Pout-Pout Fish 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/1-8-180x280.jpg",
+                    "url": "https://www.myf2mi.top/72511/the-pout-pout-fish-2026/"
+                },
+                {
+                    "title": "Onslaught 2026",
+                    "page_title": "دانلود فیلم یورش Onslaught 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-14-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87646/onslaught-2026/"
+                },
+                {
+                    "title": "Fall 2: Deadpoint 2026",
+                    "page_title": "دانلود فیلم سقوط 2: نقطه مرگ Fall 2: Deadpoint 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1-13-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87640/fall-2-deadpoint-2026/"
+                },
+                {
+                    "title": "Sarpanch 2026",
+                    "page_title": "دانلود فیلم رئیس روستا Sarpanch 2026 بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/3-4-180x280.jpg",
+                    "url": "https://www.myf2mi.top/87738/sarpanch-2026/"
+                }
+            ]
+        },
+        {
+            "name": "Series",
+            "type": "archive",
+            "url": "https://www.myf2mi.top/series/",
+            "pages_crawled": 1,
+            "items": [
+                {
+                    "title": "Blue Box",
+                    "page_title": "دانلود انیمه جعبه آبی Blue Box",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/sN3TuYevEPWxZhwcp6I2PJRW1jl-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/blue-box/"
+                },
+                {
+                    "title": "Aoashi",
+                    "page_title": "دانلود انیمه Aoashi",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/erwRgEPtUtyv3Vkmxt0MhjKi5kA-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/aoashi/"
+                },
+                {
+                    "title": "Jaadugar: A Witch in Mongolia",
+                    "page_title": "دانلود سریال جادوگر یک ساحره در مغولستان Jaadugar: A Witch in Mongolia بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/z6mwpBvWRqUdGS7rrZHeyeYf4rZ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/jaadugar-a-witch-in-mongolia/"
+                },
+                {
+                    "title": "Treasure Island",
+                    "page_title": "دانلود سریال جزیره گنج Treasure Island",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/7qtWFcBHboglQ3LVF1CZv6xBbqp-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/treasure-island/"
+                },
+                {
+                    "title": "The Drop: A Snowfall Saga",
+                    "page_title": "دانلود سریال The Drop: A Snowfall Saga بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/naCJhAWRtxBWBfMYdFpM5sPwczI-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-drop-a-snowfall-saga/"
+                },
+                {
+                    "title": "Adventure Time: Side Quests",
+                    "page_title": "دانلود سریال Adventure Time: Side Quests بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/08/tDAObAvUx2tw4ZM6ohqo06pqQyW-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/adventure-time-side-quests/"
+                },
+                {
+                    "title": "Kill Jackie",
+                    "page_title": "دانلود سریال Kill Jackie بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/vvMpr6wO4EMtA7lqftffTel5c1R-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/kill-jackie/"
+                },
+                {
+                    "title": "The Audacity",
+                    "page_title": "دانلود سریال The Audacity بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/04/ea6hHjW8yWjROSYwynpWsYc4mYZ-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-audacity/"
+                },
+                {
+                    "title": "Cranberry Sorbet/Kizilcik Serbeti",
+                    "page_title": "دانلود سریال شربت زغال اخته Cranberry Sorbet/Kizilcik Serbeti بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/07/Image_zcdiavzcdiavzcdi-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/cranberry-sorbet/"
+                },
+                {
+                    "title": "The Vermillion Mask",
+                    "page_title": "دانلود سریال نقاب سرخ The Vermillion Mask بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/jIQ8cnTs7sCMzEfBviyyD4eXMiY-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-vermillion-mask/"
+                },
+                {
+                    "title": "100 Days of Lies",
+                    "page_title": "دانلود سریال صد روز فریب 100 Days of Lies بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/cX9O60aya6MipGJyX66ViFwcjtn-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/100-days-of-lies/"
+                },
+                {
+                    "title": "Magical Explorer",
+                    "page_title": "دانلود انیمه Magical Explorer بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1mcErCeGi77UmV50E81fwvftdp2-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/magical-explorer/"
+                },
+                {
+                    "title": "Romelia War Chronicle",
+                    "page_title": "دانلود انیمه Romelia War Chronicle بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/xOhx5KpSAlrEbqsu9TaCdmdIb72-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/romelia-war-chronicle/"
+                },
+                {
+                    "title": "A Wild Last Boss Appeared!",
+                    "page_title": "دانلود انیمه A Wild Last Boss Appeared! بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/vrI5vaabJ928ka3icedsiBhYugc-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-wild-last-boss-appeared/"
+                },
+                {
+                    "title": "A Tale of the Secret Saint",
+                    "page_title": "دانلود انیمه A Tale of the Secret Saint بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/1GVr3SPCgOveV2ay1CcFtSphf4m-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-tale-of-the-secret-saint/"
+                },
+                {
+                    "title": "Doctor X: Mafia in White/Doctor X: Age of the White Mafia",
+                    "page_title": "دانلود سریال دکتر ایکس مافیا سفید پوش Doctor X: Mafia in White/Doctor X: Age of the White Mafia",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/a5kWnqgoTOWrv2xZoruQgTSbGgA-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/doctor-x-mafia-in-white-doctor-x-age-of-the-white-mafia/"
+                },
+                {
+                    "title": "A Love Other Than Yours",
+                    "page_title": "دانلود سریال عشقی غیر از تو A Love Other Than Yours بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/jvNFIc9qy9ynCuKMar9YC258gJP-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/a-love-other-than-yours/"
+                },
+                {
+                    "title": "Dive Into You",
+                    "page_title": "دانلود سریال غرق در تو Dive Into You بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/6OAuQOGqjYY1JXbkTlWz4Mm2Kmi-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/dive-into-you/"
+                },
+                {
+                    "title": "Tasacak Bu Deniz",
+                    "page_title": "دانلود سریال این دریا طغیان خواهد کرد Tasacak Bu Deniz بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/Gemini_Generated_Image_m0aic9m0aic9m0ai-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/tasacak-bu-deniz/"
+                },
+                {
+                    "title": "Black Clover",
+                    "page_title": "دانلود انیمه شبدر سیاه Black Clover بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/kaMisKeOoTBPxPkbC3OW7Wgt6ON-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/black-clover/"
+                },
+                {
+                    "title": "Cupertino",
+                    "page_title": "دانلود سریال Cupertino بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/70AhJpOqU2oKyQF2paJA764CSje-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/cupertino/"
+                },
+                {
+                    "title": "Lego One Piece",
+                    "page_title": "دانلود سریال وان پیس لگویی Lego One Piece بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/hTUHZ337JzqPvRXBQ3lu0GBkOvz-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/lego-one-piece/"
+                },
+                {
+                    "title": "Halef",
+                    "page_title": "دانلود سریال خلیفه Halef/Halef: Koklerin Cagrisi بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/09/21MFceyZdUZmt6W83mVoJYG6NGgr-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/halef/"
+                },
+                {
+                    "title": "The Vanishing Beauty",
+                    "page_title": "دانلود سریال زیبایی رو به زوال The Vanishing Beauty بدون سانسور با زیرنویس فارسی چسبیده",
+                    "cover_image": "https://www.myf2mi.top/wp-content/uploads/2026/10/zMkr2I2AEPOA97CUM7Pl9bCROmP-180x280.jpg",
+                    "url": "https://www.myf2mi.top/series/the-vanishing-beauty/"
+                }
+            ]
+        }
+    ]
+}

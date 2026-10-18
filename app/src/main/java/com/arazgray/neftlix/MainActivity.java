@@ -1,0 +1,543 @@
+package com.arazgray.neftlix;
+
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * صفحه اصلی راست‌چین و فارسی، مناسب ریموت‌کنترل تلویزیون.
+ * هر بار که باز می‌شود فهرست را از سایت تازه می‌کند.
+ */
+public class MainActivity extends AppCompatActivity {
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final CatalogRepository repository = new CatalogRepository();
+    private CatalogData catalog;
+    private LinearLayout page;
+    private TextView status;
+    private EditText searchBox;
+    private boolean showingSubPage;
+
+    private BrowseSection activeSection;
+    private BrowseCategory activeCategory;
+    private int listingPage = 1;
+    private boolean listingHasNext;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        getWindow().setStatusBarColor(Color.rgb(16, 24, 32));
+        getWindow().setNavigationBarColor(Color.rgb(16, 24, 32));
+        buildShell();
+        refreshCatalog();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // فهرست تازه در onCreate گرفته می‌شود؛ اینجا فقط اگر چیزی نداریم تلاش کن
+        if (catalog == null) refreshCatalog();
+    }
+
+    private void buildShell() {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        root.setBackgroundColor(Color.rgb(16, 24, 32));
+        root.setPadding(dp(22), dp(14), dp(22), dp(10));
+
+        LinearLayout toolbar = new LinearLayout(this);
+        toolbar.setGravity(Gravity.CENTER_VERTICAL);
+        toolbar.setOrientation(LinearLayout.HORIZONTAL);
+        toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+
+        TextView brand = new TextView(this);
+        brand.setText("نفتلیکس");
+        brand.setTextColor(Color.rgb(150, 242, 7));
+        brand.setTextSize(22);
+        brand.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        brand.setTextDirection(View.TEXT_DIRECTION_RTL);
+        toolbar.addView(brand, new LinearLayout.LayoutParams(dp(150), dp(52)));
+
+        searchBox = new EditText(this);
+        searchBox.setSingleLine(true);
+        searchBox.setTextColor(Color.WHITE);
+        searchBox.setHintTextColor(Color.LTGRAY);
+        searchBox.setHint("جست‌وجوی فیلم و سریال…");
+        searchBox.setTextDirection(View.TEXT_DIRECTION_RTL);
+        searchBox.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        searchBox.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        searchBox.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        searchBox.setPadding(dp(12), 0, dp(12), 0);
+        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(0, dp(48), 1f);
+        searchParams.setMargins(dp(8), 0, dp(8), 0);
+        toolbar.addView(searchBox, searchParams);
+        searchBox.setOnEditorActionListener((view, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                showSearchResults();
+                return true;
+            }
+            return false;
+        });
+
+        Button search = toolbarButton("جست‌وجو");
+        search.setOnClickListener(view -> showSearchResults());
+        toolbar.addView(search);
+
+        Button all = toolbarButton("همه");
+        all.setOnClickListener(view -> showAllItems());
+        toolbar.addView(all);
+
+        Button refresh = toolbarButton("به‌روزرسانی");
+        refresh.setOnClickListener(view -> refreshCatalog());
+        toolbar.addView(refresh);
+        root.addView(toolbar);
+
+        status = new TextView(this);
+        status.setTextColor(Color.LTGRAY);
+        status.setTextSize(14);
+        status.setTextDirection(View.TEXT_DIRECTION_RTL);
+        status.setPadding(0, dp(4), 0, dp(6));
+        root.addView(status);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        page.setPadding(0, dp(4), 0, dp(28));
+        scroll.addView(page);
+        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
+        setContentView(root);
+    }
+
+    private void refreshCatalog() {
+        status.setText("در حال به‌روزرسانی فهرست از سایت…");
+        io.execute(() -> {
+            try {
+                CatalogData latest = repository.loadCatalog();
+                runOnUiThread(() -> {
+                    catalog = latest;
+                    showingSubPage = false;
+                    activeSection = null;
+                    activeCategory = null;
+                    status.setText("فهرست به‌روز شد · " + countItems(latest) + " عنوان · با ریموت انتخاب کنید");
+                    renderHome();
+                });
+            } catch (IOException error) {
+                runOnUiThread(() -> {
+                    status.setText("به‌روزرسانی ناموفق بود. اینترنت را بررسی کنید و دوباره تلاش کنید.");
+                    if (catalog == null) {
+                        page.removeAllViews();
+                        addMessage("فهرست در دسترس نیست", error.getMessage());
+                    } else {
+                        Toast.makeText(this, "به‌روزرسانی ناموفق بود؛ آخرین فهرست نمایش داده شد", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void renderHome() {
+        page.removeAllViews();
+        showingSubPage = false;
+        activeSection = null;
+        activeCategory = null;
+        if (catalog == null) {
+            addMessage("در حال بارگذاری فهرست", "لطفاً کمی صبر کنید.");
+            return;
+        }
+
+        addHeading("دسته‌بندی فیلم‌ها");
+        addCategoryRow(catalog.movieCategories);
+        addHeading("دسته‌بندی سریال‌ها");
+        addCategoryRow(catalog.seriesCategories);
+
+        for (BrowseSection section : catalog.sections) {
+            addSectionPreview(section);
+        }
+        focusFirst();
+    }
+
+    private void addSectionPreview(BrowseSection section) {
+        addHeading(section.title);
+        if (section.items.isEmpty()) {
+            addSmallText("موردی پیدا نشد.");
+            return;
+        }
+        List<BrowseItem> preview = section.items.size() > 20 ? section.items.subList(0, 20) : section.items;
+        addItemRow(preview);
+        if (section.url != null && !section.url.isEmpty()) {
+            Button more = toolbarButton("مشاهده همه ←");
+            more.setOnClickListener(v -> openSection(section, 1));
+            page.addView(more, new LinearLayout.LayoutParams(-2, dp(46)));
+        }
+    }
+
+    private void showAllItems() {
+        if (catalog == null) return;
+        showingSubPage = true;
+        activeSection = null;
+        activeCategory = null;
+        page.removeAllViews();
+        addBackButton();
+        addHeading("همه عنوان‌ها");
+        addItemRow(uniqueItems(catalog.sections));
+        focusFirst();
+    }
+
+    private void showSearchResults() {
+        if (catalog == null) return;
+        final String query = searchBox.getText().toString().trim();
+        showingSubPage = true;
+        activeSection = null;
+        activeCategory = null;
+        page.removeAllViews();
+        addBackButton();
+        if (query.isEmpty()) {
+            addHeading("همه عنوان‌ها");
+            addItemRow(uniqueItems(catalog.sections));
+            return;
+        }
+        addHeading("نتایج جست‌وجو: " + query);
+        status.setText("در حال جست‌وجو…");
+        io.execute(() -> {
+            try {
+                List<BrowseItem> remote = repository.search(query);
+                runOnUiThread(() -> {
+                    page.removeAllViews();
+                    addBackButton();
+                    addHeading("نتایج جست‌وجو: " + query);
+                    if (!remote.isEmpty()) {
+                        status.setText(remote.size() + " نتیجه از سایت");
+                        addItemRow(remote);
+                    } else {
+                        List<BrowseItem> local = filterLocal(query);
+                        status.setText(local.size() + " نتیجه از فهرست");
+                        addItemRow(local);
+                    }
+                    focusFirst();
+                });
+            } catch (IOException e) {
+                runOnUiThread(() -> {
+                    page.removeAllViews();
+                    addBackButton();
+                    addHeading("نتایج جست‌وجو: " + query);
+                    addItemRow(filterLocal(query));
+                    focusFirst();
+                });
+            }
+        });
+    }
+
+    private List<BrowseItem> filterLocal(String query) {
+        String q = query.trim();
+        List<BrowseItem> out = new ArrayList<>();
+        for (BrowseItem item : uniqueItems(catalog.sections)) {
+            String text = item.title + " " + item.pageTitle;
+            if (text.contains(q) || text.toLowerCase(java.util.Locale.ROOT).contains(q.toLowerCase(java.util.Locale.ROOT))) {
+                out.add(item);
+            }
+        }
+        return out;
+    }
+
+    private void openSection(BrowseSection section, int pageNum) {
+        activeSection = section;
+        activeCategory = null;
+        listingPage = pageNum;
+        showingSubPage = true;
+        status.setText("در حال بارگذاری " + section.title + "…");
+        io.execute(() -> {
+            try {
+                ListingPage result = repository.loadListingPage(section.url, section.contentType, pageNum);
+                runOnUiThread(() -> {
+                    listingHasNext = result.hasNext;
+                    status.setText(section.title + " · صفحه " + toFaDigits(pageNum));
+                    page.removeAllViews();
+                    addBackButton();
+                    addHeading(section.title);
+                    addItemRow(result.items);
+                    addPaginationBar();
+                    focusFirst();
+                });
+            } catch (IOException error) {
+                runOnUiThread(() -> status.setText("بارگذاری ناموفق بود: " + section.title));
+            }
+        });
+    }
+
+    private void openCategory(BrowseCategory category, int pageNum) {
+        activeCategory = category;
+        activeSection = null;
+        listingPage = pageNum;
+        showingSubPage = true;
+        status.setText("در حال بارگذاری " + category.title + "…");
+        io.execute(() -> {
+            try {
+                ListingPage result = repository.loadListingPage(category.url, category.contentType, pageNum);
+                runOnUiThread(() -> {
+                    listingHasNext = result.hasNext;
+                    status.setText(category.title + " · صفحه " + toFaDigits(pageNum));
+                    page.removeAllViews();
+                    addBackButton();
+                    String count = category.count == null || category.count.isEmpty() ? "" : "  (" + toFaDigits(category.count) + ")";
+                    addHeading(category.title + count);
+                    addItemRow(result.items);
+                    addPaginationBar();
+                    focusFirst();
+                });
+            } catch (IOException error) {
+                runOnUiThread(() -> status.setText("بارگذاری دسته ناموفق بود: " + category.title));
+            }
+        });
+    }
+
+    private void addPaginationBar() {
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(0, dp(8), 0, dp(8));
+
+        if (listingPage > 1) {
+            Button prev = toolbarButton("صفحه قبل");
+            prev.setOnClickListener(v -> {
+                if (activeSection != null) openSection(activeSection, listingPage - 1);
+                else if (activeCategory != null) openCategory(activeCategory, listingPage - 1);
+            });
+            bar.addView(prev, new LinearLayout.LayoutParams(-2, dp(48)));
+        }
+        TextView num = new TextView(this);
+        num.setText("صفحه " + toFaDigits(listingPage));
+        num.setTextColor(Color.WHITE);
+        num.setTextSize(15);
+        num.setPadding(dp(14), 0, dp(14), 0);
+        bar.addView(num);
+        if (listingHasNext) {
+            Button next = toolbarButton("صفحه بعد");
+            next.setOnClickListener(v -> {
+                if (activeSection != null) openSection(activeSection, listingPage + 1);
+                else if (activeCategory != null) openCategory(activeCategory, listingPage + 1);
+            });
+            bar.addView(next, new LinearLayout.LayoutParams(-2, dp(48)));
+        }
+        page.addView(bar);
+    }
+
+    private void openItem(BrowseItem item) {
+        Intent intent = new Intent(this, DetailsActivity.class);
+        intent.putExtra(DetailsActivity.EXTRA_URL, item.url);
+        intent.putExtra(DetailsActivity.EXTRA_TITLE, item.title);
+        startActivity(intent);
+    }
+
+    private void addCategoryRow(List<BrowseCategory> categories) {
+        if (categories.isEmpty()) {
+            addSmallText("دسته‌ای پیدا نشد.");
+            return;
+        }
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        scroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        for (BrowseCategory category : categories) {
+            String label = category.title;
+            if (category.count != null && !category.count.isEmpty()) label += " (" + toFaDigits(category.count) + ")";
+            Button button = toolbarButton(label);
+            button.setOnClickListener(view -> openCategory(category, 1));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(48));
+            params.setMargins(0, 0, dp(8), 0);
+            row.addView(button, params);
+        }
+        scroll.addView(row);
+        page.addView(scroll, new LinearLayout.LayoutParams(-1, dp(58)));
+    }
+
+    private void addItemRow(List<BrowseItem> items) {
+        if (items.isEmpty()) {
+            addSmallText("موردی پیدا نشد.");
+            return;
+        }
+        HorizontalScrollView scroll = new HorizontalScrollView(this);
+        scroll.setHorizontalScrollBarEnabled(false);
+        scroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        for (BrowseItem item : items) row.addView(makeCard(item));
+        scroll.addView(row);
+        page.addView(scroll, new LinearLayout.LayoutParams(-1, dp(248)));
+    }
+
+    private View makeCard(BrowseItem item) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        card.setFocusable(true);
+        card.setClickable(true);
+        card.setBackgroundResource(android.R.drawable.list_selector_background);
+        card.setPadding(dp(5), dp(5), dp(5), dp(5));
+        card.setOnClickListener(view -> openItem(item));
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dp(148), dp(236));
+        cardParams.setMargins(0, 0, dp(10), 0);
+        card.setLayoutParams(cardParams);
+        card.setOnFocusChangeListener((v, hasFocus) -> v.setScaleX(hasFocus ? 1.05f : 1f));
+
+        ImageView poster = new ImageView(this);
+        poster.setBackgroundColor(Color.rgb(35, 45, 54));
+        poster.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        if (item.coverUrl != null && !item.coverUrl.isEmpty()) {
+            Glide.with(this).load(item.coverUrl).centerCrop().into(poster);
+        }
+        card.addView(poster, new LinearLayout.LayoutParams(-1, dp(176)));
+
+        TextView kind = new TextView(this);
+        kind.setText(faType(item.contentType));
+        kind.setTextColor(Color.rgb(150, 242, 7));
+        kind.setTextSize(11);
+        kind.setTextDirection(View.TEXT_DIRECTION_RTL);
+        kind.setPadding(0, dp(3), 0, 0);
+        card.addView(kind);
+
+        TextView name = new TextView(this);
+        name.setText(item.title);
+        name.setTextColor(Color.WHITE);
+        name.setTextSize(13);
+        name.setMaxLines(2);
+        name.setTextDirection(View.TEXT_DIRECTION_RTL);
+        card.addView(name);
+        return card;
+    }
+
+    private String faType(String type) {
+        if ("series".equalsIgnoreCase(type)) return "سریال";
+        if ("movie".equalsIgnoreCase(type)) return "فیلم";
+        return "فیلم و سریال";
+    }
+
+    private String toFaDigits(Object value) {
+        String s = String.valueOf(value);
+        return s.replace('0', '۰').replace('1', '۱').replace('2', '۲')
+                .replace('3', '۳').replace('4', '۴').replace('5', '۵')
+                .replace('6', '۶').replace('7', '۷').replace('8', '۸').replace('9', '۹');
+    }
+
+    private void addBackButton() {
+        Button back = toolbarButton("← بازگشت به فهرست");
+        back.setOnClickListener(view -> renderHome());
+        page.addView(back, new LinearLayout.LayoutParams(-2, dp(48)));
+    }
+
+    private void addHeading(String text) {
+        TextView heading = new TextView(this);
+        heading.setText(text);
+        heading.setTextColor(Color.WHITE);
+        heading.setTextSize(20);
+        heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        heading.setTextDirection(View.TEXT_DIRECTION_RTL);
+        heading.setPadding(0, dp(12), 0, dp(7));
+        page.addView(heading);
+    }
+
+    private void addSmallText(String text) {
+        TextView label = new TextView(this);
+        label.setText(text);
+        label.setTextColor(Color.LTGRAY);
+        label.setTextSize(14);
+        label.setTextDirection(View.TEXT_DIRECTION_RTL);
+        page.addView(label);
+    }
+
+    private void addMessage(String title, String message) {
+        addHeading(title);
+        addSmallText(message == null ? "" : message);
+    }
+
+    private void focusFirst() {
+        page.post(() -> {
+            View first = findFirstFocusable(page);
+            if (first != null) first.requestFocus();
+        });
+    }
+
+    private View findFirstFocusable(View root) {
+        if (root.isFocusable()) return root;
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = findFirstFocusable(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    private Button toolbarButton(String text) {
+        Button button = new Button(this);
+        button.setText(text);
+        button.setTextColor(Color.rgb(16, 24, 32));
+        button.setTextDirection(View.TEXT_DIRECTION_RTL);
+        button.setAllCaps(false);
+        button.setFocusable(true);
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(150, 242, 7)));
+        return button;
+    }
+
+    private List<BrowseItem> uniqueItems(List<BrowseSection> sections) {
+        Map<String, BrowseItem> unique = new LinkedHashMap<>();
+        for (BrowseSection section : sections) {
+            for (BrowseItem item : section.items) unique.putIfAbsent(item.url, item);
+        }
+        return new ArrayList<>(unique.values());
+    }
+
+    private int countItems(CatalogData data) {
+        return uniqueItems(data.sections).size();
+    }
+
+    private int dp(float value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (showingSubPage) {
+            renderHome();
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onDestroy() {
+        io.shutdownNow();
+        super.onDestroy();
+    }
+}
