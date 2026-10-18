@@ -1,6 +1,6 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0",
+  "versionCode": 2,
+  "versionName": "1.1",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/app-debug.apk",
-  "notes": ""
+  "notes": "نسخه ۱٫۱: تم مشکی/قرمز نتفلیکس، جست‌وجوی سراسری آرشیو، پخش مستقیم با دکمه «پخش رایگان»، زیرنویس فارسی و به‌روزرسانی خودکار."
 }
