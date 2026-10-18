@@ -21,12 +21,22 @@ jobs:
       - name: Accept SDK licences
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
+      - name: Restore signing keystore
+        env:
+          NEFTLIX_KEYSTORE_BASE64: ${{ secrets.NEFTLIX_KEYSTORE_BASE64 }}
+        run: echo "$NEFTLIX_KEYSTORE_BASE64" | base64 -d > neftlix-release.keystore
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
       - name: Build APK
+        env:
+          NEFTLIX_KEYSTORE_FILE: ../neftlix-release.keystore
+          NEFTLIX_KEYSTORE_PASSWORD: ${{ secrets.NEFTLIX_KEYSTORE_PASSWORD }}
+          NEFTLIX_KEY_ALIAS: ${{ secrets.NEFTLIX_KEY_ALIAS }}
+          NEFTLIX_KEY_PASSWORD: ${{ secrets.NEFTLIX_KEY_PASSWORD }}
         run: gradle --no-daemon assembleDebug
 
       - name: Publish GitHub release

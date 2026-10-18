@@ -10,6 +10,7 @@
         android:allowBackup="false"
         android:banner="@drawable/tv_banner"
         android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher"
         android:label="Neftlix"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"

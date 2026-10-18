@@ -27,6 +27,7 @@ final class CatalogRepository {
         Document home = fetch(HOME_URL);
         CatalogData catalog = new CatalogData();
         String homeUrl = home.location();
+        Map<String, BrowseCategory> genreSink = new LinkedHashMap<>();
 
         List<BrowseItem> featured = new ArrayList<>();
         for (Element slide : home.select("#suggested-movies .splide__slide")) {
@@ -36,7 +37,7 @@ final class CatalogRepository {
                 if (item != null) featured.add(item);
             }
         }
-        if (!featured.isEmpty()) catalog.sections.add(new BrowseSection("Featured", homeUrl, "mixed", featured));
+        if (!featured.isEmpty()) catalog.sections.add(new BrowseSection("ویژه‌ها", homeUrl, "mixed", featured));
 
         for (Element section : home.select("section.list-section")) {
             Element heading = section.selectFirst(".fsz-22, h2, h3");
@@ -44,16 +45,21 @@ final class CatalogRepository {
             if (title.isEmpty()) title = "Homepage section";
             Element viewAll = section.selectFirst("a.btn-toPrimary[href]");
             String sectionUrl = viewAll == null ? homeUrl : viewAll.absUrl("href");
-            List<BrowseItem> items = parseArticles(section.select("article.entry"), typeFromText(title), homeUrl);
+            List<BrowseItem> items = parseArticles(section.select("article.entry"), typeFromText(title), homeUrl, genreSink);
             if (!items.isEmpty()) catalog.sections.add(new BrowseSection(title, sectionUrl, typeFromText(title), items));
         }
 
-        parseCategories(home, "genres-movies", "movie", catalog.movieCategories, homeUrl);
-        parseCategories(home, "genres-series", "series", catalog.seriesCategories, homeUrl);
-
         String siteOrigin = originOf(homeUrl);
-        addArchiveSection(catalog, "Movies", siteOrigin + "/movies/", "movie");
-        addArchiveSection(catalog, "Series", siteOrigin + "/series/", "series");
+        addArchiveSection(catalog, "فیلم‌ها", siteOrigin + "/movies/", "movie", genreSink);
+        addArchiveSection(catalog, "سریال‌ها", siteOrigin + "/series/", "series", genreSink);
+
+        for (BrowseCategory category : genreSink.values()) {
+            if ("series".equals(category.contentType)) {
+                catalog.seriesCategories.add(category);
+            } else {
+                catalog.movieCategories.add(category);
+            }
+        }
         return catalog;
     }
 
@@ -64,10 +70,10 @@ final class CatalogRepository {
     ListingPage loadListingPage(String url, String contentType, int page) throws IOException {
         Document document = fetch(pageUrl(url, page));
         boolean hasNext = hasNextPage(document);
-        List<BrowseItem> items = parseArticles(document.select("main article.entry"), contentType, document.location());
+        List<BrowseItem> items = parseArticles(document.select("main article.entry"), contentType, document.location(), null);
         if (items.isEmpty()) {
             // جست‌وجو و بعضی آرشیوها آیتم‌ها را خارج از main برمی‌گردانند
-            items = parseArticles(document.select("article.entry"), contentType, document.location());
+            items = parseArticles(document.select("article.entry"), contentType, document.location(), null);
         }
         return new ListingPage(items, hasNext, document.location());
     }
@@ -130,9 +136,9 @@ final class CatalogRepository {
         if (q.isEmpty()) return new ArrayList<>();
         String url = originOf(HOME_URL) + "/?s=" + java.net.URLEncoder.encode(q, java.nio.charset.StandardCharsets.UTF_8);
         Document document = fetch(url);
-        List<BrowseItem> items = parseArticles(document.select("main article.entry"), "mixed", document.location());
+        List<BrowseItem> items = parseArticles(document.select("main article.entry"), "mixed", document.location(), null);
         if (items.isEmpty()) {
-            items = parseArticles(document.select("article.entry"), "mixed", document.location());
+            items = parseArticles(document.select("article.entry"), "mixed", document.location(), null);
         }
         return items;
     }
@@ -169,6 +175,43 @@ final class CatalogRepository {
         String cover = poster == null ? "" : imageUrl(poster, finalUrl);
 
         ItemDetails details = new ItemDetails(title, cover, finalUrl);
+
+        Element excerpt = document.selectFirst(".entry-excerpt");
+        if (excerpt != null) details.story = excerpt.text().trim();
+        Element imdbAnchor = document.selectFirst("#post-intro a[href*=imdb.com/title]");
+        if (imdbAnchor == null) imdbAnchor = document.selectFirst("a[href*=imdb.com/title]");
+        if (imdbAnchor != null) {
+            Matcher imdbId = Pattern.compile("title/(tt\\d+)").matcher(imdbAnchor.attr("href"));
+            if (imdbId.find()) details.imdbId = imdbId.group(1);
+            Element score = imdbAnchor.selectFirst("strong");
+            if (score != null) details.imdbRating = score.text().trim();
+        }
+        Element satisfaction = document.selectFirst(".feedback-satisfaction");
+        if (satisfaction != null) details.satisfaction = satisfaction.text().trim();
+        for (Element genreAnchor : document.select(".entry-genres a")) {
+            String genre = genreAnchor.text().trim();
+            if (!genre.isEmpty() && !details.genres.contains(genre)) details.genres.add(genre);
+        }
+        Element intro = document.selectFirst("#post-intro");
+        if (intro != null) {
+            for (Element icon : intro.select(".entry-icons i[title]")) {
+                String flag = icon.attr("title").trim();
+                if (!flag.isEmpty() && !details.flags.contains(flag)) details.flags.add(flag);
+            }
+        }
+        for (Element comment : document.select("li.comment")) {
+            if (details.comments.size() >= 15) break;
+            Element author = comment.selectFirst("[itemprop=name]");
+            Element time = comment.selectFirst("time");
+            Element text = comment.selectFirst(".comment-text");
+            String commentText = text == null ? "" : text.text().trim();
+            if (commentText.isEmpty()) continue;
+            details.comments.add(new CommentItem(
+                    author == null ? "" : author.text().trim(),
+                    time == null ? "" : time.text().trim(),
+                    commentText));
+        }
+
         Map<Element, DownloadGroup> seasons = new IdentityHashMap<>();
         for (Element list : document.select(".download-list")) {
             Element seasonElement = list.closest(".download-season");
@@ -216,32 +259,19 @@ final class CatalogRepository {
         return details;
     }
 
-    private void addArchiveSection(CatalogData catalog, String title, String url, String type) {
+    private void addArchiveSection(CatalogData catalog, String title, String url, String type,
+                                    Map<String, BrowseCategory> genreSink) {
         try {
             Document archive = fetch(url);
-            List<BrowseItem> items = parseArticles(archive.select("main article.entry"), type, archive.location());
+            List<BrowseItem> items = parseArticles(archive.select("main article.entry"), type, archive.location(), genreSink);
             catalog.sections.add(new BrowseSection(title, url, type, items));
         } catch (IOException ignored) {
             catalog.sections.add(new BrowseSection(title, url, type, new ArrayList<>()));
         }
     }
 
-    private void parseCategories(Document home, String elementId, String type, List<BrowseCategory> output, String baseUrl) {
-        for (Element anchor : home.select("#" + elementId + " a[href]")) {
-            String url = anchor.absUrl("href");
-            String title = anchor.text().trim();
-            if (url.isEmpty() || title.isEmpty()) continue;
-            Element listItem = anchor.parent();
-            String count = "";
-            if (listItem != null) {
-                Matcher matcher = Pattern.compile("\\(([0-9]+)\\)").matcher(listItem.text());
-                if (matcher.find()) count = matcher.group(1);
-            }
-            output.add(new BrowseCategory(title, type, url, count));
-        }
-    }
-
-    private List<BrowseItem> parseArticles(Elements articles, String contentType, String baseUrl) {
+    private List<BrowseItem> parseArticles(Elements articles, String contentType, String baseUrl,
+                                           Map<String, BrowseCategory> genreSink) {
         List<BrowseItem> items = new ArrayList<>();
         for (Element article : articles) {
             Element anchor = article.selectFirst("a.stretched-link[href], a[rel~=bookmark][href]");
@@ -256,9 +286,47 @@ final class CatalogRepository {
             String cover = "";
             Element image = article.selectFirst(".entry-cover img, img");
             if (image != null) cover = imageUrl(image, baseUrl);
-            items.add(new BrowseItem(title, anchor.attr("title"), cover, url, contentType));
+            String itemType = "mixed".equals(contentType)
+                    ? (url.contains("/series/") ? "series" : "movie")
+                    : contentType;
+            items.add(new BrowseItem(title, anchor.attr("title"), cover, url, itemType, cardMeta(article)));
+
+            if (genreSink != null) {
+                for (Element genreAnchor : article.select(".entry-ganers a[href]")) {
+                    String genreName = genreAnchor.text().trim();
+                    String genreUrl = genreAnchor.absUrl("href");
+                    if (genreName.isEmpty() || genreUrl.isEmpty()) continue;
+                    int queryIndex = genreUrl.indexOf('?');
+                    String cleanUrl = queryIndex >= 0 ? genreUrl.substring(0, queryIndex) : genreUrl;
+                    if (cleanUrl.endsWith("/")) cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 1);
+                    String key = itemType + "|" + cleanUrl;
+                    if (!genreSink.containsKey(key)) {
+                        genreSink.put(key, new BrowseCategory(
+                                genreName, itemType, cleanUrl + "/?type=" + itemType, ""));
+                    }
+                }
+            }
         }
         return items;
+    }
+
+    /** خط کوتاه زیر کارت: امتیاز و یکی دو ژانر، اگر در صفحه باشد. */
+    private String cardMeta(Element article) {
+        String rating = "";
+        Element ratingElement = article.selectFirst(".entry-meta strong");
+        if (ratingElement != null) rating = ratingElement.text().trim();
+        List<String> genres = new ArrayList<>();
+        for (Element genreAnchor : article.select(".entry-ganers a")) {
+            String genre = genreAnchor.text().trim();
+            if (!genre.isEmpty() && genres.size() < 2) genres.add(genre);
+        }
+        StringBuilder meta = new StringBuilder();
+        if (!rating.isEmpty()) meta.append("★ ").append(rating);
+        if (!genres.isEmpty()) {
+            if (meta.length() > 0) meta.append(" · ");
+            meta.append(String.join("، ", genres));
+        }
+        return meta.toString();
     }
 
     private BrowseItem parseFeatured(Element slide, Element anchor, String baseUrl) {

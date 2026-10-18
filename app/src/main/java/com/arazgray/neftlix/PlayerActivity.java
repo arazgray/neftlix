@@ -3,6 +3,7 @@ package com.arazgray.neftlix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -49,6 +50,8 @@ public class PlayerActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT);
         root.addView(playerView, videoParams);
+        // هایلایت فوکوس دکمه‌های کنترلر برای ریموت
+        playerView.post(() -> markFocusable(playerView));
 
         setContentView(root);
 
@@ -64,6 +67,18 @@ public class PlayerActivity extends AppCompatActivity {
             selector.setParameters(
                     selector.buildUponParameters().setPreferredTextLanguage("fa"));
         }
+        androidx.media3.ui.SubtitleView subtitles = playerView.getSubtitleView();
+        if (subtitles != null) {
+            // پس‌زمینه مشکی حذف شود؛ فقط سایه ساده
+            subtitles.setApplyEmbeddedStyles(false);
+            subtitles.setStyle(new androidx.media3.common.text.CaptionStyleCompat(
+                    android.graphics.Color.WHITE,
+                    android.graphics.Color.TRANSPARENT,
+                    android.graphics.Color.TRANSPARENT,
+                    androidx.media3.common.text.CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
+                    android.graphics.Color.BLACK,
+                    null));
+        }
         player.addListener(new Player.Listener() {
             @Override
             public void onPlayerError(PlaybackException error) {
@@ -77,6 +92,32 @@ public class PlayerActivity extends AppCompatActivity {
         player.setMediaItem(mediaItem);
         player.prepare();
         player.play();
+    }
+
+    private void markFocusable(View v) {
+        if (v instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) v;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                markFocusable(group.getChildAt(i));
+            }
+            return;
+        }
+        if (v.isFocusable()) {
+            v.setOnFocusChangeListener((view, hasFocus) -> {
+                view.setScaleX(hasFocus ? 1.25f : 1f);
+                view.setScaleY(hasFocus ? 1.25f : 1f);
+            });
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        // بار اول کنترلر پنهان شود، بار دوم خروج
+        if (playerView != null && playerView.isControllerFullyVisible()) {
+            playerView.hideController();
+            return;
+        }
+        super.onBackPressed();
     }
 
     @Override

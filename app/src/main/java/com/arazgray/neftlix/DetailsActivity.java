@@ -18,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -120,8 +122,10 @@ public class DetailsActivity extends AppCompatActivity {
         intro.addView(titleView, new LinearLayout.LayoutParams(0, -2, 1f));
         page.addView(intro);
 
-        if (details.groups.isEmpty()) {
-            addSmallText("برای این عنوان لینک دانلودی پیدا نشد.");
+        addInfoBlock(details);
+
+        if (details.groups.isEmpty() && details.story.isEmpty()) {
+            addSmallText("برای این عنوان اطلاعاتی پیدا نشد.");
             return;
         }
         for (DownloadGroup group : details.groups) {
@@ -134,8 +138,78 @@ public class DetailsActivity extends AppCompatActivity {
                 for (DownloadCategory category : group.categories) addCategoryDetails(page, category);
             }
         }
+        if (!details.comments.isEmpty()) {
+            page.addView(expandable("نظرات (" + toFa(details.comments.size()) + ")", commentsView(details)));
+        }
         // فوکوس اولیه روی اولین گروه برای راحتی کار با ریموت
         if (page.getChildCount() > 1) page.getChildAt(1).requestFocus();
+    }
+
+    private void addInfoBlock(ItemDetails details) {
+        List<String> meta = new ArrayList<>();
+        if (!details.imdbRating.isEmpty()) meta.add("IMDb ‏" + details.imdbRating + "/10");
+        if (!details.satisfaction.isEmpty()) meta.add("رضایت " + details.satisfaction);
+        if (!meta.isEmpty()) {
+            TextView ratings = new TextView(this);
+            ratings.setText(android.text.TextUtils.join(" · ", meta));
+            ratings.setTextColor(Color.rgb(229, 9, 20));
+            ratings.setTextSize(15);
+            ratings.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+            ratings.setTextDirection(View.TEXT_DIRECTION_RTL);
+            ratings.setPadding(0, dp(8), 0, 0);
+            page.addView(ratings);
+        }
+        List<String> tags = new ArrayList<>();
+        tags.addAll(details.genres);
+        tags.addAll(details.flags);
+        if (!tags.isEmpty()) {
+            TextView tagsView = new TextView(this);
+            tagsView.setText(android.text.TextUtils.join(" · ", tags));
+            tagsView.setTextColor(Color.LTGRAY);
+            tagsView.setTextSize(14);
+            tagsView.setTextDirection(View.TEXT_DIRECTION_RTL);
+            tagsView.setPadding(0, dp(4), 0, 0);
+            page.addView(tagsView);
+        }
+        if (!details.story.isEmpty()) {
+            TextView story = new TextView(this);
+            story.setText(details.story);
+            story.setTextColor(Color.WHITE);
+            story.setTextSize(15);
+            story.setTextDirection(View.TEXT_DIRECTION_RTL);
+            story.setLineSpacing(0, 1.35f);
+            story.setPadding(0, dp(10), 0, dp(4));
+            page.addView(story);
+        }
+    }
+
+    private View commentsView(ItemDetails details) {
+        LinearLayout container = verticalContainer();
+        for (CommentItem comment : details.comments) {
+            TextView head = new TextView(this);
+            String who = comment.author.isEmpty() ? "کاربر" : comment.author;
+            head.setText(who + (comment.time.isEmpty() ? "" : " · " + comment.time));
+            head.setTextColor(Color.rgb(229, 9, 20));
+            head.setTextSize(13);
+            head.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+            head.setTextDirection(View.TEXT_DIRECTION_RTL);
+            head.setPadding(0, dp(8), 0, 0);
+            container.addView(head);
+            TextView body = new TextView(this);
+            body.setText(comment.text);
+            body.setTextColor(Color.LTGRAY);
+            body.setTextSize(14);
+            body.setTextDirection(View.TEXT_DIRECTION_RTL);
+            body.setLineSpacing(0, 1.3f);
+            container.addView(body);
+        }
+        return container;
+    }
+
+    private String toFa(int n) {
+        return String.valueOf(n).replace('0', '۰').replace('1', '۱').replace('2', '۲')
+                .replace('3', '۳').replace('4', '۴').replace('5', '۵')
+                .replace('6', '۶').replace('7', '۷').replace('8', '۸').replace('9', '۹');
     }
 
     private void addCategoryDetails(LinearLayout parent, DownloadCategory category) {
@@ -213,7 +287,16 @@ public class DetailsActivity extends AppCompatActivity {
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20)));
+        final android.content.res.ColorStateList idle =
+                android.content.res.ColorStateList.valueOf(Color.rgb(45, 45, 45));
+        final android.content.res.ColorStateList focused =
+                android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20));
+        button.setBackgroundTintList(idle);
+        button.setOnFocusChangeListener((v, hasFocus) -> {
+            button.setBackgroundTintList(hasFocus ? focused : idle);
+            v.setScaleX(hasFocus ? 1.06f : 1f);
+            v.setScaleY(hasFocus ? 1.06f : 1f);
+        });
         return button;
     }
 

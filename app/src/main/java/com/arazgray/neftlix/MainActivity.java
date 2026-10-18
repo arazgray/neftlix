@@ -46,14 +46,37 @@ public class MainActivity extends AppCompatActivity {
     private int listingPage = 1;
     private boolean listingHasNext;
 
+    private androidx.activity.result.ActivityResultLauncher<android.content.Intent> voiceLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         getWindow().setStatusBarColor(Color.rgb(10, 10, 10));
         getWindow().setNavigationBarColor(Color.rgb(10, 10, 10));
+        voiceLauncher = registerForActivityResult(
+                new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        java.util.ArrayList<String> matches = result.getData().getStringArrayListExtra(
+                                android.speech.RecognizerIntent.EXTRA_RESULTS);
+                        if (matches != null && !matches.isEmpty()) {
+                            searchBox.setText(matches.get(0));
+                            showSearchResults();
+                        }
+                    }
+                });
         buildShell();
-        refreshCatalog();
+        java.io.File cacheFile = new java.io.File(getFilesDir(), "catalog_cache.json");
+        CatalogData cached = CatalogCache.load(cacheFile);
+        if (cached != null) {
+            catalog = cached;
+            status.setText("نمایش فهرست ذخیره‌شده…");
+            renderHome();
+            refreshCatalog(true);
+        } else {
+            refreshCatalog(false);
+        }
     }
 
     @Override
@@ -108,18 +131,26 @@ public class MainActivity extends AppCompatActivity {
         search.setOnClickListener(view -> showSearchResults());
         toolbar.addView(search);
 
+        Button mic = toolbarButton("🎙");
+        mic.setOnClickListener(view -> startVoiceSearch());
+        toolbar.addView(mic);
+
         Button all = toolbarButton("همه");
         all.setOnClickListener(view -> showAllItems());
         toolbar.addView(all);
 
-        Button refresh = toolbarButton("به‌روزرسانی");
-        refresh.setOnClickListener(view -> refreshCatalog());
+        Button refresh = toolbarButton("به‌روزرسانی کاتالوگ");
+        refresh.setOnClickListener(view -> refreshCatalog(false));
         toolbar.addView(refresh);
 
-        Button update = toolbarButton("⬇ نسخه جدید");
+        Button update = toolbarButton("به‌روزرسانی نفتلیکس");
         update.setOnClickListener(view -> checkAppUpdate());
         toolbar.addView(update);
-        root.addView(toolbar);
+        HorizontalScrollView toolbarScroll = new HorizontalScrollView(this);
+        toolbarScroll.setHorizontalScrollBarEnabled(false);
+        toolbarScroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        toolbarScroll.addView(toolbar);
+        root.addView(toolbarScroll, new LinearLayout.LayoutParams(-1, dp(56)));
 
         status = new TextView(this);
         status.setTextColor(Color.LTGRAY);
@@ -140,16 +171,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshCatalog() {
-        status.setText("در حال به‌روزرسانی فهرست از سایت…");
+        refreshCatalog(false);
+    }
+
+    private void refreshCatalog(boolean quiet) {
+        if (!quiet) status.setText("در حال به‌روزرسانی فهرست از سایت…");
         io.execute(() -> {
             try {
                 CatalogData latest = repository.loadCatalog();
+                try {
+                    CatalogCache.save(new java.io.File(getFilesDir(), "catalog_cache.json"), latest);
+                } catch (Exception ignored) {
+                }
                 runOnUiThread(() -> {
                     catalog = latest;
+                    if (quiet) {
+                        status.setText("فهرست به‌روز شد · " + toFaDigits(countItems(latest)) + " عنوان");
+                        if (!showingSubPage && page.getChildCount() == 0) renderHome();
+                        return;
+                    }
                     showingSubPage = false;
                     activeSection = null;
                     activeCategory = null;
-                    status.setText("فهرست به‌روز شد · " + countItems(latest) + " عنوان · با ریموت انتخاب کنید");
+                    status.setText("فهرست به‌روز شد · " + toFaDigits(countItems(latest)) + " عنوان · با ریموت انتخاب کنید");
                     renderHome();
                 });
             } catch (IOException error) {
@@ -216,8 +260,43 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void startVoiceSearch() {
+        try {
+            android.content.Intent intent =
+                    new android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "fa-IR");
+            intent.putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "نام فیلم یا سریال را بگویید");
+            voiceLauncher.launch(intent);
+        } catch (android.content.ActivityNotFoundException e) {
+            Toast.makeText(this, "جست‌وجوی صوتی روی این دستگاه پشتیبانی نمی‌شود", Toast.LENGTH_LONG).show();
+        }
+    }
+
     private void downloadAndInstall(String apkUrl) {
-        status.setText("در حال دانلود به‌روزرسانی…");
+        android.widget.ProgressBar progress = new android.widget.ProgressBar(
+                this, null, android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(100);
+        progress.setPadding(dp(8), dp(8), dp(8), dp(8));
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        layout.setPadding(dp(16), dp(8), dp(16), dp(8));
+        android.widget.TextView label = new android.widget.TextView(this);
+        label.setText("در حال دانلود… ٪۰");
+        label.setTextColor(Color.WHITE);
+        label.setTextDirection(View.TEXT_DIRECTION_RTL);
+        layout.addView(label, new LinearLayout.LayoutParams(-1, -2));
+        layout.addView(progress, new LinearLayout.LayoutParams(-1, dp(24)));
+        final boolean[] cancelled = {false};
+        androidx.appcompat.app.AlertDialog dialog =
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("دانلود به‌روزرسانی")
+                        .setView(layout)
+                        .setNegativeButton("لغو", (d, which) -> cancelled[0] = true)
+                        .setCancelable(false)
+                        .show();
         io.execute(() -> {
             try {
                 java.io.File dir = new java.io.File(getExternalFilesDir("updates"), "");
@@ -235,20 +314,34 @@ public class MainActivity extends AppCompatActivity {
                     long done = 0;
                     int read;
                     while ((read = in.read(buffer)) != -1) {
+                        if (cancelled[0]) {
+                            //noinspection ResultOfMethodCallIgnored
+                            apk.delete();
+                            runOnUiThread(() -> {
+                                dialog.dismiss();
+                                status.setText("دانلود لغو شد");
+                            });
+                            return;
+                        }
                         out.write(buffer, 0, read);
                         done += read;
                         if (total > 0) {
                             final int percent = (int) (done * 100 / total);
-                            runOnUiThread(() -> status.setText("در حال دانلود… ٪" + toFaDigits(percent)));
+                            runOnUiThread(() -> {
+                                progress.setProgress(percent);
+                                label.setText("در حال دانلود… ٪" + toFaDigits(percent));
+                            });
                         }
                     }
                 }
                 runOnUiThread(() -> {
+                    dialog.dismiss();
                     status.setText("دانلود تمام شد");
                     installApk(apk);
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
+                    if (!cancelled[0]) dialog.dismiss();
                     status.setText("دانلود ناموفق بود");
                     Toast.makeText(this, "خطا در دانلود به‌روزرسانی", Toast.LENGTH_LONG).show();
                 });
@@ -508,7 +601,7 @@ public class MainActivity extends AppCompatActivity {
         row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         for (BrowseItem item : items) row.addView(makeCard(item));
         scroll.addView(row);
-        page.addView(scroll, new LinearLayout.LayoutParams(-1, dp(248)));
+        page.addView(scroll, new LinearLayout.LayoutParams(-1, dp(268)));
     }
 
     private View makeCard(BrowseItem item) {
@@ -520,7 +613,7 @@ public class MainActivity extends AppCompatActivity {
         card.setBackgroundResource(android.R.drawable.list_selector_background);
         card.setPadding(dp(5), dp(5), dp(5), dp(5));
         card.setOnClickListener(view -> openItem(item));
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dp(148), dp(236));
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dp(148), dp(256));
         cardParams.setMargins(0, 0, dp(10), 0);
         card.setLayoutParams(cardParams);
         card.setOnFocusChangeListener((v, hasFocus) -> v.setScaleX(hasFocus ? 1.05f : 1f));
@@ -548,6 +641,15 @@ public class MainActivity extends AppCompatActivity {
         name.setMaxLines(2);
         name.setTextDirection(View.TEXT_DIRECTION_RTL);
         card.addView(name);
+        if (item.meta != null && !item.meta.isEmpty()) {
+            TextView meta = new TextView(this);
+            meta.setText(item.meta);
+            meta.setTextColor(Color.LTGRAY);
+            meta.setTextSize(11);
+            meta.setMaxLines(1);
+            meta.setTextDirection(View.TEXT_DIRECTION_RTL);
+            card.addView(meta);
+        }
         return card;
     }
 
@@ -621,7 +723,16 @@ public class MainActivity extends AppCompatActivity {
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20)));
+        final android.content.res.ColorStateList idle =
+                android.content.res.ColorStateList.valueOf(Color.rgb(45, 45, 45));
+        final android.content.res.ColorStateList focused =
+                android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20));
+        button.setBackgroundTintList(idle);
+        button.setOnFocusChangeListener((v, hasFocus) -> {
+            button.setBackgroundTintList(hasFocus ? focused : idle);
+            v.setScaleX(hasFocus ? 1.06f : 1f);
+            v.setScaleY(hasFocus ? 1.06f : 1f);
+        });
         return button;
     }
 
