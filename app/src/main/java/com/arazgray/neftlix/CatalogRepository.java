@@ -72,6 +72,59 @@ final class CatalogRepository {
         return new ListingPage(items, hasNext, document.location());
     }
 
+    /**
+     * جست‌وجوی سراسری آرشیو از طریق quick-search (کل آرشیو، نه فقط فهرست دانلودشده).
+     * پاسخ JSON است؛ title ممکن است تگ <em> داشته باشد و مقادیر می‌توانند عدد باشند.
+     */
+    List<BrowseItem> quickSearch(String query) throws IOException {
+        String q = query == null ? "" : query.trim();
+        if (q.isEmpty()) return new ArrayList<>();
+        String origin = originOf(HOME_URL);
+        Connection.Response response = Jsoup.connect(origin + "/quick-search")
+                .userAgent("Mozilla/5.0 (Linux; Android TV) NeftlixTV/1.0")
+                .header("Accept", "application/json")
+                .header("X-Requested-With", "XMLHttpRequest")
+                .data("q", q, "sort", "modified_at:desc")
+                .method(Connection.Method.GET)
+                .timeout(25000)
+                .ignoreContentType(true)
+                .ignoreHttpErrors(false)
+                .execute();
+        List<BrowseItem> items = new ArrayList<>();
+        try {
+            org.json.JSONArray results = new org.json.JSONArray(response.body());
+            for (int i = 0; i < results.length(); i++) {
+                org.json.JSONObject hit = results.optJSONObject(i);
+                if (hit == null) continue;
+                String title = stripTags(hit.optString("title", ""));
+                String titleFa = hit.optString("title_fa", "");
+                String path = hit.optString("url", "");
+                String image = hit.optString("image", "");
+                if (title.isEmpty() || path.isEmpty()) continue;
+                String itemUrl = path.startsWith("http") ? path : origin + (path.startsWith("/") ? path : "/" + path);
+                String cover = image.isEmpty() ? "" : (image.startsWith("http") ? image : origin + (image.startsWith("/") ? image : "/" + image));
+                String type = hit.optString("type", "");
+                String contentType;
+                if ("series".equalsIgnoreCase(type)) {
+                    contentType = "series";
+                } else if ("post".equalsIgnoreCase(type)) {
+                    contentType = "movie";
+                } else {
+                    contentType = itemUrl.contains("/series/") ? "series" : "movie";
+                }
+                items.add(new BrowseItem(title, titleFa, cover, itemUrl, contentType));
+            }
+        } catch (org.json.JSONException e) {
+            throw new IOException("Bad search response", e);
+        }
+        return items;
+    }
+
+    private String stripTags(String value) {
+        if (value == null) return "";
+        return value.replaceAll("<[^>]*>", "").trim();
+    }
+
     List<BrowseItem> search(String query) throws IOException {
         String q = query == null ? "" : query.trim();
         if (q.isEmpty()) return new ArrayList<>();

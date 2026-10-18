@@ -8,7 +8,8 @@ No server or PHP needed — the app fetches everything itself, live from the sit
 - **Catalog on open**: fetches the homepage (featured + sections), movie/series genres, and the first page of the Movies and Series archives.
 - **Refresh**: the به‌روزرسانی button re-fetches the catalog at any time.
 - **Browse**: Persian RTL home with featured/sections, movie + series genre rows, archive lists with صفحه قبل/بعد pagination.
-- **Search**: title search against the site, with local-filter fallback.
+- **Search**: whole-archive title search via the site's `quick-search` endpoint
+  (server search with `/?s=` and local-filter fallbacks).
 - **Details**: series/movie pages show download groups collapsed by default (season → category/language → quality → episode links), expandable with the remote.
 - **Player**: internal ExoPlayer (Media3) player; D-pad controls, Back exits.
 

@@ -226,31 +226,29 @@ public class MainActivity extends AppCompatActivity {
         addHeading("نتایج جست‌وجو: " + query);
         status.setText("در حال جست‌وجو…");
         io.execute(() -> {
+            List<BrowseItem> found = new ArrayList<>();
             try {
-                List<BrowseItem> remote = repository.search(query);
-                runOnUiThread(() -> {
-                    page.removeAllViews();
-                    addBackButton();
-                    addHeading("نتایج جست‌وجو: " + query);
-                    if (!remote.isEmpty()) {
-                        status.setText(remote.size() + " نتیجه از سایت");
-                        addItemRow(remote);
-                    } else {
-                        List<BrowseItem> local = filterLocal(query);
-                        status.setText(local.size() + " نتیجه از فهرست");
-                        addItemRow(local);
-                    }
-                    focusFirst();
-                });
+                found = repository.quickSearch(query);
+                if (found.isEmpty()) {
+                    found = repository.search(query);
+                }
             } catch (IOException e) {
-                runOnUiThread(() -> {
-                    page.removeAllViews();
-                    addBackButton();
-                    addHeading("نتایج جست‌وجو: " + query);
-                    addItemRow(filterLocal(query));
-                    focusFirst();
-                });
+                try {
+                    found = repository.search(query);
+                } catch (IOException ignored) {
+                    found = new ArrayList<>();
+                }
             }
+            final List<BrowseItem> direct = found.isEmpty() ? filterLocal(query) : found;
+            final String source = found.isEmpty() ? "فهرست" : "سایت";
+            runOnUiThread(() -> {
+                page.removeAllViews();
+                addBackButton();
+                addHeading("نتایج جست‌وجو: " + query);
+                status.setText(toFaDigits(direct.size()) + " نتیجه از " + source);
+                addItemRow(direct);
+                focusFirst();
+            });
         });
     }
 
