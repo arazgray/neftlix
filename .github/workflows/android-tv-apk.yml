@@ -35,6 +35,9 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Run unit tests
+        run: gradle --no-daemon testDebugUnitTest
+
       - name: Build installable debug APK
         env:
           NEFTLIX_KEYSTORE_FILE: ../neftlix-release.keystore

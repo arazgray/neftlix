@@ -52,6 +52,8 @@ public class PlayerActivity extends AppCompatActivity {
         playerView.setShutterBackgroundColor(android.graphics.Color.BLACK);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);
         playerView.setShowSubtitleButton(true);
+        // هنگام پخش، دستگاه نباید به اسکرین‌سیور/قفل برود (مثل Mi Box)
+        playerView.setKeepScreenOn(true);
         FrameLayout.LayoutParams videoParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT);

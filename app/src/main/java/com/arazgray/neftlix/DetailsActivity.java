@@ -22,10 +22,10 @@ import java.util.concurrent.Executors;
 /**
  * صفحهٔ جزئیات فیلم/سریال: راست‌چین و فارسی.
  *
- * بالای صفحه: هنر پس‌زمینه، پوستر و عنوان با دکمه‌های «پخش رایگان» و «دانلودها».
- * پایین صفحه دو ستون است: راست توضیحات، چپ گروه‌های دانلود. گروه‌ها، دسته‌ها و
+ * بالای صفحه: هنر پس‌زمینه، پوستر و عنوان با دکمهٔ «تماشا».
+ * پایین صفحه دو ستون است: راست توضیحات، چپ فهرست پخش. فصل‌ها، دسته‌ها و
  * کیفیت‌ها پیش‌فرض جمع‌شده‌اند و با OK باز می‌شوند؛ لینک‌های هر کیفیت در شبکهٔ
- * چندستونی (قسمت‌ها) نمایش داده می‌شوند.
+ * چندستونی (قسمت‌ها) نمایش داده می‌شوند و مستقیم پخش می‌شوند.
  */
 public class DetailsActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "url";
@@ -65,7 +65,7 @@ public class DetailsActivity extends AppCompatActivity {
         toolbar.addView(back, ui.params(-2, ui.dp(42)));
 
         ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.app_logo);
+        logo.setImageResource(R.drawable.logo_transparent);
         logo.setAdjustViewBounds(true);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         LinearLayout.LayoutParams logoParams = ui.params(ui.dp(96), ui.dp(34));
@@ -189,7 +189,7 @@ public class DetailsActivity extends AppCompatActivity {
             return;
         }
 
-        // راست: توضیحات — چپ: گروه‌های دانلود
+        // راست: توضیحات — چپ: فهرست پخش
         LinearLayout columns = ui.row();
         columns.setGravity(Gravity.TOP);
         LinearLayout infoColumn = ui.column();
@@ -210,38 +210,10 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * عنوان تمیز برای نمایش: پیشوند «دانلود …» و عبارت‌های تبلیغی انتهای عنوان
-     * سایت حذف می‌شوند (فقط برای نمایش؛ دادهٔ اصلی دست‌نخورده می‌ماند).
+     * عنوان تمیز برای نمایش؛ منطق در {@link DisplayText} است تا تست واحد داشته باشد.
      */
     static String cleanTitle(String raw) {
-        if (raw == null) return "";
-        String title = raw.trim();
-        title = title.replaceFirst(
-                "^دانلود\\s+(فیلم و سریال|فیلم|سریال|انیمیشن|انیمه|مستند|برنامه)\\s+", "");
-        String[] tails = {
-                "بدون سانسور با زیرنویس فارسی چسبیده",
-                "بدون سانسور و زیرنویس فارسی چسبیده",
-                "بدون سانسور با زیرنویس چسبیده",
-                "با زیرنویس فارسی چسبیده",
-                "با زیرنویس چسبیده",
-                "زیرنویس فارسی چسبیده",
-                "زیرنویس چسبیده",
-                "بدون سانسور",
-                "دوبله فارسی",
-                "کامل",
-                "رایگان",
-        };
-        boolean changed = true;
-        for (int round = 0; round < 3 && changed; round++) {
-            changed = false;
-            for (String tail : tails) {
-                if (title.endsWith(tail)) {
-                    title = title.substring(0, title.length() - tail.length()).trim();
-                    changed = true;
-                }
-            }
-        }
-        return title.isEmpty() ? raw.trim() : title;
+        return DisplayText.cleanTitle(raw);
     }
 
     private String summaryOf(ItemDetails details) {
@@ -254,7 +226,7 @@ public class DetailsActivity extends AppCompatActivity {
         }
         if (links > 0) {
             if (summary.length() > 0) summary.append(" · ");
-            summary.append(Ui.fa(links)).append(" لینک دانلود");
+            summary.append(Ui.fa(links)).append(" لینک پخش");
         }
         return summary.toString();
     }
@@ -297,7 +269,7 @@ public class DetailsActivity extends AppCompatActivity {
         first = addTag(tags, Ui.faType(typeOf(details)), first);
         int links = countLinks(details);
         if (links > 0) {
-            addTag(tags, Ui.fa(links) + " لینک دانلود", first);
+            addTag(tags, Ui.fa(links) + " لینک پخش", first);
         }
         info.addView(tags);
 
@@ -305,17 +277,17 @@ public class DetailsActivity extends AppCompatActivity {
         actions.setPadding(0, ui.dp(18), 0, 0);
         final MediaLink playable = firstLink(details);
         if (playable != null) {
-            TextView play = ui.primaryButton("پخش رایگان", R.drawable.ic_play);
+            TextView play = ui.primaryButton("تماشا", R.drawable.ic_play);
             play.setTag("play");
             play.setOnClickListener(v -> play(playable));
             actions.addView(play, ui.params(-2, ui.dp(44)));
         }
         if (!details.groups.isEmpty()) {
-            TextView downloads = ui.ghostButton("دانلودها", R.drawable.ic_download);
-            LinearLayout.LayoutParams downloadsButtonParams = ui.params(-2, ui.dp(44));
-            if (playable != null) downloadsButtonParams.setMarginStart(ui.dp(10));
-            downloads.setOnClickListener(v -> focusFirst(downloadsColumn));
-            actions.addView(downloads, downloadsButtonParams);
+            TextView watchList = ui.ghostButton("فهرست پخش", R.drawable.ic_play);
+            LinearLayout.LayoutParams watchListButtonParams = ui.params(-2, ui.dp(44));
+            if (playable != null) watchListButtonParams.setMarginStart(ui.dp(10));
+            watchList.setOnClickListener(v -> focusFirst(downloadsColumn));
+            actions.addView(watchList, watchListButtonParams);
         }
         info.addView(actions);
 
@@ -380,7 +352,7 @@ public class DetailsActivity extends AppCompatActivity {
         parent.addView(panel);
     }
 
-    // ── گروه‌های دانلود ──────────────────────────────────────────────
+    // ── فهرست پخش ──────────────────────────────────────────────────
 
     private void addDownloadGroups(LinearLayout parent, ItemDetails details) {
         for (DownloadGroup group : details.groups) {
@@ -401,7 +373,7 @@ public class DetailsActivity extends AppCompatActivity {
         for (DownloadOption option : category.options) {
             content.addView(ui.expandable(optionLabel(option), linkGrid(option), 2));
         }
-        String title = category.title == null || category.title.isEmpty() ? "دانلودها" : category.title;
+        String title = category.title == null || category.title.isEmpty() ? "پخش" : category.title;
         parent.addView(ui.expandable(title, content, 1));
     }
 
@@ -412,7 +384,7 @@ public class DetailsActivity extends AppCompatActivity {
             if (label.length() > 0) label.append("  ·  ");
             label.append(option.encoder);
         }
-        if (label.length() == 0) label.append("دانلود");
+        if (label.length() == 0) label.append("پخش");
         label.append("  ·  ").append(Ui.fa(option.links.size())).append(" لینک");
         return label.toString();
     }
@@ -424,7 +396,9 @@ public class DetailsActivity extends AppCompatActivity {
         container.setPadding(0, ui.dp(8), 0, ui.dp(2));
         List<View> rowCards = new ArrayList<>();
         for (final MediaLink link : option.links) {
-            String label = "دانلود مستقیم".equals(link.label) ? "پخش رایگان" : link.label;
+            // برچسب سایت («دانلود …») به زبان تماشا برگردانده می‌شود؛ لینک مستقیم پخش می‌شود
+            String label = link.label == null ? "" : link.label.replace("دانلود", "تماشا").trim();
+            if (label.isEmpty()) label = "تماشا";
             TextView button = ui.gridButton(label, R.drawable.ic_play);
             button.setOnClickListener(v -> play(link));
             rowCards.add(button);
@@ -513,7 +487,7 @@ public class DetailsActivity extends AppCompatActivity {
         page.addView(note(text == null ? "" : text));
     }
 
-    /** فوکوس اولیه: دکمهٔ پخش، وگرنه اولین گروه دانلود. */
+    /** فوکوس اولیه: دکمهٔ تماشا، وگرنه اولین گروه پخش. */
     private void focusFirst(final LinearLayout downloadsColumn) {
         page.post(() -> {
             View play = findTagged(page, "play");

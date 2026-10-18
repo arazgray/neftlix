@@ -96,39 +96,58 @@ final class CatalogRepository {
                 .ignoreContentType(true)
                 .ignoreHttpErrors(false)
                 .execute();
-        List<BrowseItem> items = new ArrayList<>();
         try {
-            org.json.JSONArray results = new org.json.JSONArray(response.body());
-            for (int i = 0; i < results.length(); i++) {
-                org.json.JSONObject hit = results.optJSONObject(i);
-                if (hit == null) continue;
-                String title = stripTags(hit.optString("title", ""));
-                String titleFa = hit.optString("title_fa", "");
-                String path = hit.optString("url", "");
-                String image = hit.optString("image", "");
-                if (title.isEmpty() || path.isEmpty()) continue;
-                String itemUrl = path.startsWith("http") ? path : origin + (path.startsWith("/") ? path : "/" + path);
-                String cover = image.isEmpty() ? "" : (image.startsWith("http") ? image : origin + (image.startsWith("/") ? image : "/" + image));
-                String type = hit.optString("type", "");
-                String contentType;
-                if ("series".equalsIgnoreCase(type)) {
-                    contentType = "series";
-                } else if ("post".equalsIgnoreCase(type)) {
-                    contentType = "movie";
-                } else {
-                    contentType = itemUrl.contains("/series/") ? "series" : "movie";
-                }
-                items.add(new BrowseItem(title, titleFa, cover, itemUrl, contentType));
-            }
+            return parseQuickSearch(response.body(), origin);
         } catch (org.json.JSONException e) {
             throw new IOException("Bad search response", e);
+        }
+    }
+
+    /**
+     * تجزیهٔ پاسخ quick-search؛ خالص و بدون شبکه برای تست واحد.
+     * گاهی سایت به‌جای فیلدهای مستقیم، آبجکت `_formatted` برمی‌گرداند.
+     */
+    static List<BrowseItem> parseQuickSearch(String body, String origin) throws org.json.JSONException {
+        List<BrowseItem> items = new ArrayList<>();
+        org.json.JSONArray results = new org.json.JSONArray(body);
+        for (int i = 0; i < results.length(); i++) {
+            org.json.JSONObject hit = results.optJSONObject(i);
+            if (hit == null) continue;
+            org.json.JSONObject formatted = hit.optJSONObject("_formatted");
+            String title = stripTagsStatic(hit.optString("title", ""));
+            String titleFa = hit.optString("title_fa", "");
+            String path = hit.optString("url", "");
+            String image = hit.optString("image", "");
+            if (formatted != null) {
+                if (title.isEmpty()) title = stripTagsStatic(formatted.optString("title", ""));
+                if (titleFa.isEmpty()) titleFa = formatted.optString("title_fa", "");
+                if (path.isEmpty()) path = formatted.optString("url", "");
+                if (image.isEmpty()) image = formatted.optString("image", "");
+            }
+            if (title.isEmpty() || path.isEmpty()) continue;
+            String itemUrl = path.startsWith("http") ? path : origin + (path.startsWith("/") ? path : "/" + path);
+            String cover = image.isEmpty() ? "" : (image.startsWith("http") ? image : origin + (image.startsWith("/") ? image : "/" + image));
+            String type = hit.optString("type", "");
+            String contentType;
+            if ("series".equalsIgnoreCase(type)) {
+                contentType = "series";
+            } else if ("post".equalsIgnoreCase(type)) {
+                contentType = "movie";
+            } else {
+                contentType = itemUrl.contains("/series/") ? "series" : "movie";
+            }
+            items.add(new BrowseItem(title, titleFa, cover, itemUrl, contentType));
         }
         return items;
     }
 
-    private String stripTags(String value) {
+    private static String stripTagsStatic(String value) {
         if (value == null) return "";
         return value.replaceAll("<[^>]*>", "").trim();
+    }
+
+    String stripTags(String value) {
+        return stripTagsStatic(value);
     }
 
     List<BrowseItem> search(String query) throws IOException {
@@ -143,7 +162,9 @@ final class CatalogRepository {
         return items;
     }
 
-    private String pageUrl(String url, int page) {
+    // ── کمک‌متدهای زیر modificator ندارند تا تست واحد به آن‌ها دسترسی داشته باشد ──
+
+    String pageUrl(String url, int page) {
         if (page <= 1 || url == null) return url;
         try {
             java.net.URI uri = java.net.URI.create(url);
@@ -160,7 +181,7 @@ final class CatalogRepository {
         }
     }
 
-    private boolean hasNextPage(Document document) {
+    boolean hasNextPage(Document document) {
         if (document.selectFirst("link[rel=next]") != null) return true;
         Elements next = document.select(".pagination a.page-numbers, .pagination a.next, a.next.page-numbers");
         return !next.isEmpty();
@@ -273,7 +294,7 @@ final class CatalogRepository {
         }
     }
 
-    private List<BrowseItem> parseArticles(Elements articles, String contentType, String baseUrl,
+    List<BrowseItem> parseArticles(Elements articles, String contentType, String baseUrl,
                                            Map<String, BrowseCategory> genreSink) {
         List<BrowseItem> items = new ArrayList<>();
         for (Element article : articles) {
@@ -314,7 +335,7 @@ final class CatalogRepository {
     }
 
     /** خط کوتاه زیر کارت: امتیاز و یکی دو ژانر، اگر در صفحه باشد. */
-    private String cardMeta(Element article) {
+    String cardMeta(Element article) {
         String rating = "";
         Element ratingElement = article.selectFirst(".entry-meta strong");
         if (ratingElement != null) rating = ratingElement.text().trim();
@@ -332,7 +353,7 @@ final class CatalogRepository {
         return meta.toString();
     }
 
-    private BrowseItem parseFeatured(Element slide, Element anchor, String baseUrl) {
+    BrowseItem parseFeatured(Element slide, Element anchor, String baseUrl) {
         String url = anchor.absUrl("href");
         Element heading = anchor.selectFirst("h2, h3");
         String title = heading == null ? anchor.attr("title") : heading.text().trim();
@@ -341,7 +362,7 @@ final class CatalogRepository {
         return new BrowseItem(title, anchor.attr("title"), image == null ? "" : imageUrl(image, baseUrl), url, typeFromText(url));
     }
 
-    private DownloadOption parseOption(Element row, String baseUrl) {
+    DownloadOption parseOption(Element row, String baseUrl) {
         Element qualityElement = row.selectFirst(".text[dir=ltr]");
         String quality = qualityElement == null ? "" : qualityElement.text().trim();
         if (quality.isEmpty()) {
@@ -387,7 +408,7 @@ final class CatalogRepository {
         return option;
     }
 
-    private void putLink(Map<String, MediaLink> links, String url, String label, Element row, String baseUrl) {
+    void putLink(Map<String, MediaLink> links, String url, String label, Element row, String baseUrl) {
         if (url == null || url.isEmpty() || isSiteHost(url) || isOnlineLabel(label)) return;
         String finalLabel = label == null ? "" : label.trim();
         if (finalLabel.isEmpty() || "KMPlayer".equalsIgnoreCase(finalLabel)) {
@@ -410,12 +431,12 @@ final class CatalogRepository {
         links.putIfAbsent(url, new MediaLink(finalLabel, url));
     }
 
-    private boolean isOnlineLabel(String label) {
+    boolean isOnlineLabel(String label) {
         String lower = label == null ? "" : label.toLowerCase(Locale.ROOT);
         return lower.contains("پخش آنلاین") || lower.contains("تماشای آنلاین") || lower.contains("watch online") || lower.contains("play online");
     }
 
-    private boolean isSiteHost(String url) {
+    boolean isSiteHost(String url) {
         try {
             String host = java.net.URI.create(url).getHost();
             if (host == null) return false;
@@ -426,7 +447,7 @@ final class CatalogRepository {
         }
     }
 
-    private String imageUrl(Element image, String baseUrl) {
+    String imageUrl(Element image, String baseUrl) {
         for (String attr : new String[]{"data-splide-lazy", "data-src", "data-original", "src"}) {
             String value = image.attr(attr).trim();
             if (!value.isEmpty() && !value.startsWith("data:image/")) {
@@ -439,12 +460,12 @@ final class CatalogRepository {
         return "";
     }
 
-    private String typeFromText(String value) {
+    String typeFromText(String value) {
         String lower = value == null ? "" : value.toLowerCase(Locale.ROOT);
         return lower.contains("series") || lower.contains("سریال") ? "series" : "movie";
     }
 
-    private String originOf(String url) {
+    String originOf(String url) {
         java.net.URI uri = java.net.URI.create(url);
         int port = uri.getPort();
         return uri.getScheme() + "://" + uri.getHost() + (port < 0 ? "" : ":" + port);

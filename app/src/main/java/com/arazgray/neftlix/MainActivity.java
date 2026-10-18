@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         CatalogData cached = CatalogCache.load(cacheFile);
         if (cached != null) {
             catalog = cached;
-            status.setText("نمایش فهرست ذخیره‌شده…");
+            setStatus("نمایش فهرست ذخیره‌شده…");
             renderHome();
             refreshCatalog(true);
         } else {
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(9), ui.dp(Ui.PAGE_PAD), ui.dp(5));
 
         ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.app_logo);
+        logo.setImageResource(R.drawable.logo_transparent);
         logo.setAdjustViewBounds(true);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         LinearLayout.LayoutParams logoParams = ui.params(ui.dp(104), ui.dp(38));
@@ -173,8 +173,13 @@ public class MainActivity extends AppCompatActivity {
         status = ui.text("", 12, Ui.TEXT_MUTED);
         status.setSingleLine(true);
         status.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        status.setPadding(ui.dp(Ui.PAGE_PAD), 0, ui.dp(Ui.PAGE_PAD), ui.dp(2));
-        root.addView(status, ui.params(-1, -2));
+        // قرص وضعیت زیر نوار بالا
+        status.setBackground(ui.stroked(Ui.SURFACE_2, Ui.RADIUS_PILL, 1, Ui.HAIRLINE));
+        status.setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(6));
+        status.setVisibility(View.GONE);
+        LinearLayout.LayoutParams statusParams = ui.params(-1, -2);
+        statusParams.setMargins(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
+        root.addView(status, statusParams);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -205,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
         splashOverlay.setClickable(true);
         splashOverlay.setFocusable(true);
         ImageView splashLogo = new ImageView(this);
-        splashLogo.setImageResource(R.drawable.app_logo);
+        splashLogo.setImageResource(R.drawable.logo_transparent);
         splashLogo.setAdjustViewBounds(true);
         splashLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         FrameLayout.LayoutParams splashParams =
@@ -268,6 +273,13 @@ public class MainActivity extends AppCompatActivity {
         if (loadingOverlay.hasFocus()) focusFirst();
     }
 
+    /** متن قرص وضعیت؛ خالی یعنی قرص پنهان شود. */
+    private void setStatus(String text) {
+        if (status == null) return;
+        status.setText(text == null ? "" : text);
+        status.setVisibility(text == null || text.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
     // ── فهرست و به‌روزرسانی ─────────────────────────────────────────
 
     private void refreshCatalog() {
@@ -276,9 +288,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void refreshCatalog(boolean quiet) {
         if (quiet) {
-            status.setText("در حال به‌روزرسانی پس‌زمینه…");
+            setStatus("در حال به‌روزرسانی پس‌زمینه…");
         } else {
-            status.setText("در حال به‌روزرسانی فهرست از سایت…");
+            setStatus("در حال به‌روزرسانی فهرست از سایت…");
             showLoading("در حال به‌روزرسانی فهرست…");
         }
         io.execute(() -> {
@@ -292,20 +304,20 @@ public class MainActivity extends AppCompatActivity {
                     catalog = latest;
                     hideLoading();
                     if (quiet) {
-                        status.setText("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان");
+                        setStatus("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان");
                         if (!showingSubPage && page.getChildCount() == 0) renderHome();
                         return;
                     }
                     showingSubPage = false;
                     activeSection = null;
                     activeCategory = null;
-                    status.setText("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان · با ریموت انتخاب کنید");
+                    setStatus("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان · با ریموت انتخاب کنید");
                     renderHome();
                 });
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    status.setText("به‌روزرسانی ناموفق بود. اینترنت را بررسی کنید و دوباره تلاش کنید.");
+                    setStatus("به‌روزرسانی ناموفق بود. اینترنت را بررسی کنید و دوباره تلاش کنید.");
                     if (catalog == null) {
                         hideSplash();
                         page.removeAllViews();
@@ -322,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
             "https://raw.githubusercontent.com/arazgray/neftlix/main/version.json";
 
     private void checkAppUpdate() {
-        status.setText("در حال بررسی نسخه جدید…");
+        setStatus("در حال بررسی نسخه جدید…");
         io.execute(() -> {
             try {
                 java.net.HttpURLConnection conn =
@@ -341,16 +353,16 @@ public class MainActivity extends AppCompatActivity {
                 String notes = info.optString("notes", "");
                 if (latest > BuildConfig.VERSION_CODE && !apkUrl.isEmpty()) {
                     runOnUiThread(() -> showUpdateDialog(versionName, notes, apkUrl));
-                    runOnUiThread(() -> status.setText("نسخه جدید پیدا شد"));
+                    runOnUiThread(() -> setStatus("نسخه جدید پیدا شد"));
                 } else {
                     runOnUiThread(() -> {
-                        status.setText("اپ به‌روز است");
+                        setStatus("اپ به‌روز است");
                         Toast.makeText(this, "نسخه جدیدی نیست", Toast.LENGTH_SHORT).show();
                     });
                 }
             } catch (Throwable e) {
                 runOnUiThread(() -> {
-                    status.setText("بررسی نسخه ناموفق بود");
+                    setStatus("بررسی نسخه ناموفق بود");
                     Toast.makeText(this, "خطا در بررسی به‌روزرسانی", Toast.LENGTH_LONG).show();
                 });
             }
@@ -405,18 +417,24 @@ public class MainActivity extends AppCompatActivity {
         layout.setPadding(ui.dp(14), ui.dp(10), ui.dp(14), ui.dp(6));
 
         ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.app_logo);
+        logo.setImageResource(R.drawable.logo_transparent);
         logo.setAdjustViewBounds(true);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         LinearLayout.LayoutParams logoParams = ui.params(ui.dp(170), ui.dp(58));
         logoParams.gravity = Gravity.CENTER_HORIZONTAL;
         layout.addView(logo, logoParams);
 
-        TextView desc = ui.text("اپ تلویزیون فارسی برای مرور فیلم‌ها و سریال‌ها، جست‌وجوی سراسری آرشیو و پخش مستقیم با پخش‌کننده داخلی.",
+        TextView desc = ui.text("اپ تلویزیون فارسی برای مرور فیلم‌ها و سریال‌ها، جست‌وجوی سراسری آرشیو و تماشای مستقیم با پخش‌کننده داخلی.",
                 13, Ui.TEXT_DIM);
         desc.setGravity(Gravity.CENTER);
         desc.setPadding(0, ui.dp(12), 0, 0);
         layout.addView(desc);
+
+        TextView source = ui.text("منبع رسانه: فیلم۲مدیا (myf2mi.top) — همهٔ آرشیو را می‌توانید از آنجا دانلود کنید.",
+                12, Ui.TEXT_MUTED);
+        source.setGravity(Gravity.CENTER);
+        source.setPadding(0, ui.dp(8), 0, 0);
+        layout.addView(source);
 
         TextView version = ui.text("نسخه " + BuildConfig.VERSION_NAME + " (" + Ui.fa(BuildConfig.VERSION_CODE) + ")",
                 12, Ui.TEXT_MUTED);
@@ -514,7 +532,7 @@ public class MainActivity extends AppCompatActivity {
                             apk.delete();
                             runOnUiThread(() -> {
                                 dialog.dismiss();
-                                status.setText("دانلود لغو شد");
+                                setStatus("دانلود لغو شد");
                             });
                             return;
                         }
@@ -531,13 +549,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 runOnUiThread(() -> {
                     dialog.dismiss();
-                    status.setText("دانلود تمام شد");
+                    setStatus("دانلود تمام شد");
                     installApk(apk);
                 });
             } catch (Throwable e) {
                 runOnUiThread(() -> {
                     if (!cancelled[0]) dialog.dismiss();
-                    status.setText("دانلود ناموفق بود");
+                    setStatus("دانلود ناموفق بود");
                     Toast.makeText(this, "خطا در دانلود به‌روزرسانی", Toast.LENGTH_LONG).show();
                 });
             }
@@ -681,7 +699,7 @@ public class MainActivity extends AppCompatActivity {
         info.addView(tags, ui.withTop(-1, -2, 14));
 
         LinearLayout ctas = ui.row();
-        TextView watch = ui.primaryButton("تماشا و دانلود", R.drawable.ic_play);
+        TextView watch = ui.primaryButton("تماشا", R.drawable.ic_play);
         watch.setOnClickListener(v -> openItem(item));
         ctas.addView(watch, ui.params(-2, ui.dp(44)));
         TextView browse = ui.ghostButton("مرور کاتالوگ", 0);
@@ -828,7 +846,7 @@ public class MainActivity extends AppCompatActivity {
                 page.removeAllViews();
                 addBackButton();
                 addHeading("نتایج جست‌وجو", query);
-                status.setText(Ui.fa(direct.size()) + " نتیجه از " + source);
+                setStatus(Ui.fa(direct.size()) + " نتیجه از " + source);
                 addItemsGrid(direct);
                 focusFirst();
             });
@@ -859,7 +877,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    status.setText(section.title + " · صفحه " + Ui.fa(pageNum));
+                    setStatus(section.title + " · صفحه " + Ui.fa(pageNum));
                     page.removeAllViews();
                     addBackButton();
                     addHeading(section.title, "صفحه " + Ui.fa(pageNum));
@@ -870,7 +888,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    status.setText("بارگذاری ناموفق بود: " + section.title);
+                    setStatus("بارگذاری ناموفق بود: " + section.title);
                 });
             }
         });
@@ -888,7 +906,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    status.setText(category.title + " · صفحه " + Ui.fa(pageNum));
+                    setStatus(category.title + " · صفحه " + Ui.fa(pageNum));
                     page.removeAllViews();
                     addBackButton();
                     String count = category.count == null || category.count.isEmpty()
@@ -901,7 +919,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    status.setText("بارگذاری دسته ناموفق بود: " + category.title);
+                    setStatus("بارگذاری دسته ناموفق بود: " + category.title);
                 });
             }
         });

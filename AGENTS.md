@@ -17,9 +17,10 @@ Repo: `github.com/arazgray/neftlix` (public). App id: `com.arazgray.neftlix`.
    changes only. `CatalogRepository.java` and `Models.java` are the data layer — treat as frozen
    unless the task is explicitly about them.
 2. **CI is the only real verification.** There is usually no local JDK/Android SDK here.
-   Push a branch and let GitHub Actions compile. A green `Build Neftlix TV APK` run ≈ 1 min.
-3. **Visually verify UI work** with the screenshot workflow (see below). Compile-green is not
-   enough for a redesign.
+   Push a branch and let GitHub Actions compile *and run unit tests*. A green
+   `Build Neftlix TV APK` run takes ~2-4 min (tests + APK).
+3. **Never run or re-add emulator/screenshot CI** — explicitly vetoed by the user.
+   Visual reference = committed `screenshot.png` / `screenshot-details.png`.
 4. `version.json` is the update-check/publish manifest — **do not bump it unless releasing**;
    `app/build.gradle` is where version bumps go during normal work.
 5. Keep Persian comments/style of surrounding code; commits are short, terse, often with a
@@ -27,8 +28,7 @@ Repo: `github.com/arazgray/neftlix` (public). App id: `com.arazgray.neftlix`.
 
 ## Environment / toolchain
 
-- Workstation: Linux, git + `gh` CLI authenticated as `arazgray`. Repo is public, so Actions
-  runs with KVM-capable runners.
+- Workstation: Linux, git + `gh` CLI authenticated as `arazgray`.
 - No local Xcode/JDK/Android SDK — **do not attempt local builds**; use CI.
 - Useful: `gh run list --workflow android-tv-apk.yml --limit 5`, `gh run watch <id>`,
   `gh run download <id> -n <artifact> -D dir`.
@@ -37,21 +37,14 @@ Repo: `github.com/arazgray/neftlix` (public). App id: `com.arazgray.neftlix`.
 
 | Workflow | Trigger | Purpose |
 |---|---|---|
-| `android-tv-apk.yml` | push touching `app/**`, gradle files, itself; manual | compiles debug APK (~1 min) |
+| `android-tv-apk.yml` | push touching `app/**`, gradle files, itself; manual | unit tests + debug APK (~2-4 min) |
 | `release-apk.yml` | tag `v*` | builds + publishes release APK to GitHub Releases |
-| `ui-screenshots.yml` | push to `ui-redesign` (temporary) + manual | boots TV emulator, captures screenshots |
 
 Commands:
 
 ```bash
-# compile check
+# tests + compile check
 git push origin <branch> && gh run watch $(gh run list -L1 --workflow android-tv-apk.yml --json databaseId -q '.[0].databaseId')
-
-# screenshots (choose the branch with the UI under test)
-gh workflow run ui-screenshots.yml --ref <branch>
-gh run list -L1 --workflow ui-screenshots.yml
-gh run watch <id>
-gh run download <id> -n ui-screenshots -D /tmp/opencode/shots-new   # downloads are slow (~5 min): long timeouts
 ```
 
 Signing: `neftlix-release.keystore` is restored from secret `NEFTLIX_KEYSTORE_BASE64` (same
@@ -65,11 +58,15 @@ app/src/main/java/com/arazgray/neftlix/
   CatalogRepository.java   data layer: Jsoup scraping (home, listings, search, details, episodes/downloads)
   Models.java              POJOs: CatalogData/BrowseSection/BrowseItem/GenreCategory/DetailsInfo/DownloadGroup...
   Ui.java                  design system: scale, palette, widget factories (see below)
+  DisplayText.java         pure display-text helpers (title cleaning), unit-tested
   MainActivity.java        home: hero billboard + rails/grid + search + genres
-  DetailsActivity.java     details: title/key-art, buttons, synopsis, download hierarchy
-  PlayerActivity.java      ExoPlayer wrapper, lightly themed
+  DetailsActivity.java     details: title/key-art, buttons, synopsis, watch-list hierarchy
+  PlayerActivity.java      ExoPlayer wrapper, lightly themed, keep-screen-on
   CrashLogger.java         black crash screen + file log
-app/src/main/res/drawable*/ → brand assets + vector icons; res/font → Vazirmatn
+app/src/main/res/drawable*/ → brand assets + vector icons (in-app marks use transparent
+  `logo_transparent.png`); res/font → Vazirmatn
+app/src/test/ → JVM unit tests (JUnit 4): UiTest, DisplayTextTest, CatalogRepositoryTest,
+  CatalogCacheTest — run in CI via `testDebugUnitTest`
 ```
 
 ## Design system — `Ui.java`
@@ -96,8 +93,11 @@ The whole redesign lives here; **new screens should use these factories, not raw
   screenshots the fallback path is what usually renders — that's expected.
 - **Home:** hero + horizontal rails; genre rails at the bottom; search box opens listing/search.
 - **Details:** seasons → categories → quality `expandable()` hierarchy; 3-column episode grid;
-  `cleanTitle()` strips noisy site suffixes. Comments section at the bottom.
-- **Player:** opens from a link, black shutter, buffering indicator, styled error card.
+  `DisplayText.cleanTitle()` strips noisy site suffixes. Comments section at the bottom.
+  All links stream in the player — there is intentionally **no download feature** (Android TV);
+  UI wording is تماشا/پخش everywhere, site «دانلود…» labels are rewritten to تماشا at display time.
+- **Player:** opens from a link, black shutter, buffering indicator, styled error card,
+  `setKeepScreenOn(true)` so boxes (Mi Box) never drop to the screensaver mid-play.
 
 ## Live-site scraping contract (fragile by nature)
 
@@ -106,40 +106,36 @@ The whole redesign lives here; **new screens should use these factories, not raw
 - Home card images arrive lazily via `data-splide-lazy` (`…-180x280.jpg` thumbs); details key art
   is `#post-intro img.coverimg` (2048×1152 landscape), details poster 360×480.
 - Genres: accumulated into `genreSink` while parsing; split into `movieCategories`/`seriesCategories`.
-- **Known bug/backlog (not yet fixed):** `CatalogRepository.quickSearch()` expects JSON fields
-  (`title`, `url`, `image`); the site's `/quick-search` sometimes returns objects with `_db_error`
-  + `_formatted` fields instead, so app falls back to page search. Fix = parse `_formatted`
-  (`_formatted.title`, …) as fallback. Only attempt if the task asks; test on-device via CI.
+- `quickSearch()` parses direct fields, then falls back to the site's `_formatted` object
+  (the site sometimes returns `_db_error` + formatted-only hits) — see
+  `CatalogRepository.parseQuickSearch()` + `CatalogRepositoryTest`.
+- Keep parsing logic in package-private/static helpers so unit tests can reach it;
+  Android-dependent code (views, Glide, ExoPlayer) stays out of the tested surface.
 
-## Emulator / screenshot gotchas (hard-won)
+## Emulator / screenshots — DO NOT RE-ADD
 
-- `reactivecircus/android-emulator-runner` reports "This user doesn't have permissions to use
-  KVM" → pre-step `sudo chmod 666 /dev/kvm` restores acceleration (boot ~1–2 min vs ~5+ min and
-  broken services with TCG).
-- Emulator boots in **touch mode**; programmatic `requestFocus()` silently fails until a D-pad
-  event — script sends `KEYCODE_DPAD_DOWN` on the launcher before `am start`.
-- Script waits for `sys.boot_completed` + `package/input/settings/window/activity` services,
-  retries `adb install`, waits for `mCurrentFocus` to be the app, and dumps logcat at the end.
-- Captures two passes: `tv320-*` (profile density) and `hdpi160-*` (density 160 → scale pegged),
-  to prove the scale system.
-- Emulator config: API 30, `profile: tv_1080p`, `enable-hw-keyboard: true` (else `adb shell
-  input text` misbehaves), swiftshader GPU.
+- The screenshot workflow (`.github/workflows/ui-screenshots.yml` + script) was **deleted at the
+  user's explicit order** (a full pass cost ~7+ min of runner time). Never re-add emulator CI.
+- Visual reference = committed `screenshot.png` / `screenshot-details.png` + `tv-preview.html`.
+  They are refreshed manually from a real install when the UI changes — they may lag the code
+  slightly after wording-only changes.
 
 ## Versioning & release
 
-- Bump `versionCode`/`versionName` in `app/build.gradle` (branch `ui-redesign` carries 12 / 1.11;
-  `main` is at `fe1f7d4` = v1.10).
+- Bump `versionCode`/`versionName` in `app/build.gradle`, mirror in `version.json`, commit.
+- Merge to `main`, push, then tag: `git tag vX.Y && git push origin vX.Y` — `release-apk.yml`
+  builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
-  `releases/latest/download/neftlix-android-tv.apk`. It is **publishing state** — only the user
-  decides when to bump it and push a `v*` tag.
+  `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
+- Current: 13 / 1.12 on `main` (v1.12 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (last updated while merging ui-redesign, Oct 2026)
+## Current state (v1.12 released, Oct 2026)
 
-- Branch `ui-redesign` holds the full redesign (design system + rewritten home/details + light
-  player polish + screenshot workflow). `main` still at `fe1f7d4` (v1.10). README + `tv-preview.html`
-  rewrites and screenshots were pending commit at the time of writing.
-- Untracked: `logo-transparent.png` (unreferenced — decide whether to keep/delete).
-- `ui-screenshots.yml` is marked **temporary**; once the design is merged it should become
-  `workflow_dispatch`-only (or be deleted) per README.
+- Redesign + stream-only UI + unit tests are merged to `main` and tagged `v1.12`
+  (versionCode 13). Branch `ui-redesign` is deleted.
+- In-app updater reads `version.json` from `main` via raw.githubusercontent.
+- Screenshot workflow permanently removed — do not re-add emulator CI.
+- Committed `screenshot.png` / `screenshot-details.png` predate the تماشا wording;
+  refresh them from a real install next time the UI changes visually.

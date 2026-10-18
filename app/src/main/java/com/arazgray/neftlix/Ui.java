@@ -61,7 +61,7 @@ final class Ui {
         android.util.DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         this.density = Math.max(1f, metrics.density);
         float widthDp = metrics.widthPixels / this.density;
-        this.scale = Math.max(0.75f, Math.min(widthDp / 960f, 2.4f));
+        this.scale = scaleForWidth(widthDp);
         this.placeholder = new android.graphics.drawable.ColorDrawable(SURFACE_2);
     }
 
@@ -502,14 +502,29 @@ final class Ui {
     }
 
     int gridColumns() {
-        float available = 960 - PAGE_PAD * 2;
-        return Math.max(3, (int) ((available + CARD_GAP) / (CARD_W + CARD_GAP)));
+        return gridColumnsFor(PAGE_PAD, CARD_W, CARD_GAP);
+    }
+
+    /** تعداد ستون شبکه فقط از روی ثابت‌های طراحی؛ بدون نیاز به نمونه. */
+    static int gridColumnsFor(float pagePad, float cardW, float cardGap) {
+        float available = 960 - pagePad * 2;
+        return Math.max(3, (int) ((available + cardGap) / (cardW + cardGap)));
     }
 
     /** عرض هر کارت در شبکه (dp طراحی) تا نسبت تصویر درست بماند. */
     float gridCardWidthDp(int columns) {
-        float available = 960 - PAGE_PAD * 2 - CARD_GAP * (columns - 1);
+        return gridCardWidthDpFor(columns, PAGE_PAD, CARD_GAP);
+    }
+
+    /** نسخهٔ خالص محاسبهٔ عرض کارت برای تست واحد. */
+    static float gridCardWidthDpFor(int columns, float pagePad, float cardGap) {
+        float available = 960 - pagePad * 2 - cardGap * (columns - 1);
         return available / columns;
+    }
+
+    /** ضریب مقیاس فضای طراحی ۹۶۰dp؛ بدون نیاز به نمونه برای تست واحد. */
+    static float scaleForWidth(float widthDp) {
+        return Math.max(0.75f, Math.min(widthDp / 960f, 2.4f));
     }
 
     // ── بخش تاشو (فصل‌ها، کیفیت‌ها، نظرات) ───────────────────────────

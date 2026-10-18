@@ -5,80 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>پیش‌نمایش اپ تلویزیون نفتلیکس</title>
 <style>
-body{font-family:system-ui,sans-serif;background:#0b1116;color:#fff;margin:0;padding:24px}
-h1{color:#E50914;font-size:22px}
-h2{font-size:18px;margin:26px 0 10px}
-.screen{background:#0A0A0A;border:1px solid #2a3742;border-radius:12px;padding:18px;margin:0 0 28px;max-width:1100px}
-.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.brand{color:#E50914;font-weight:800;font-size:20px;margin-left:8px}
-.search{flex:1;min-width:200px;background:#232d36;color:#fff;border:1px solid #38474f;border-radius:8px;padding:10px}
-.btn{background:#E50914;color:#0A0A0A;border:0;border-radius:8px;padding:10px 14px;font-weight:700}
-.status{color:#9fb0ba;font-size:13px;margin:8px 0}
-.chips{display:flex;gap:8px;overflow:hidden;flex-wrap:wrap}
-.chip{background:#232d36;border:1px solid #38474f;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px}
-.row{display:flex;gap:12px;overflow:hidden}
-.card{width:148px;flex-shrink:0;background:#1a242d;border:2px solid transparent;border-radius:10px;padding:6px}
-.card.focus{border-color:#E50914;transform:scale(1.03)}
-.poster{height:176px;border-radius:8px;background:linear-gradient(160deg,#33424e,#1a242d);display:flex;align-items:center;justify-content:center;color:#9fb0ba;font-size:12px;text-align:center;padding:8px}
-.kind{color:#E50914;font-size:11px;margin-top:6px}
-.title{font-size:13px;margin-top:2px;min-height:36px}
-.group{border:1px solid #38474f;border-radius:10px;padding:10px 12px;margin:8px 0;background:#16202a}
-.group summary{cursor:pointer;font-weight:700}
-.group small{color:#9fb0ba}
-.sub{border-top:1px solid #2a3742;margin-top:8px;padding-top:8px}
-.link{display:block;background:#E50914;color:#0A0A0A;border-radius:8px;padding:10px;margin:6px 0;text-decoration:none;font-weight:700}
-.player{background:#000;border-radius:10px;height:300px;display:flex;flex-direction:column;justify-content:space-between;padding:12px}
-.controls{display:flex;gap:10px;justify-content:center;align-items:center}
-.dot{width:44px;height:44px;border-radius:50%;background:#232d36;display:flex;align-items:center;justify-content:center}
-.note{color:#9fb0ba;font-size:13px}
+  :root { --bg:#0A0A0C; --brand:#E50914; --text:#fff; --dim:#B3B3BC; --mut:#8A8A93; --surf:#14141A; }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 28px; }
+  h1 { color: var(--brand); font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 17px; margin: 34px 0 10px; padding-right: 12px; border-right: 3px solid var(--brand); }
+  p { color: var(--dim); font-size: 14px; line-height: 1.9; max-width: 1100px; }
+  .note { color: var(--mut); font-size: 13px; }
+  .shots { display: flex; flex-wrap: wrap; gap: 18px; }
+  figure { margin: 0; background: var(--surf); border: 1px solid rgba(255,255,255,.10); border-radius: 12px; overflow: hidden; }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption { padding: 10px 14px; font-size: 13px; color: var(--dim); }
+  .wide { width: min(100%, 1100px); }
+  .half { width: min(100%, 540px); }
+  ul { color: var(--dim); font-size: 14px; line-height: 2; padding-right: 20px; max-width: 1100px; }
+  li b { color: var(--text); }
+  code { color: #ffd7da; background: rgba(229,9,20,.14); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
 </style>
 </head>
 <body>
 <h1>پیش‌نمایش اپ تلویزیون نفتلیکس (راست‌چین / فارسی)</h1>
-<p class="note">این فقط ماکاپ است؛ اپ واقعی همین ساختار را با داده زنده سایت دارد. با ریموت: جهت‌ها برای جابه‌جایی، OK برای باز کردن/پخش، Back برای بازگشت.</p>
+<p class="note">
+  تصویرها اسکرین‌شات واقعی برنامه روی امولاتور ۱۰۸۰p تلویزیون هستند (چگالی ۳۲۰ و ۱۶۰).
+  با ریموت: جهت‌ها برای جابه‌جایی، OK برای باز کردن/بازکردن گروه/پخش، Back برای بازگشت.
+</p>
 
-<div class="screen">
-<h2>۱) صفحه اصلی</h2>
-<div class="toolbar"><span class="brand">نفتلیکس</span><span class="search">جست‌وجوی فیلم و سریال…</span><span class="btn">جست‌وجو</span><span class="btn">همه</span><span class="btn">به‌روزرسانی</span></div>
-<div class="status">فهرست به‌روز شد · ۲۰۵ عنوان · با ریموت انتخاب کنید</div>
-<h2>دسته‌بندی فیلم‌ها</h2>
-<div class="chips"><span class="chip">اکشن</span><span class="chip">کمدی</span><span class="chip">درام</span><span class="chip">ترسناک</span><span class="chip">عاشقانه</span></div>
-<h2>دسته‌بندی سریال‌ها</h2>
-<div class="chips"><span class="chip">درام</span><span class="chip">جنایی</span><span class="chip">کمدی</span><span class="chip">تاریخی</span></div>
-<h2>ویژه‌ها</h2>
-<div class="row">
-<div class="card focus"><div class="poster">East of Eden</div><div class="kind">سریال</div><div class="title">East of Eden</div></div>
-<div class="card"><div class="poster">Dark Matter</div><div class="kind">سریال</div><div class="title">Dark Matter</div></div>
-<div class="card"><div class="poster">Matchbox 2026</div><div class="kind">فیلم</div><div class="title">Matchbox the Movie 2026</div></div>
-<div class="card"><div class="poster">Spider-Man</div><div class="kind">فیلم</div><div class="title">Spider-Man: Brand New Day</div></div>
-</div>
-<h2>فیلم‌های به‌روز شده <span class="btn">مشاهده همه ←</span></h2>
-<div class="row">
-<div class="card"><div class="poster">Capture 2026</div><div class="kind">فیلم</div><div class="title">Capture 2026</div></div>
-<div class="card"><div class="poster">Photographer 2026</div><div class="kind">فیلم</div><div class="title">Photographer 2026</div></div>
-<div class="card"><div class="poster">Heart of the Beast</div><div class="kind">فیلم</div><div class="title">Heart of the Beast 2026</div></div>
-</div>
-</div>
+<h2>صفحهٔ اصلی</h2>
+<figure class="wide">
+  <img src="screenshot.png" alt="صفحهٔ اصلی نفتلیکس">
+  <figcaption>
+    بیلبورد «پیشنهاد امروز» با هنر افقی صفحهٔ عنوان، ریل‌های هر بخش (پیش‌نمایش ۲۰ عنوانی + «مشاهده همه»)،
+    برچسب نوع روی پوستر، عنوان و ژانر زیر کارت‌ها، و در پایین صفحه ریل ژانرها.
+  </figcaption>
+</figure>
 
-<div class="screen">
-<h2>۲) صفحه جزئیات سریال (گروه‌ها پیش‌فرض بسته)</h2>
-<div class="group"><summary>◀ فصل اول زیرنویس فارسی · <small>به اتمام رسیده</small></summary></div>
-<div class="group"><summary>▼ فصل اول دوبله فارسی</summary>
-<div class="sub">◀ دوبله فارسی بدون حذفیات (دو زبانه)</div>
-<div class="sub">▼ WEB-DL 1080p · <small>Film2Media</small>
-<a class="link" href="#">▶ قسمت ۰۱</a>
-<a class="link" href="#">▶ قسمت ۰۲</a>
-</div>
-</div>
-</div>
+<h2>صفحهٔ جزئیات</h2>
+<figure class="wide">
+  <img src="screenshot-details.png" alt="صفحهٔ جزئیات نفتلیکس">
+  <figcaption>
+    هدر با هنر افقی، پوستر، عنوان و قرص‌های IMDb/رضایت/نوع/تعداد لینک؛ دو ستون
+    (توضیحات و ژانرها راست، فهرست پخش چپ)؛ گروه‌ها پیش‌فرض بسته‌اند و با OK باز می‌شوند.
+  </figcaption>
+</figure>
 
-<div class="screen">
-<h2>۳) پخش‌کننده داخلی</h2>
-<div class="player">
-<div>East of Eden S01E01 · WEB-DL 1080p</div>
-<div class="controls"><span class="dot">⏮</span><span class="dot">▶</span><span class="dot">⏭</span></div>
-<div class="note">کنترلر با D-Pad کار می‌کند؛ زیرنویس چسبیده داخل فایل نمایش داده می‌شود.</div>
-</div>
-</div>
+<h2>نکته‌های طراحی</h2>
+<ul>
+  <li><b>یک فضای طراحی ۹۶۰dp:</b> همهٔ اندازه‌ها از <code>Ui.java</code> می‌آیند و با
+      <code>scale = عرض‌صفحه ÷ ۹۶۰</code> به دستگاه نگاشت می‌شوند؛ نتیجه این‌که ۷۲۰p، ۱۰۸۰p و ۴K
+      ظاهر یکسان دارند (حتی دستگاهی که چگالی ۱ گزارش می‌کند).</li>
+  <li><b>فوکوس واضح برای ریموت:</b> کارت‌ها با قاب قرمز ۳dp و کمی بزرگ‌نمایی، دکمه‌ها
+      با تغییر رنگ قرمز/سفید و بولد شدن متن.</li>
+  <li><b>ریل‌های هوشمند:</b> کارتِ فوکوس‌شده خودکار به وسط دید می‌آید و نسخهٔ
+      بزرگ‌تر تصویر بارگذاری می‌شود؛ ترتیب کارت‌ها در RTL از راست به چپ است.</li>
+  <li><b>سلسله‌مراتب پخش:</b> فصل → دسته (دوبله/زیرنویس) → کیفیت → شبکهٔ قسمت‌ها
+      (سه ستون)؛ تا وقتی باز نشده هیچ‌چیز اندازه‌گیری نمی‌شود.</li>
+</ul>
 </body>
 </html>

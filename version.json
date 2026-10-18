@@ -1,6 +1,6 @@
 {
-  "versionCode": 11,
-  "versionName": "1.10",
+  "versionCode": 13,
+  "versionName": "1.12",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۱۰: رفع کرش صفحه جزئیات، دکمه‌های شیشه‌ای، اسپلش با لوگو، کاشی‌های بلندتر."
+  "notes": "نسخه ۱٫۱۲: فقط تماشا (بدون دانلود)، لوگوی شفاف، قرص وضعیت، اسپلش تمام‌صفحه، بیدار ماندن صفحه هنگام پخش، ذکر منبع فیلم۲مدیا، تست‌های واحد."
 }
