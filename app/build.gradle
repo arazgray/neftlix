@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.arazgray.neftlix'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId 'com.arazgray.neftlix'
