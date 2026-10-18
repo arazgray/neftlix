@@ -88,11 +88,26 @@ capture_pass() { # $1 = label prefix
   tap KEYCODE_DPAD_DOWN 1.5
   tap KEYCODE_DPAD_CENTER 2
   shot "$p-06-level3-open"
+  # پایین صفحهٔ جزئیات: نظرات
+  for i in $(seq 1 35); do tap KEYCODE_DPAD_DOWN 0.5; done
+  sleep 1
+  shot "$p-07-comments"
+  tap KEYCODE_DPAD_CENTER 2
+  shot "$p-08-comments-open"
   # پایین صفحهٔ اصلی: ریل ژانرها
   launch_app 25
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12; do tap KEYCODE_DPAD_DOWN 0.7; done
+  for i in $(seq 1 45); do tap KEYCODE_DPAD_DOWN 0.35; done
   sleep 2
-  shot "$p-07-genres"
+  shot "$p-09-home-bottom"
+  # جست‌وجو: زدن روی نوار جست‌وجو، تایپ، اینتر
+  adb shell input tap 1100 110 >/dev/null 2>&1 || true
+  sleep 1
+  adb shell input text "dark" >/dev/null 2>&1 || true
+  sleep 1
+  adb shell input keyevent KEYCODE_ENTER >/dev/null 2>&1 || true
+  sleep 16
+  tap KEYCODE_DPAD_DOWN 1.5
+  shot "$p-10-search"
 }
 
 log "waiting for the emulator system"

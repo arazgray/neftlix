@@ -47,6 +47,7 @@ jobs:
           emulator-boot-timeout: 1200
           disable-animations: true
           disable-spellchecker: true
+          enable-hw-keyboard: true
           emulator-options: >-
             -no-window -no-snapshot -noaudio -no-boot-anim
             -gpu swiftshader_indirect -camera-back none -camera-front none
