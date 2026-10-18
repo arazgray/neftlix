@@ -1,6 +1,6 @@
 {
-  "versionCode": 16,
-  "versionName": "1.15",
+  "versionCode": 17,
+  "versionName": "1.16",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۱۵: قرمز شدن همه دکمه‌های پخش هنگام فوکوس، دیالوگ تنظیمات پخش با دکمه‌های قرمز."
+  "notes": "نسخه ۱٫۱۶: رفع قرمزی اضافی پخش‌کننده، هایلایت قرمز فقط روی دکمه‌ها، یک دیالوگ کوچک گزینه‌های پخش (زیرنویس/صدا/کیفیت)."
 }

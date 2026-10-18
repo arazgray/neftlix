@@ -63,8 +63,8 @@ app/src/main/java/com/arazgray/neftlix/
   MainActivity.java        home: rails/grid + search + genres (no hero), auto update check
   DetailsActivity.java     details: title/key-art, trailer button, comments + playlist
                            collapsibles, watch-list hierarchy
-  PlayerActivity.java      ExoPlayer wrapper, red focus on all controls, custom
-                           settings/subtitle dialogs, keep-screen-on
+  PlayerActivity.java      ExoPlayer wrapper, red focus on player buttons only, single
+                           compact options dialog, keep-screen-on
   CrashLogger.java         black crash screen + file log
 app/src/main/res/drawable*/ → brand assets + vector icons (in-app marks use transparent
   `logo_transparent.png`); res/font → Vazirmatn
@@ -104,9 +104,10 @@ The whole redesign lives here; **new screens should use these factories, not raw
   UI wording is تماشا/پخش everywhere, site «دانلود…» labels are rewritten to تماشا at display time.
 - **Player:** opens from a link, black shutter, buffering indicator, styled error card,
   `setKeepScreenOn(true)` so boxes (Mi Box) never drop to the screensaver mid-play.
-  Every controller button highlights red on focus (`markFocusable()` covers all view classes);
-  CC opens the subtitle dialog, the gear opens a custom quality/audio/subtitle dialog —
-  both use red-on-focus option buttons with apply-on-select.
+  Every controller button highlights red on focus (`markFocusable()` covers button views
+  only, never containers; rewind/forward are wired explicitly by id);
+  CC opens one compact playback-options dialog (subtitles + Off, audio, quality — sections only
+  when meaningful), all options red-on-focus with apply-on-select; the gear button is hidden.
 - **Updates:** `checkAppUpdate(true)` runs once in `MainActivity.onCreate` (silent unless an
   update is found); the update button calls `checkAppUpdate(false)`.
 
@@ -138,14 +139,15 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 16 / 1.15 on `main` (v1.15 tag released).
+- Current: 17 / 1.16 on `main` (v1.16 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.15 released, Oct 2026)
+## Current state (v1.16 released, Oct 2026)
 
-- v1.15 on `main` (versionCode 16): red focus on all player controls, custom playback
-  settings dialog, red-on-focus dialog options.
+- v1.16 on `main` (versionCode 17): player focus reverted to buttons-only (no red panels),
+  explicit rewind/forward wiring, single compact options dialog (subs+Off/audio/quality),
+  gear button removed.
 - In-app updater reads `version.json` from `main` via raw.githubusercontent.
 - Screenshot workflow permanently removed — do not re-add emulator CI.
 - Committed `screenshot.png` / `screenshot-details.png` predate the تماشا wording;

@@ -31,7 +31,7 @@ The app communicates directly with the media source, requiring no dedicated back
 - **Integrated player:** Streams available media links through AndroidX Media3 ExoPlayer.
 - **Persian subtitles:** Automatically prefers Persian subtitles, with Vazirmatn typography, right-to-left text, transparent backgrounds, and drop shadows.
 - **Remote controls:** D-pad navigation, OK to select or expand, and Back to navigate or control playback. Every control highlights red on focus, including rewind/forward.
-- **Playback settings:** The settings button opens an on-brand dialog (quality, audio, subtitles) whose options all turn red on focus; choices apply immediately.
+- **Playback options:** The subtitle button opens one compact on-brand dialog (subtitles with Off, audio where multiple exist, quality where multiple exist) whose options all turn red on focus; choices apply immediately with no confirmation step.
 - **Playback shortcuts:** Seek backward or forward by 15 seconds while player controls are hidden.
 - **Screen stays awake:** Prevents the TV box from activating its screensaver during playback.
 
