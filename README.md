@@ -1,9 +1,13 @@
 # Neftlix — Android TV App
 
+![Neftlix](logo.png)
+
 Persian (RTL) Android TV app for browsing `myf2mi.top`: movies and series catalog,
 whole-archive search, expandable download groups, an internal ExoPlayer-based player
 with subtitle support, and in-app updates. No server needed — the app talks to the
 site directly.
+
+![Neftlix home screen](screenshot.png)
 
 ## Features
 

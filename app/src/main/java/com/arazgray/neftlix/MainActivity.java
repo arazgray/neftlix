@@ -201,13 +201,9 @@ public class MainActivity extends AppCompatActivity {
 
         android.widget.FrameLayout frame = new android.widget.FrameLayout(this);
         frame.setBackgroundColor(Color.BLACK);
-        View backdrop = new View(this);
-        android.graphics.drawable.GradientDrawable gradient =
-                new android.graphics.drawable.GradientDrawable(
-                        android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
-                        new int[]{0xFF4A0E14, 0xFF0A0A0A, 0xFF000000});
-        backdrop.setBackground(gradient);
-        backdrop.setAlpha(0.5f);
+        ImageView backdrop = new ImageView(this);
+        backdrop.setImageResource(R.drawable.main_bg);
+        backdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
         frame.addView(backdrop, new android.widget.FrameLayout.LayoutParams(-1, -1));
         frame.addView(root, new android.widget.FrameLayout.LayoutParams(-1, -1));
 
@@ -594,7 +590,7 @@ public class MainActivity extends AppCompatActivity {
         List<BrowseItem> preview = section.items.size() > 20 ? section.items.subList(0, 20) : section.items;
         addItemRow(preview);
         if (section.url != null && !section.url.isEmpty()) {
-            Button more = toolbarButton("مشاهده همه ←");
+            Button more = labeledIconButton("مشاهده همه", R.drawable.ic_chevron_end);
             more.setOnClickListener(v -> openSection(section, 1));
             page.addView(more, new LinearLayout.LayoutParams(-2, dp(46)));
         }
