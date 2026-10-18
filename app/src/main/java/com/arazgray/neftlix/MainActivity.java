@@ -66,6 +66,18 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+        // پاک‌سازی فایل به‌روزرسانی قبلی (بعد از نصب دیگر لازم نیست)
+        try {
+            java.io.File updatesDir = new java.io.File(getExternalFilesDir("updates"), "");
+            java.io.File[] leftovers = updatesDir.listFiles();
+            if (leftovers != null) {
+                for (java.io.File file : leftovers) {
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+                }
+            }
+        } catch (Exception ignored) {
+        }
         buildShell();
         java.io.File cacheFile = new java.io.File(getFilesDir(), "catalog_cache.json");
         CatalogData cached = CatalogCache.load(cacheFile);
@@ -131,28 +143,38 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+        // با ریموت از داخل متن خارج شو: چپ/راست به‌جای حرکت مکان‌نما، فوکوس را جابه‌جا می‌کند
+        searchBox.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == android.view.KeyEvent.ACTION_DOWN
+                    && (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
+                    || keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                View next = v.focusSearch(keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
+                        ? View.FOCUS_LEFT : View.FOCUS_RIGHT);
+                if (next != null) {
+                    next.requestFocus();
+                    return true;
+                }
+            }
+            return false;
+        });
 
-        Button search = toolbarButton("🔍");
+        Button search = iconButton(R.drawable.ic_search, "جست‌وجو");
         search.setOnClickListener(view -> showSearchResults());
         toolbar.addView(search);
 
-        Button mic = toolbarButton("🎙");
+        Button mic = iconButton(R.drawable.ic_mic, "جست‌وجوی صوتی");
         mic.setOnClickListener(view -> startVoiceSearch());
         toolbar.addView(mic);
 
-        Button all = toolbarButton("همه");
-        all.setOnClickListener(view -> showAllItems());
-        toolbar.addView(all);
-
-        Button refresh = toolbarButton("⟳ کاتالوگ");
+        Button refresh = labeledIconButton("کاتالوگ", R.drawable.ic_refresh);
         refresh.setOnClickListener(view -> refreshCatalog(false));
         toolbar.addView(refresh);
 
-        Button update = toolbarButton("⬇ نفتلیکس");
+        Button update = labeledIconButton("نفتلیکس", R.drawable.ic_download);
         update.setOnClickListener(view -> checkAppUpdate());
         toolbar.addView(update);
 
-        Button info = toolbarButton("ⓘ");
+        Button info = iconButton(R.drawable.ic_info, "درباره");
         info.setOnClickListener(view -> showInfoDialog());
         toolbar.addView(info);
         HorizontalScrollView toolbarScroll = new HorizontalScrollView(this);
@@ -183,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         android.graphics.drawable.GradientDrawable gradient =
                 new android.graphics.drawable.GradientDrawable(
                         android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
-                        new int[]{0xFF3A0A0E, 0xFF000000});
+                        new int[]{0xFF4A0E14, 0xFF0A0A0A, 0xFF000000});
         backdrop.setBackground(gradient);
         backdrop.setAlpha(0.5f);
         frame.addView(backdrop, new android.widget.FrameLayout.LayoutParams(-1, -1));
@@ -196,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private android.widget.FrameLayout loadingOverlay;
-    private TextView loadingText;
 
     private android.widget.FrameLayout centeredOverlay(String text) {
         android.widget.FrameLayout overlay = new android.widget.FrameLayout(this);
@@ -212,14 +233,6 @@ public class MainActivity extends AppCompatActivity {
                 new android.widget.LinearLayout.LayoutParams(dp(56), dp(56));
         spinnerParams.gravity = Gravity.CENTER_HORIZONTAL;
         box.addView(spinner, spinnerParams);
-        loadingText = new TextView(this);
-        loadingText.setText(text);
-        loadingText.setTextColor(Color.WHITE);
-        loadingText.setTextSize(16);
-        loadingText.setGravity(Gravity.CENTER);
-        loadingText.setTextDirection(View.TEXT_DIRECTION_RTL);
-        loadingText.setPadding(0, dp(12), 0, 0);
-        box.addView(loadingText);
         overlay.addView(box, new android.widget.FrameLayout.LayoutParams(
                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -228,7 +241,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoading(String text) {
-        if (loadingText != null) loadingText.setText(text);
         if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
     }
 
@@ -334,6 +346,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startVoiceSearch() {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.RECORD_AUDIO)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.RECORD_AUDIO}, 1001);
+            return;
+        }
+        launchVoiceRecognizer();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001
+                && grantResults.length > 0
+                && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            launchVoiceRecognizer();
+        } else if (requestCode == 1001) {
+            Toast.makeText(this, "برای جست‌وجوی صوتی دسترسی میکروفون لازم است", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void launchVoiceRecognizer() {
         try {
             android.content.Intent intent =
                     new android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -399,7 +434,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("درباره نفتلیکس")
                 .setView(layout)
                 .setPositiveButton("بستن", null)
                 .setNeutralButton("باز کردن سایت", (d, which) -> {
@@ -409,7 +443,9 @@ public class MainActivity extends AppCompatActivity {
                     } catch (Exception ignored) {
                     }
                 })
-                .show();
+                .show()
+                .getWindow()
+                .setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.BLACK));
     }
 
     private android.graphics.Bitmap makeQrBitmap(String text, int size) {
@@ -562,18 +598,6 @@ public class MainActivity extends AppCompatActivity {
             more.setOnClickListener(v -> openSection(section, 1));
             page.addView(more, new LinearLayout.LayoutParams(-2, dp(46)));
         }
-    }
-
-    private void showAllItems() {
-        if (catalog == null) return;
-        showingSubPage = true;
-        activeSection = null;
-        activeCategory = null;
-        page.removeAllViews();
-        addBackButton();
-        addHeading("همه عنوان‌ها");
-        addItemRow(uniqueItems(catalog.sections));
-        focusFirst();
     }
 
     private void showSearchResults() {
@@ -764,15 +788,24 @@ public class MainActivity extends AppCompatActivity {
             addSmallText("موردی پیدا نشد.");
             return;
         }
-        HorizontalScrollView scroll = new HorizontalScrollView(this);
-        scroll.setHorizontalScrollBarEnabled(false);
-        scroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        for (BrowseItem item : items) row.addView(makeCard(item));
-        scroll.addView(row);
-        page.addView(scroll, new LinearLayout.LayoutParams(-1, dp(268)));
+        // ۶ کارت در هر ردیف؛ بقیه در ردیف‌های بعدی
+        LinearLayout grid = new LinearLayout(this);
+        grid.setOrientation(LinearLayout.VERTICAL);
+        grid.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        LinearLayout row = null;
+        for (int i = 0; i < items.size(); i++) {
+            if (i % 6 == 0) {
+                row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+                LinearLayout.LayoutParams rowParams =
+                        new LinearLayout.LayoutParams(-1, -2);
+                rowParams.setMargins(0, 0, 0, dp(10));
+                grid.addView(row, rowParams);
+            }
+            row.addView(makeCard(items.get(i)));
+        }
+        page.addView(grid);
     }
 
     private View makeCard(BrowseItem item) {
@@ -838,7 +871,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addBackButton() {
-        Button back = toolbarButton("← بازگشت به فهرست");
+        Button back = labeledIconButton("بازگشت به فهرست", R.drawable.ic_back);
+        back.setTag("back");
         back.setOnClickListener(view -> renderHome());
         page.addView(back, new LinearLayout.LayoutParams(-2, dp(48)));
     }
@@ -876,7 +910,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private View findFirstFocusable(View root) {
-        if (root.isFocusable()) return root;
+        if ("back".equals(root.getTag())) {
+            // دکمه بازگشت هیچ‌وقت فوکوس خودکار نگیرد؛ اولین آیتم نتیجه فوکوس شود
+        } else if (root.isFocusable()) {
+            return root;
+        }
         if (root instanceof android.view.ViewGroup) {
             android.view.ViewGroup group = (android.view.ViewGroup) root;
             for (int i = 0; i < group.getChildCount(); i++) {
@@ -901,10 +939,48 @@ public class MainActivity extends AppCompatActivity {
         button.setBackgroundTintList(idle);
         button.setOnFocusChangeListener((v, hasFocus) -> {
             button.setBackgroundTintList(hasFocus ? focused : idle);
-            v.setScaleX(hasFocus ? 1.06f : 1f);
-            v.setScaleY(hasFocus ? 1.06f : 1f);
         });
         return button;
+    }
+
+    private Button iconButton(int iconRes, String desc) {
+        Button button = toolbarButton("");
+        button.setContentDescription(desc);
+        button.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
+        button.setPadding(dp(12), 0, dp(12), 0);
+        button.setMinimumWidth(dp(48));
+        return button;
+    }
+
+    private Button labeledIconButton(String text, int iconRes) {
+        Button button = toolbarButton(text);
+        button.setCompoundDrawablesRelativeWithIntrinsicBounds(iconRes, 0, 0, 0);
+        button.setCompoundDrawablePadding(dp(6));
+        return button;
+    }
+
+    private android.graphics.drawable.GradientDrawable roundedBg(int color) {
+        android.graphics.drawable.GradientDrawable drawable =
+                new android.graphics.drawable.GradientDrawable();
+        drawable.setColor(color);
+        drawable.setCornerRadius(dp(10));
+        return drawable;
+    }
+
+    private TextView makePill(String text, int fill, int stroke, int textColor) {
+        TextView pill = new TextView(this);
+        pill.setText(text);
+        pill.setTextColor(textColor);
+        pill.setTextSize(13);
+        pill.setTextDirection(View.TEXT_DIRECTION_RTL);
+        pill.setGravity(Gravity.CENTER);
+        android.graphics.drawable.GradientDrawable bg = roundedBg(fill);
+        bg.setStroke(dp(1), stroke);
+        pill.setBackground(bg);
+        int hPad = dp(12);
+        int vPad = dp(5);
+        pill.setPadding(hPad, vPad, hPad, vPad);
+        return pill;
     }
 
     private List<BrowseItem> uniqueItems(List<BrowseSection> sections) {

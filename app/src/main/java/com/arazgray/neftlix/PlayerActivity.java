@@ -69,24 +69,32 @@ public class PlayerActivity extends AppCompatActivity {
         }
         androidx.media3.ui.SubtitleView subtitles = playerView.getSubtitleView();
         if (subtitles != null) {
-            // پس‌زمینه مشکی حذف شود؛ فقط سایه ساده + راست‌چین
+            // پس‌زمینه مشکی حذف شود؛ فقط سایه ساده + راست‌چین + فونت وزیرمتن
             subtitles.setApplyEmbeddedStyles(false);
             subtitles.setTextDirection(View.TEXT_DIRECTION_RTL);
             subtitles.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            android.graphics.Typeface subtitleFont = null;
+            try {
+                subtitleFont = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.vazirmatn);
+            } catch (Exception ignored) {
+            }
             subtitles.setStyle(new androidx.media3.ui.CaptionStyleCompat(
                     android.graphics.Color.WHITE,
                     android.graphics.Color.TRANSPARENT,
                     android.graphics.Color.TRANSPARENT,
                     androidx.media3.ui.CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
                     android.graphics.Color.BLACK,
-                    null));
+                    subtitleFont));
         }
         player.addListener(new Player.Listener() {
             @Override
             public void onPlayerError(PlaybackException error) {
-                Toast.makeText(PlayerActivity.this,
-                        "خطا در پخش. اتصال اینترنت یا نشانی فایل را بررسی کنید.",
-                        Toast.LENGTH_LONG).show();
+                showCenterError("خطا در پخش. اتصال اینترنت یا نشانی فایل را بررسی کنید.");
+            }
+
+            @Override
+            public void onTracksChanged(androidx.media3.common.Tracks tracks) {
+                ensureSubtitleSelected();
             }
         });
 
@@ -94,6 +102,64 @@ public class PlayerActivity extends AppCompatActivity {
         player.setMediaItem(mediaItem);
         player.prepare();
         player.play();
+    }
+
+    /** اگر هیچ زیرنویسی انتخاب نشده ولی ترک متن دارد، اولی را روشن کن. */
+    private void ensureSubtitleSelected() {
+        if (player == null) return;
+        try {
+            androidx.media3.common.Tracks tracks = player.getCurrentTracks();
+            boolean hasText = false;
+            boolean textSelected = false;
+            androidx.media3.common.Tracks.Group firstTextGroup = null;
+            for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
+                if (group.getType() != androidx.media3.common.C.TRACK_TYPE_TEXT) continue;
+                if (!group.isSupported()) continue;
+                hasText = true;
+                if (firstTextGroup == null) firstTextGroup = group;
+                for (int i = 0; i < group.length; i++) {
+                    if (group.isTrackSelected(i)) {
+                        textSelected = true;
+                        break;
+                    }
+                }
+                if (textSelected) break;
+            }
+            if (hasText && !textSelected && firstTextGroup != null
+                    && player.getTrackSelector() instanceof androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
+                androidx.media3.exoplayer.trackselection.DefaultTrackSelector selector =
+                        (androidx.media3.exoplayer.trackselection.DefaultTrackSelector)
+                                player.getTrackSelector();
+                selector.setParameters(selector.buildUponParameters()
+                        .setPreferredTextLanguage("fa")
+                        .setOverrideForType(new androidx.media3.common.TrackSelectionOverride(firstTextGroup.getMediaTrackGroup(), 0)));
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private android.widget.TextView centerError;
+
+    private void showCenterError(String message) {
+        runOnUiThread(() -> {
+            if (centerError == null) {
+                centerError = new android.widget.TextView(this);
+                centerError.setTextColor(android.graphics.Color.WHITE);
+                centerError.setTextSize(16);
+                centerError.setGravity(android.view.Gravity.CENTER);
+                centerError.setTextDirection(View.TEXT_DIRECTION_RTL);
+                centerError.setBackgroundColor(0xCC000000);
+                centerError.setPadding(32, 24, 32, 24);
+                ((android.widget.FrameLayout) findViewById(android.R.id.content))
+                        .addView(centerError, new android.widget.FrameLayout.LayoutParams(
+                                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                                android.view.Gravity.CENTER));
+            }
+            centerError.setText(message);
+            centerError.setVisibility(View.VISIBLE);
+            centerError.postDelayed(() -> centerError.setVisibility(View.GONE), 5000);
+        });
     }
 
     private android.graphics.drawable.GradientDrawable focusBackground;
@@ -112,6 +178,20 @@ public class PlayerActivity extends AppCompatActivity {
                 focusBackground.setColor(0xFFE50914);
                 focusBackground.setCornerRadius(12f);
             }
+            if (v instanceof androidx.media3.ui.DefaultTimeBar) {
+                // نوار پیشرفت: روی فوکوس قرمز شود، بدون تغییر اندازه
+                androidx.media3.ui.DefaultTimeBar bar = (androidx.media3.ui.DefaultTimeBar) v;
+                v.setOnFocusChangeListener((view, hasFocus) -> {
+                    if (hasFocus) {
+                        bar.setPlayedColor(0xFFE50914);
+                        bar.setScrubberColor(0xFFE50914);
+                    } else {
+                        bar.setPlayedColor(0xFFFFFFFF);
+                        bar.setScrubberColor(0xFFFFFFFF);
+                    }
+                });
+                return;
+            }
             final android.graphics.drawable.Drawable normal = v.getBackground();
             v.setOnFocusChangeListener((view, hasFocus) -> {
                 if (view instanceof android.widget.ImageButton) {
@@ -124,8 +204,9 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
-        if (player != null) {
-            // چپ/راست بدون باز کردن کنترلر: ۱۵ ثانیه عقب/جلو
+        if (player != null
+                && (playerView == null || !playerView.isControllerFullyVisible())) {
+            // فقط وقتی کنترلر پنهان است: چپ/راست = ۱۵ ثانیه عقب/جلو
             if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
                     || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_REWIND) {
                 player.seekTo(Math.max(0, player.getCurrentPosition() - 15000));

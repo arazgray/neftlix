@@ -12,22 +12,29 @@ site directly.
   keep working even as the site changes its menu.
 - **Fast launch with cache** — the last catalog is stored on-device and shown
   instantly; a quiet refresh runs in the background on every fresh open
-  (به‌روزرسانی کاتالوگ forces a full refresh).
+  (⟳ کاتالوگ forces a full refresh with a centered loader).
 - **Whole-archive search** — queries the site's `quick-search` endpoint (full title +
   Persian title, cover, series/movie type); falls back to page search, then to the
-  downloaded catalog. Voice search (🎙) via the recognizer, in Persian.
-- **Details page** — poster, IMDb rating, satisfaction %, genres, dub/sub flags,
-  full Persian story, download groups collapsed by default
-  (season → category → quality → episode links), top user comments. Play buttons read
-  **پخش رایگان**.
-- **Player** — internal ExoPlayer (Media3): D-pad friendly with visible focus,
-  first Back hides the controls, second Back exits; subtitle (CC) button always
-  visible with Persian preferred and no black box (shadow style).
-- **Self-update** — به‌روزرسانی نفتلیکس checks `version.json`, downloads the new APK
-  with a progress dialog, and opens the installer.
+  downloaded catalog. English voice search (microphone permission is requested
+  first); keyboard hides on submit and focus jumps to the first result.
+- **Details page** — poster + dimmed backdrop art, IMDb rating, satisfaction %,
+  genre pills, dub/sub flags, full Persian story, link counts, download groups
+  collapsed by default (season → category → quality → episode links) in a
+  two-column layout (description right, downloads left), top user comments.
+  Play buttons read **پخش رایگان** with a persistent vector play icon.
+- **Player** — internal ExoPlayer (Media3): red focus highlights with unchanged
+  sizes, first Back hides the controls, second Back exits; ←/→ seek ∓15s only
+  while controls are hidden; subtitle (CC) button always visible, Persian preferred
+  and auto-selected, Vazirmatn font, transparent background with drop shadow, RTL.
+- **Self-update** — update button checks `version.json`, downloads the new APK
+  with a progress dialog (+cancel), cleans the file afterward, and opens the
+  installer.
+- **Info** — ⓘ button opens an app card (name, description, version, author, site
+  link, QR code to arazgray.com).
 
 Remote: D-pad moves, OK opens/expands/plays, Back goes back. Black/red Netflix-style
-theme, launcher name **Neftlix**, icon/banner/logo from `icon.png` / `logo.png`.
+theme, launcher name **Neftlix**, icon/banner/logo from `icon.png` / `logo.png`,
+Vazirmatn font throughout (app + subtitles).
 
 ## Requirements
 

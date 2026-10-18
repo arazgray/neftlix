@@ -3,7 +3,8 @@
         <item name="colorPrimary">#E50914</item>
         <item name="colorPrimaryVariant">#7A0B12</item>
         <item name="colorSecondary">#E50914</item>
-        <item name="android:fontFamily">sans</item>
+        <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="fontFamily">@font/vazirmatn</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:colorAccent">#E50914</item>
