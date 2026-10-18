@@ -40,6 +40,7 @@ public class DetailsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CrashLogger.install(this);
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         String url = getIntent().getStringExtra(EXTRA_URL);
@@ -111,13 +112,19 @@ public class DetailsActivity extends AppCompatActivity {
             try {
                 ItemDetails details = repository.loadItem(url);
                 runOnUiThread(() -> {
-                    hideLoading();
-                    if (details.backdropUrl != null && !details.backdropUrl.isEmpty()) {
-                        Glide.with(this).load(details.backdropUrl).into(backdropView);
+                    try {
+                        hideLoading();
+                        if (details.backdropUrl != null && !details.backdropUrl.isEmpty()) {
+                            Glide.with(this).load(details.backdropUrl).into(backdropView);
+                        }
+                        renderItem(details, fallbackTitle);
+                    } catch (Throwable error) {
+                        hideLoading();
+                        status.setText("خطا در نمایش صفحه");
+                        addSmallText(error.getMessage() == null ? "" : error.getMessage());
                     }
-                    renderItem(details, fallbackTitle);
                 });
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 runOnUiThread(() -> {
                     hideLoading();
                     status.setText("خطا در بارگذاری صفحه");

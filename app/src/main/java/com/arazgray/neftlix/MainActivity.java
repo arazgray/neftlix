@@ -46,26 +46,13 @@ public class MainActivity extends AppCompatActivity {
     private int listingPage = 1;
     private boolean listingHasNext;
 
-    private androidx.activity.result.ActivityResultLauncher<android.content.Intent> voiceLauncher;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CrashLogger.install(this);
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         getWindow().setStatusBarColor(Color.rgb(10, 10, 10));
         getWindow().setNavigationBarColor(Color.rgb(10, 10, 10));
-        voiceLauncher = registerForActivityResult(
-                new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        java.util.ArrayList<String> matches = result.getData().getStringArrayListExtra(
-                                android.speech.RecognizerIntent.EXTRA_RESULTS);
-                        if (matches != null && !matches.isEmpty()) {
-                            searchBox.setText(matches.get(0));
-                            showSearchResults();
-                        }
-                    }
-                });
         // پاک‌سازی فایل به‌روزرسانی قبلی (بعد از نصب دیگر لازم نیست)
         try {
             java.io.File updatesDir = new java.io.File(getExternalFilesDir("updates"), "");
@@ -78,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception ignored) {
         }
+        String lastCrash = CrashLogger.consume(this);
+        if (lastCrash != null) showCrashDialog(lastCrash);
         buildShell();
         java.io.File cacheFile = new java.io.File(getFilesDir(), "catalog_cache.json");
         CatalogData cached = CatalogCache.load(cacheFile);
@@ -157,14 +146,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
-
-        Button search = iconButton(R.drawable.ic_search, "جست‌وجو");
-        search.setOnClickListener(view -> showSearchResults());
-        toolbar.addView(search);
-
-        Button mic = iconButton(R.drawable.ic_mic, "جست‌وجوی صوتی");
-        mic.setOnClickListener(view -> startVoiceSearch());
-        toolbar.addView(mic);
 
         Button refresh = labeledIconButton("کاتالوگ", R.drawable.ic_refresh);
         refresh.setOnClickListener(view -> refreshCatalog(false));
@@ -276,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
                     status.setText("فهرست به‌روز شد · " + toFaDigits(countItems(latest)) + " عنوان · با ریموت انتخاب کنید");
                     renderHome();
                 });
-            } catch (IOException error) {
+            } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
                     status.setText("به‌روزرسانی ناموفق بود. اینترنت را بررسی کنید و دوباره تلاش کنید.");
@@ -341,45 +322,33 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void startVoiceSearch() {
-        if (androidx.core.content.ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.RECORD_AUDIO)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            androidx.core.app.ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.RECORD_AUDIO}, 1001);
-            return;
-        }
-        launchVoiceRecognizer();
+    private void showCrashDialog(String trace) {
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        TextView traceView = new TextView(this);
+        traceView.setText(trace);
+        traceView.setTextColor(Color.WHITE);
+        traceView.setTextSize(11);
+        traceView.setTextDirection(View.TEXT_DIRECTION_LTR);
+        traceView.setGravity(Gravity.START);
+        traceView.setPadding(dp(8), dp(8), dp(8), dp(8));
+        scroll.addView(traceView);
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("خطای اجرای قبلی")
+                .setMessage("برنامه دفعه قبل به‌طور غیرمنتظره بسته شد. متن خطا:")
+                .setView(scroll)
+                .setPositiveButton("کپی متن خطا", (d, which) -> {
+                    android.content.ClipboardManager clipboard =
+                            (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    if (clipboard != null) {
+                        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("crash", trace));
+                        Toast.makeText(this, "کپی شد", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("بستن", null)
+                .show();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1001
-                && grantResults.length > 0
-                && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            launchVoiceRecognizer();
-        } else if (requestCode == 1001) {
-            Toast.makeText(this, "برای جست‌وجوی صوتی دسترسی میکروفون لازم است", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void launchVoiceRecognizer() {
-        try {
-            android.content.Intent intent =
-                    new android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "en-US");
-            intent.putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Say the movie or series name");
-            voiceLauncher.launch(intent);
-        } catch (android.content.ActivityNotFoundException e) {
-            Toast.makeText(this, "Voice search is not supported on this device", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void showInfoDialog() {
-        LinearLayout layout = new LinearLayout(this);
+    private void showInfoDialog() {        LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         layout.setPadding(dp(8), dp(8), dp(8), dp(8));
@@ -624,10 +593,10 @@ public class MainActivity extends AppCompatActivity {
                 if (found.isEmpty()) {
                     found = repository.search(query);
                 }
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 try {
                     found = repository.search(query);
-                } catch (IOException ignored) {
+                } catch (Throwable ignored) {
                     found = new ArrayList<>();
                 }
             }
@@ -677,7 +646,7 @@ public class MainActivity extends AppCompatActivity {
                     addPaginationBar();
                     focusFirst();
                 });
-            } catch (IOException error) {
+            } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
                     status.setText("بارگذاری ناموفق بود: " + section.title);
@@ -707,7 +676,7 @@ public class MainActivity extends AppCompatActivity {
                     addPaginationBar();
                     focusFirst();
                 });
-            } catch (IOException error) {
+            } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
                     status.setText("بارگذاری دسته ناموفق بود: " + category.title);
@@ -760,23 +729,30 @@ public class MainActivity extends AppCompatActivity {
             addSmallText("دسته‌ای پیدا نشد.");
             return;
         }
-        HorizontalScrollView scroll = new HorizontalScrollView(this);
-        scroll.setHorizontalScrollBarEnabled(false);
-        scroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        for (BrowseCategory category : categories) {
+        // ردیف‌های ثابت (بدون اسکرول افقی) تا ترتیب راست‌چین قطعی باشد
+        LinearLayout grid = new LinearLayout(this);
+        grid.setOrientation(LinearLayout.VERTICAL);
+        grid.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        LinearLayout row = null;
+        for (int i = 0; i < categories.size(); i++) {
+            if (i % 6 == 0) {
+                row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
+                rowParams.setMargins(0, 0, 0, dp(8));
+                grid.addView(row, rowParams);
+            }
+            BrowseCategory category = categories.get(i);
             String label = category.title;
             if (category.count != null && !category.count.isEmpty()) label += " (" + toFaDigits(category.count) + ")";
             Button button = toolbarButton(label);
             button.setOnClickListener(view -> openCategory(category, 1));
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(48));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(48), 1f);
             params.setMargins(0, 0, dp(8), 0);
             row.addView(button, params);
         }
-        scroll.addView(row);
-        page.addView(scroll, new LinearLayout.LayoutParams(-1, dp(58)));
+        page.addView(grid);
     }
 
     private void addItemRow(List<BrowseItem> items) {
