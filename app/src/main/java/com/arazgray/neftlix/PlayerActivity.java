@@ -2,9 +2,12 @@ package com.arazgray.neftlix;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -51,7 +54,14 @@ public class PlayerActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT);
         root.addView(playerView, videoParams);
         // هایلایت فوکوس دکمه‌های کنترلر برای ریموت
-        playerView.post(() -> markFocusable(playerView));
+        playerView.post(() -> {
+            markFocusable(playerView);
+            android.view.View ccButton =
+                    playerView.findViewById(androidx.media3.ui.R.id.exo_subtitle);
+            if (ccButton != null) {
+                ccButton.setOnClickListener(v -> showSubtitleDialog());
+            }
+        });
 
         setContentView(root);
 
@@ -164,6 +174,130 @@ public class PlayerActivity extends AppCompatActivity {
 
     private android.graphics.drawable.GradientDrawable focusBackground;
 
+    /** دیالوگ زیرنویس فارسی با دکمه‌های قرمز مناسب ریموت. */
+    private void showSubtitleDialog() {
+        if (player == null) return;
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        list.setPadding(dp(8), dp(8), dp(8), dp(8));
+
+        java.util.List<androidx.media3.common.Tracks.Group> textGroups = new java.util.ArrayList<>();
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        java.util.List<Integer> selected = new java.util.ArrayList<>();
+        try {
+            androidx.media3.common.Tracks tracks = player.getCurrentTracks();
+            int index = 0;
+            for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
+                if (group.getType() != androidx.media3.common.C.TRACK_TYPE_TEXT
+                        || !group.isSupported()) {
+                    continue;
+                }
+                for (int i = 0; i < group.length; i++) {
+                    String language = group.getTrackFormat(i).language;
+                    String name;
+                    if (language == null || language.isEmpty() || "und".equals(language)) {
+                        name = "نامشخص";
+                    } else {
+                        try {
+                            name = new java.util.Locale(language).getDisplayLanguage(new java.util.Locale("fa"));
+                        } catch (Exception ignored) {
+                            name = language;
+                        }
+                    }
+                    labels.add("زیرنویس " + name);
+                    if (group.isTrackSelected(i)) selected.add(index);
+                    textGroups.add(group);
+                    index++;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (textGroups.isEmpty()) {
+            android.widget.Toast.makeText(this, "زیرنویسی برای این ویدیو نیست", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final boolean[] chosen = {-2};
+        for (int i = 0; i < labels.size(); i++) {
+            Button option = subtitleButton(labels.get(i) + (selected.contains(i) ? " (فعال)" : ""));
+            final int trackIndex = i;
+            option.setOnClickListener(v -> {
+                chosen[0] = trackIndex;
+            });
+            list.addView(option, new LinearLayout.LayoutParams(-1, dp(52)));
+        }
+        Button off = subtitleButton("خاموش");
+        off.setOnClickListener(v -> chosen[0] = -1);
+        list.addView(off, new LinearLayout.LayoutParams(-1, dp(52)));
+
+        final androidx.appcompat.app.AlertDialog dialog =
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("زیرنویس")
+                        .setView(list)
+                        .setPositiveButton("تأیید", (d, which) -> applySubtitleChoice(textGroups, chosen[0]))
+                        .setNegativeButton("بستن", null)
+                        .show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(0xFF000000));
+        }
+    }
+
+    private Button subtitleButton(String text) {
+        Button button = new Button(this);
+        button.setText(text);
+        button.setTextColor(android.graphics.Color.WHITE);
+        button.setTextDirection(View.TEXT_DIRECTION_RTL);
+        button.setAllCaps(false);
+        button.setFocusable(true);
+        final android.content.res.ColorStateList idle =
+                android.content.res.ColorStateList.valueOf(0xFF2D2D2D);
+        final android.content.res.ColorStateList focused =
+                android.content.res.ColorStateList.valueOf(0xFFE50914);
+        button.setBackgroundTintList(idle);
+        button.setOnFocusChangeListener((v, hasFocus) ->
+                button.setBackgroundTintList(hasFocus ? focused : idle));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(52));
+        params.setMargins(0, dp(3), 0, dp(3));
+        button.setLayoutParams(params);
+        return button;
+    }
+
+    private void applySubtitleChoice(java.util.List<androidx.media3.common.Tracks.Group> textGroups, int chosen) {
+        if (player == null) return;
+        try {
+            if (!(player.getTrackSelector()
+                    instanceof androidx.media3.exoplayer.trackselection.DefaultTrackSelector)) {
+                return;
+            }
+            androidx.media3.exoplayer.trackselection.DefaultTrackSelector selector =
+                    (androidx.media3.exoplayer.trackselection.DefaultTrackSelector)
+                            player.getTrackSelector();
+            if (chosen < 0) {
+                selector.setParameters(selector.buildUponParameters()
+                        .setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_TEXT, true));
+            } else {
+                androidx.media3.common.Tracks.Group group = textGroups.get(chosen);
+                int trackInGroup = 0;
+                int seen = -1;
+                for (int i = 0; i <= chosen; i++) {
+                    if (textGroups.get(i) == group) {
+                        seen++;
+                        if (i == chosen) trackInGroup = seen;
+                    }
+                }
+                selector.setParameters(selector.buildUponParameters()
+                        .setTrackTypeDisabled(androidx.media3.common.C.TRACK_TYPE_TEXT, false)
+                        .setPreferredTextLanguage(null)
+                        .setOverrideForType(new androidx.media3.common.TrackSelectionOverride(
+                                group.getMediaTrackGroup(), trackInGroup)));
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     private void markFocusable(View v) {
         if (v instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) v;
@@ -222,6 +356,10 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private int dp(float value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
     }
 
     @Override
