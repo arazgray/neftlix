@@ -1,6 +1,6 @@
 {
-  "versionCode": 8,
-  "versionName": "1.7",
+  "versionCode": 9,
+  "versionName": "1.8",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۷: رفع خروج ناگهانی صفحه جزئیات، گزارش خودکار خطا، حذف دکمه‌های جست‌وجو و صدا، ردیف‌های دسته‌بندی راست‌چین قطعی."
+  "notes": "نسخه ۱٫۸: دیالوگ زیرنویس فارسی با دکمه‌های قرمز، حذف دکمه‌های جست‌وجو و صدا، گزارش خودکار خطا."
 }
