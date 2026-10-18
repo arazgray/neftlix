@@ -861,13 +861,13 @@ public class MainActivity extends AppCompatActivity {
         back.setTag("back");
         back.setOnClickListener(view -> renderHome());
         LinearLayout.LayoutParams params = ui.params(-2, ui.dp(42));
-        params.topMargin = ui.dp(4);
+        params.setMargins(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
         page.addView(back, params);
     }
 
     private void addHeading(String text, String countText) {
         LinearLayout header = ui.row();
-        header.setPadding(0, ui.dp(16), 0, ui.dp(6));
+        header.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(16), ui.dp(Ui.PAGE_PAD), ui.dp(6));
         View accent = new View(this);
         accent.setBackground(ui.rounded(Ui.BRAND, 2));
         LinearLayout.LayoutParams accentParams = ui.params(ui.dp(3), ui.dp(18));
@@ -885,7 +885,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView note(String text) {
         TextView view = ui.dim(text, 14);
-        view.setPadding(0, ui.dp(4), 0, ui.dp(12));
+        view.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), ui.dp(12));
         return view;
     }
 

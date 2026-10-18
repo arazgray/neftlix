@@ -192,7 +192,7 @@ final class CatalogRepository {
         String finalUrl = document.location();
         Element titleElement = document.selectFirst("head title");
         String title = titleElement == null ? "Item" : titleElement.text().trim();
-        Element poster = document.selectFirst("#post-intro .entry-poster img, #post-intro img.coverimg");
+        Element poster = pickPoster(document);
         String cover = poster == null ? "" : imageUrl(poster, finalUrl);
         Element backdrop = document.selectFirst("#post-intro img.coverimg");
         if (backdrop == null) backdrop = document.selectFirst("img.mb-coverimg");
@@ -448,6 +448,10 @@ final class CatalogRepository {
     }
 
     String imageUrl(Element image, String baseUrl) {
+        return imageUrlStatic(image);
+    }
+
+    static String imageUrlStatic(Element image) {
         for (String attr : new String[]{"data-splide-lazy", "data-src", "data-original", "src"}) {
             String value = image.attr(attr).trim();
             if (!value.isEmpty() && !value.startsWith("data:image/")) {
@@ -458,6 +462,32 @@ final class CatalogRepository {
         String sourceSet = image.attr("srcset").trim();
         if (!sourceSet.isEmpty()) return sourceSet.split(",")[0].trim().split("\\s+")[0];
         return "";
+    }
+
+    private static final Pattern PORTRAIT_IMAGE = Pattern.compile(
+            "-(\\d{2,4})x(\\d{2,4})\\.", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * پوستر عمودی عنوان (مثل کارت‌های فهرست)؛ هنر افقی coverimg برای پس‌زمینه می‌ماند.
+     * بدون شبکه و بدون اندروید تا تست واحد داشته باشد.
+     */
+    static Element pickPoster(Element root) {
+        if (root == null) return null;
+        Element explicit = root.selectFirst("#post-intro .entry-poster img");
+        if (explicit != null) return explicit;
+        Elements candidates = root.select("#post-intro img");
+        for (Element image : candidates) {
+            Matcher size = PORTRAIT_IMAGE.matcher(imageUrlStatic(image));
+            if (size.find()) {
+                try {
+                    if (Integer.parseInt(size.group(1)) < Integer.parseInt(size.group(2))) {
+                        return image;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return candidates.first();
     }
 
     String typeFromText(String value) {

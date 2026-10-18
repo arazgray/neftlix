@@ -92,10 +92,12 @@ The whole redesign lives here; **new screens should use these factories, not raw
 
 - **Home:** status pill (50% translucent, hidden when empty) + horizontal rails; genre rails
   at the bottom; search box opens listing/search. No hero billboard (removed in v1.13).
-- **Details:** header (poster + title + pills + «پخش تریلر» → YouTube search
-  `DisplayText.trailerQuery()`), glassy story panel, then collapsed «نظرات» and collapsed
-  «فهرست پخش» (seasons → categories → quality `expandable()` hierarchy; 3-column episode grid,
-  «تماشا رایگان» for direct links).
+- **Details:** header (2:3 portrait poster like list cards + title + pills + gray
+  «پخش تریلر» ghost button, red only on focus → YouTube search `DisplayText.trailerQuery()`),
+  then two columns: glassy story panel on the right, collapsed «نظرات» + collapsed
+  «فهرست پخش» on the left (seasons → categories → quality `expandable()` hierarchy;
+  3-column episode grid, «تماشا رایگان» for direct links). `expandable()` wires focus
+  explicitly (summary ↔ first child) so the remote never skips stream buttons.
   `DisplayText.cleanTitle()` strips noisy site suffixes.
   All links stream in the player — there is intentionally **no download feature** (Android TV);
   UI wording is تماشا/پخش everywhere, site «دانلود…» labels are rewritten to تماشا at display time.
@@ -132,14 +134,15 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 14 / 1.13 on `main` (v1.13 tag released).
+- Current: 15 / 1.14 on `main` (v1.14 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.13 released, Oct 2026)
+## Current state (v1.14 released, Oct 2026)
 
-- v1.13 on `main` (versionCode 14): no hero, trailer button, collapsible comments/playlist,
-  no-resize focus, translucent status pill, glassy panel, silent auto-update check, more tests.
+- v1.14 on `main` (versionCode 15): details two-column (info right, comments+playlist left),
+  portrait poster picker, ghost trailer button, explicit expandable focus wiring,
+  sub-page padding, more tests.
 - In-app updater reads `version.json` from `main` via raw.githubusercontent.
 - Screenshot workflow permanently removed — do not re-add emulator CI.
 - Committed `screenshot.png` / `screenshot-details.png` predate the تماشا wording;

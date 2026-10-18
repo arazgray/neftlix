@@ -268,6 +268,7 @@ final class Ui {
         FrameLayout box = new FrameLayout(activity);
         box.setFocusable(true);
         box.setClickable(true);
+        box.setFocusableInTouchMode(true);
         box.setContentDescription(contentDesc);
         ImageView image = new ImageView(activity);
         image.setImageDrawable(icon(iconRes, 19));
@@ -347,6 +348,8 @@ final class Ui {
         view.setBackground(idle);
         view.setTextColor(primary ? TEXT : TEXT);
         view.setFocusable(true);
+        // روی باکس‌هایی که گاهی حالت لمسی فعال می‌شود هم فوکوس ریموت کار کند
+        view.setFocusableInTouchMode(true);
         view.setClickable(true);
         view.setMinimumHeight(dp(heightDp));
         view.setOnFocusChangeListener((v, hasFocus) -> {
@@ -442,6 +445,7 @@ final class Ui {
         LinearLayout card = column();
         card.setFocusable(true);
         card.setClickable(true);
+        card.setFocusableInTouchMode(true);
         card.setClipChildren(false);
         card.setContentDescription(item.title);
 
@@ -564,6 +568,7 @@ final class Ui {
         summary.setCompoundDrawablePadding(dp(9));
         summary.setFocusable(true);
         summary.setClickable(true);
+        summary.setFocusableInTouchMode(true);
         final GradientDrawable idle = depth == 0
                 ? stroked(SURFACE_2, RADIUS_BUTTON, 1, HAIRLINE)
                 : stroked(0x0DFFFFFF, RADIUS_BUTTON, 1, 0x14FFFFFF);
@@ -586,8 +591,39 @@ final class Ui {
             content.setVisibility(expand ? View.VISIBLE : View.GONE);
             summary.setCompoundDrawablesRelativeWithIntrinsicBounds(
                     icon(expand ? R.drawable.ic_chevron_down : R.drawable.ic_chevron_end, 15), null, null, null);
+            wireFocus(summary, content, expand);
         });
         return box;
+    }
+
+    /**
+     * سیم‌کشی صریح فوکوس بین سربرگ و اولین عنصر محتوای بازشده تا ریموت
+     * هیچ دکمه‌ای را جا نیندازد (جست‌وجوی هندسی گاهی دکمه‌های تودرتو را رد می‌کند).
+     * هنگام جمع‌شدن سیم‌کشی پاک می‌شود تا ناوبری عادی هندسی برگردد.
+     */
+    private void wireFocus(View summary, View content, boolean expand) {
+        if (summary.getId() == View.NO_ID) summary.setId(View.generateViewId());
+        View first = firstFocusable(content);
+        if (first != null && first.getId() == View.NO_ID) first.setId(View.generateViewId());
+        if (expand && first != null) {
+            summary.setNextFocusDownId(first.getId());
+            first.setNextFocusUpId(summary.getId());
+        } else {
+            summary.setNextFocusDownId(View.NO_ID);
+            if (first != null) first.setNextFocusUpId(View.NO_ID);
+        }
+    }
+
+    private View firstFocusable(View root) {
+        if (root.isFocusable()) return root;
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = firstFocusable(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     // ── پنل ──────────────────────────────────────────────────────────

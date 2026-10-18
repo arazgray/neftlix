@@ -188,22 +188,28 @@ public class DetailsActivity extends AppCompatActivity {
             return;
         }
 
-        if (!details.story.isEmpty() || !details.genres.isEmpty() || !details.flags.isEmpty()) {
-            addInfoPanel(page, details);
-        }
+        // راست: توضیحات — چپ: نظرات و فهرست پخش
+        LinearLayout columns = ui.row();
+        columns.setGravity(Gravity.TOP);
+        LinearLayout infoColumn = ui.column();
+        columns.addView(infoColumn, ui.params(0, -2, 1f));
+        LinearLayout leftColumn = ui.column();
+        LinearLayout.LayoutParams leftParams = ui.params(0, -2, 1.15f);
+        leftParams.setMarginStart(ui.dp(20));
+        columns.addView(leftColumn, leftParams);
+        page.addView(columns, ui.withTop(-1, -2, 4));
 
-        // نظرات بالای فهرست پخش؛ هر دو پیش‌فرض بسته‌اند
+        if (!details.story.isEmpty() || !details.genres.isEmpty() || !details.flags.isEmpty()) {
+            addInfoPanel(infoColumn, details);
+        }
         if (!details.comments.isEmpty()) {
-            LinearLayout.LayoutParams commentsParams = ui.withTop(-1, -2, 14);
-            commentsParams.bottomMargin = ui.dp(12);
-            page.addView(ui.expandable("نظرات (" + Ui.fa(details.comments.size()) + ")",
-                    commentsView(details), 0), commentsParams);
+            leftColumn.addView(ui.expandable("نظرات (" + Ui.fa(details.comments.size()) + ")",
+                    commentsView(details), 0));
         }
         if (!details.groups.isEmpty()) {
             LinearLayout watchList = ui.column();
             addWatchGroups(watchList, details);
-            page.addView(ui.expandable("فهرست پخش", watchList, 0),
-                    ui.withTop(-1, -2, 2));
+            leftColumn.addView(ui.expandable("فهرست پخش", watchList, 0));
         }
         focusFirst();
     }
@@ -244,8 +250,12 @@ public class DetailsActivity extends AppCompatActivity {
             } catch (Exception ignored) {
             }
             ui.loadCover(poster, details.coverUrl);
+            // قاب ۲:۳ مثل کارت‌های فهرست، با کمی فاصله از پایین
             float posterWidth = 150f;
-            header.addView(poster, ui.params(ui.dp(posterWidth), ui.dp(posterWidth * 4f / 3f)));
+            LinearLayout.LayoutParams posterParams =
+                    ui.params(ui.dp(posterWidth), ui.dp(posterWidth * 3f / 2f));
+            posterParams.bottomMargin = ui.dp(8);
+            header.addView(poster, posterParams);
         }
 
         LinearLayout info = ui.column();
@@ -274,7 +284,7 @@ public class DetailsActivity extends AppCompatActivity {
 
         LinearLayout actions = ui.row();
         actions.setPadding(0, ui.dp(18), 0, 0);
-        TextView trailer = ui.primaryButton("پخش تریلر", R.drawable.ic_play);
+        TextView trailer = ui.ghostButton("پخش تریلر", R.drawable.ic_play);
         trailer.setTag("play");
         trailer.setOnClickListener(v -> playTrailer(title));
         actions.addView(trailer, ui.params(-2, ui.dp(44)));

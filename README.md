@@ -5,7 +5,7 @@
 <h1 align="center">Neftlix</h1>
 
 <p align="center">
-  <strong>A Persian-language Android TV app for movies and series.</strong>
+  <strong>An Android TV app for free movies and series streaming.</strong>
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@ The app communicates directly with the media source, requiring no dedicated back
 
 - **Home screen:** Horizontal rails for each catalog section, with 20-item previews and links to view the full collection. Genre chips provide quick access to movies and series.
 - **Archive-wide search:** Uses the site's `quick-search` endpoint, with fallbacks to page search and the locally cached catalog. Supports English voice search and automatic focus on the first result.
-- **Content details:** Displays wide key art, posters, cleaned titles, IMDb ratings, satisfaction scores, content type, and available links.
+- **Content details:** Displays wide key art, the portrait poster (same 2:3 cover as the lists), cleaned titles, IMDb ratings, satisfaction scores, content type, and available links — descriptions on the right, collapsible comments and watch list on the left.
 - **YouTube trailers:** Opens the YouTube app with a search query based on the title and release year.
 - **Expandable watch lists:** Browse seasons, dubbing and subtitle categories, video quality options, and episode links. Comments and the watch list are independently expandable sections.
 
@@ -107,7 +107,7 @@ JVM unit tests are located in `app/src/test/` and use JUnit 4. They run in CI on
 |---|---|
 | `UiTest` | Persian digits, content-type labels, high-resolution image URLs, 960dp scale clamping, and grid calculations |
 | `DisplayTextTest` | Title cleanup, watch-label rewriting, and YouTube trailer queries |
-| `CatalogRepositoryTest` | Pagination, search responses, content-type and URL validation, article cards, genre extraction, and download-link parsing |
+| `CatalogRepositoryTest` | Pagination, search responses, content-type and URL validation, article cards, genre extraction, download-link parsing, portrait-poster picking |
 | `CatalogCacheTest` | Cache save/load round trips, missing files, and corrupted data |
 
 Android-dependent components, including views, Glide, and ExoPlayer, are kept outside the tested surface where practical. Pure logic is extracted into static or package-private helpers.

@@ -2,10 +2,12 @@ package com.arazgray.neftlix;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.Test;
 
@@ -164,8 +166,48 @@ public class CatalogRepositoryTest {
     }
 
     @Test
-    public void guards_classifyLabelsAndHosts() {
-        assertTrue(repository.isOnlineLabel("پخش آنلاین"));
+    public void pickPoster_prefersPortraitLikeLists() {
+        Document document = Jsoup.parse(
+                "<div id=\"post-intro\">"
+                        + "<img class=\"coverimg\" src=\"https://cdn/x/back-2048x1152.jpg\">"
+                        + "<img src=\"https://cdn/x/poster-360x480.jpg\">"
+                        + "</div>",
+                "https://www.myf2mi.top/m/x/");
+        Element poster = CatalogRepository.pickPoster(document);
+        assertEquals("https://cdn/x/poster-360x480.jpg", poster.absUrl("src"));
+    }
+
+    @Test
+    public void pickPoster_prefersEntryPoster() {
+        Document document = Jsoup.parse(
+                "<div id=\"post-intro\">"
+                        + "<img class=\"coverimg\" src=\"https://cdn/x/back-2048x1152.jpg\">"
+                        + "<span class=\"entry-poster\"><img src=\"https://cdn/x/p.jpg\"></span>"
+                        + "</div>",
+                "https://www.myf2mi.top/m/x/");
+        Element poster = CatalogRepository.pickPoster(document);
+        assertEquals("https://cdn/x/p.jpg", poster.absUrl("src"));
+    }
+
+    @Test
+    public void pickPoster_fallsBackToFirstImage() {
+        Document document = Jsoup.parse(
+                "<div id=\"post-intro\">"
+                        + "<img class=\"coverimg\" src=\"https://cdn/x/back-2048x1152.jpg\">"
+                        + "</div>",
+                "https://www.myf2mi.top/m/x/");
+        Element poster = CatalogRepository.pickPoster(document);
+        assertEquals("https://cdn/x/back-2048x1152.jpg", poster.absUrl("src"));
+    }
+
+    @Test
+    public void pickPoster_noImagesReturnsNull() {
+        assertNull(CatalogRepository.pickPoster(Jsoup.parse("<div></div>")));
+        assertNull(CatalogRepository.pickPoster(null));
+    }
+
+    @Test
+    public void guards_classifyLabelsAndHosts() {        assertTrue(repository.isOnlineLabel("پخش آنلاین"));
         assertTrue(repository.isOnlineLabel("Watch Online now"));
         assertFalse(repository.isOnlineLabel("تماشا با کیفیت 1080p"));
         assertTrue(repository.isSiteHost("https://www.myf2mi.top/x/"));
