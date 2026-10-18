@@ -66,6 +66,11 @@ public class PlayerActivity extends AppCompatActivity {
             if (ccButton != null) {
                 ccButton.setOnClickListener(v -> showSubtitleDialog());
             }
+            android.view.View settingsButton =
+                    playerView.findViewById(androidx.media3.ui.R.id.exo_settings);
+            if (settingsButton != null) {
+                settingsButton.setOnClickListener(v -> showSettingsDialog());
+            }
         });
 
         setContentView(root);
@@ -177,7 +182,12 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-    private android.graphics.drawable.GradientDrawable focusBackground;
+    private android.graphics.drawable.GradientDrawable focusBackgroundFor() {
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setColor(0xFFE50914);
+        bg.setCornerRadius(12f);
+        return bg;
+    }
 
     /** دیالوگ زیرنویس فارسی با دکمه‌های قرمز مناسب ریموت. */
     private void showSubtitleDialog() {
@@ -191,31 +201,7 @@ public class PlayerActivity extends AppCompatActivity {
         java.util.List<String> labels = new java.util.ArrayList<>();
         java.util.List<Integer> selected = new java.util.ArrayList<>();
         try {
-            androidx.media3.common.Tracks tracks = player.getCurrentTracks();
-            int index = 0;
-            for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
-                if (group.getType() != androidx.media3.common.C.TRACK_TYPE_TEXT
-                        || !group.isSupported()) {
-                    continue;
-                }
-                for (int i = 0; i < group.length; i++) {
-                    String language = group.getTrackFormat(i).language;
-                    String name;
-                    if (language == null || language.isEmpty() || "und".equals(language)) {
-                        name = "نامشخص";
-                    } else {
-                        try {
-                            name = new java.util.Locale(language).getDisplayLanguage(new java.util.Locale("fa"));
-                        } catch (Exception ignored) {
-                            name = language;
-                        }
-                    }
-                    labels.add("زیرنویس " + name);
-                    if (group.isTrackSelected(i)) selected.add(index);
-                    textGroups.add(group);
-                    index++;
-                }
-            }
+            collectTextTracks(player.getCurrentTracks(), textGroups, labels, selected);
         } catch (Exception ignored) {
         }
 
@@ -226,14 +212,14 @@ public class PlayerActivity extends AppCompatActivity {
 
         final int[] chosen = {-2};
         for (int i = 0; i < labels.size(); i++) {
-            Button option = subtitleButton(labels.get(i) + (selected.contains(i) ? " (فعال)" : ""));
+            Button option = dialogOptionButton(labels.get(i) + (selected.contains(i) ? " (فعال)" : ""));
             final int trackIndex = i;
             option.setOnClickListener(v -> {
                 chosen[0] = trackIndex;
             });
             list.addView(option, new LinearLayout.LayoutParams(-1, dp(52)));
         }
-        Button off = subtitleButton("خاموش");
+        Button off = dialogOptionButton("خاموش");
         off.setOnClickListener(v -> chosen[0] = -1);
         list.addView(off, new LinearLayout.LayoutParams(-1, dp(52)));
 
@@ -250,24 +236,60 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    private Button subtitleButton(String text) {
+    /** دکمهٔ گزینه‌های دیالوگ (زیرنویس/تنظیمات)؛ روی فوکوس قطعاً قرمز. */
+    private Button dialogOptionButton(String text) {
         Button button = new Button(this);
         button.setText(text);
         button.setTextColor(android.graphics.Color.WHITE);
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        final android.content.res.ColorStateList idle =
-                android.content.res.ColorStateList.valueOf(0xFF2D2D2D);
-        final android.content.res.ColorStateList focused =
-                android.content.res.ColorStateList.valueOf(0xFFE50914);
-        button.setBackgroundTintList(idle);
+        button.setFocusableInTouchMode(true);
+        final android.graphics.drawable.GradientDrawable idle =
+                new android.graphics.drawable.GradientDrawable();
+        idle.setColor(0xFF2D2D2D);
+        idle.setCornerRadius(dp(8));
+        final android.graphics.drawable.GradientDrawable focused =
+                new android.graphics.drawable.GradientDrawable();
+        focused.setColor(0xFFE50914);
+        focused.setCornerRadius(dp(8));
+        button.setBackground(idle);
         button.setOnFocusChangeListener((v, hasFocus) ->
-                button.setBackgroundTintList(hasFocus ? focused : idle));
+                button.setBackground(hasFocus ? focused : idle));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(52));
         params.setMargins(0, dp(3), 0, dp(3));
         button.setLayoutParams(params);
         return button;
+    }
+
+    /** نام نمایشی زبان ترک (فارسی‌سازی‌شده) برای دیالوگ‌های پخش. */
+    private String languageName(String code) {
+        if (code == null || code.isEmpty() || "und".equals(code)) return "نامشخص";
+        try {
+            return new java.util.Locale(code).getDisplayLanguage(new java.util.Locale("fa"));
+        } catch (Exception ignored) {
+            return code;
+        }
+    }
+
+    /** فهرست ترک‌های زیرنویس؛ خروجی‌ها به ترتیب نمایشی پر می‌شوند. */
+    private void collectTextTracks(androidx.media3.common.Tracks tracks,
+            java.util.List<androidx.media3.common.Tracks.Group> textGroups,
+            java.util.List<String> labels,
+            java.util.List<Integer> selected) {
+        int index = 0;
+        for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
+            if (group.getType() != androidx.media3.common.C.TRACK_TYPE_TEXT
+                    || !group.isSupported()) {
+                continue;
+            }
+            for (int i = 0; i < group.length; i++) {
+                labels.add("زیرنویس " + languageName(group.getTrackFormat(i).language));
+                if (group.isTrackSelected(i)) selected.add(index);
+                textGroups.add(group);
+                index++;
+            }
+        }
     }
 
     private void applySubtitleChoice(java.util.List<androidx.media3.common.Tracks.Group> textGroups, int chosen) {
@@ -303,42 +325,212 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
+    private static final class AudioOption {
+        final String code;
+        final String label;
+        final boolean selected;
+
+        AudioOption(String code, String label, boolean selected) {
+            this.code = code;
+            this.label = label;
+            this.selected = selected;
+        }
+    }
+
+    private android.widget.TextView settingsSectionLabel(String text, boolean spaced) {
+        android.widget.TextView label = new android.widget.TextView(this);
+        label.setText(text);
+        label.setTextColor(Ui.TEXT_DIM);
+        label.setTextSize(13);
+        label.setTextDirection(View.TEXT_DIRECTION_RTL);
+        label.setPadding(dp(4), dp(spaced ? 12 : 2), dp(4), dp(4));
+        return label;
+    }
+
+    /** دیالوگ تنظیمات پخش (کیفیت/صدا/زیرنویس) با دکمه‌های قرمز؛ انتخاب همان‌جا اعمال می‌شود. */
+    private void showSettingsDialog() {
+        if (player == null) return;
+        if (!(player.getTrackSelector()
+                instanceof androidx.media3.exoplayer.trackselection.DefaultTrackSelector)) {
+            return;
+        }
+        final androidx.media3.exoplayer.trackselection.DefaultTrackSelector selector =
+                (androidx.media3.exoplayer.trackselection.DefaultTrackSelector)
+                        player.getTrackSelector();
+
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        list.setPadding(dp(8), dp(8), dp(8), dp(8));
+
+        final androidx.appcompat.app.AlertDialog[] dialogRef = {null};
+        final Runnable dismiss = () -> {
+            if (dialogRef[0] != null) dialogRef[0].dismiss();
+        };
+
+        boolean hasSection = false;
+        try {
+            androidx.media3.common.Tracks tracks = player.getCurrentTracks();
+
+            // کیفیت تصویر (فقط وقتی چند کیفیت هست)
+            java.util.List<String> videoLabels = new java.util.ArrayList<>();
+            int maxHeight = 0;
+            for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
+                if (group.getType() != androidx.media3.common.C.TRACK_TYPE_VIDEO
+                        || !group.isSupported()) {
+                    continue;
+                }
+                for (int i = 0; i < group.length; i++) {
+                    int height = group.getTrackFormat(i).height;
+                    String label = height > 0 ? height + "p" : "کیفیت " + (videoLabels.size() + 1);
+                    if (videoLabels.contains(label)) continue;
+                    videoLabels.add(label);
+                    if (height > maxHeight) maxHeight = height;
+                }
+            }
+            if (videoLabels.size() > 1) {
+                hasSection = true;
+                list.addView(settingsSectionLabel("کیفیت تصویر", false));
+                Button auto = dialogOptionButton("خودکار");
+                auto.setOnClickListener(v -> {
+                    selector.setParameters(selector.buildUponParameters().setMaxVideoSize(
+                            Integer.MAX_VALUE, Integer.MAX_VALUE));
+                    dismiss.run();
+                });
+                list.addView(auto, new LinearLayout.LayoutParams(-1, dp(52)));
+                int[][] presets = {{2160, 3840, 2160}, {1080, 1920, 1080}, {720, 1280, 720}, {480, 854, 480}};
+                for (int[] preset : presets) {
+                    if (preset[0] > maxHeight) continue;
+                    Button quality = dialogOptionButton(preset[0] + "p");
+                    final int width = preset[1];
+                    final int height = preset[2];
+                    quality.setOnClickListener(v -> {
+                        selector.setParameters(selector.buildUponParameters()
+                                .setMaxVideoSize(width, height));
+                        dismiss.run();
+                    });
+                    list.addView(quality, new LinearLayout.LayoutParams(-1, dp(52)));
+                }
+            }
+
+            // صدا (فقط وقتی چند صدا هست)
+            java.util.List<AudioOption> audios = new java.util.ArrayList<>();
+            java.util.List<String> seenCodes = new java.util.ArrayList<>();
+            for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
+                if (group.getType() != androidx.media3.common.C.TRACK_TYPE_AUDIO
+                        || !group.isSupported()) {
+                    continue;
+                }
+                for (int i = 0; i < group.length; i++) {
+                    String code = group.getTrackFormat(i).language;
+                    String key = code == null ? "" : code;
+                    if (seenCodes.contains(key)) continue;
+                    seenCodes.add(key);
+                    audios.add(new AudioOption(code, languageName(code), group.isTrackSelected(i)));
+                }
+            }
+            if (audios.size() > 1) {
+                hasSection = true;
+                list.addView(settingsSectionLabel("صدا", true));
+                Button auto = dialogOptionButton("خودکار");
+                auto.setOnClickListener(v -> {
+                    selector.setParameters(selector.buildUponParameters()
+                            .setPreferredAudioLanguage(null));
+                    dismiss.run();
+                });
+                list.addView(auto, new LinearLayout.LayoutParams(-1, dp(52)));
+                for (final AudioOption audio : audios) {
+                    Button option = dialogOptionButton(
+                            audio.label + (audio.selected ? " (فعال)" : ""));
+                    option.setOnClickListener(v -> {
+                        selector.setParameters(selector.buildUponParameters()
+                                .setPreferredAudioLanguage(audio.code));
+                        dismiss.run();
+                    });
+                    list.addView(option, new LinearLayout.LayoutParams(-1, dp(52)));
+                }
+            }
+
+            // زیرنویس
+            java.util.List<androidx.media3.common.Tracks.Group> textGroups = new java.util.ArrayList<>();
+            java.util.List<String> labels = new java.util.ArrayList<>();
+            java.util.List<Integer> selected = new java.util.ArrayList<>();
+            collectTextTracks(tracks, textGroups, labels, selected);
+            if (!textGroups.isEmpty()) {
+                hasSection = true;
+                list.addView(settingsSectionLabel("زیرنویس", true));
+                for (int i = 0; i < labels.size(); i++) {
+                    Button option = dialogOptionButton(
+                            labels.get(i) + (selected.contains(i) ? " (فعال)" : ""));
+                    final int trackIndex = i;
+                    option.setOnClickListener(v -> {
+                        applySubtitleChoice(textGroups, trackIndex);
+                        dismiss.run();
+                    });
+                    list.addView(option, new LinearLayout.LayoutParams(-1, dp(52)));
+                }
+                Button off = dialogOptionButton("خاموش");
+                off.setOnClickListener(v -> {
+                    applySubtitleChoice(textGroups, -1);
+                    dismiss.run();
+                });
+                list.addView(off, new LinearLayout.LayoutParams(-1, dp(52)));
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (!hasSection) {
+            android.widget.Toast.makeText(this, "تنظیماتی برای این ویدیو نیست", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.addView(list);
+        dialogRef[0] = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("تنظیمات پخش")
+                .setView(scroll)
+                .setNegativeButton("بستن", null)
+                .show();
+        if (dialogRef[0].getWindow() != null) {
+            dialogRef[0].getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(0xFF000000));
+        }
+    }
+
     private void markFocusable(View v) {
         if (v instanceof ViewGroup) {
+            // داخل کانتینرها بگرد؛ خود کانتینر هم اگر فوکوس‌پذیر بود هایلایت بگیرد
             ViewGroup group = (ViewGroup) v;
             for (int i = 0; i < group.getChildCount(); i++) {
                 markFocusable(group.getChildAt(i));
             }
-            return;
         }
-        if (v.isFocusable()) {
-            if (focusBackground == null) {
-                focusBackground = new android.graphics.drawable.GradientDrawable();
-                focusBackground.setColor(0xFFE50914);
-                focusBackground.setCornerRadius(12f);
-            }
-            if (v instanceof androidx.media3.ui.DefaultTimeBar) {
-                // نوار پیشرفت: روی فوکوس قرمز شود، بدون تغییر اندازه
-                androidx.media3.ui.DefaultTimeBar bar = (androidx.media3.ui.DefaultTimeBar) v;
-                v.setOnFocusChangeListener((view, hasFocus) -> {
-                    if (hasFocus) {
-                        bar.setPlayedColor(0xFFE50914);
-                        bar.setScrubberColor(0xFFE50914);
-                    } else {
-                        bar.setPlayedColor(0xFFFFFFFF);
-                        bar.setScrubberColor(0xFFFFFFFF);
-                    }
-                });
-                return;
-            }
-            final android.graphics.drawable.Drawable normal = v.getBackground();
+        if (!v.isFocusable()) return;
+        if (v instanceof androidx.media3.ui.DefaultTimeBar) {
+            // نوار پیشرفت: روی فوکوس قرمز شود، بدون تغییر اندازه
+            androidx.media3.ui.DefaultTimeBar bar = (androidx.media3.ui.DefaultTimeBar) v;
             v.setOnFocusChangeListener((view, hasFocus) -> {
-                if (view instanceof android.widget.ImageButton) {
-                    view.setBackground(hasFocus ? focusBackground : null);
-                    if (!hasFocus && normal != null) view.setBackground(normal);
+                if (hasFocus) {
+                    bar.setPlayedColor(0xFFE50914);
+                    bar.setScrubberColor(0xFFE50914);
+                } else {
+                    bar.setPlayedColor(0xFFFFFFFF);
+                    bar.setScrubberColor(0xFFFFFFFF);
                 }
             });
+            return;
         }
+        // همهٔ دکمه‌ها از هر کلاسی (عقب/جلو، قبلی/بعدی، زیرنویس، تنظیمات…) روی فوکوس قرمز
+        final android.graphics.drawable.Drawable normal = v.getBackground();
+        v.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus) {
+                view.setBackground(focusBackgroundFor());
+            } else if (normal != null) {
+                view.setBackground(normal);
+            } else {
+                view.setBackground(null);
+            }
+        });
     }
 
     @Override

@@ -14,8 +14,8 @@ android {
         applicationId 'com.arazgray.neftlix'
         minSdk 21
         targetSdk 34
-        versionCode 15
-        versionName '1.14'
+        versionCode 16
+        versionName '1.15'
     }
 
     // امضای ثابت برای همه بیلدها تا آپدیت روی نصب قبلی بنشیند؛

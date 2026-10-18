@@ -63,7 +63,8 @@ app/src/main/java/com/arazgray/neftlix/
   MainActivity.java        home: rails/grid + search + genres (no hero), auto update check
   DetailsActivity.java     details: title/key-art, trailer button, comments + playlist
                            collapsibles, watch-list hierarchy
-  PlayerActivity.java      ExoPlayer wrapper, lightly themed, keep-screen-on
+  PlayerActivity.java      ExoPlayer wrapper, red focus on all controls, custom
+                           settings/subtitle dialogs, keep-screen-on
   CrashLogger.java         black crash screen + file log
 app/src/main/res/drawable*/ → brand assets + vector icons (in-app marks use transparent
   `logo_transparent.png`); res/font → Vazirmatn
@@ -103,6 +104,9 @@ The whole redesign lives here; **new screens should use these factories, not raw
   UI wording is تماشا/پخش everywhere, site «دانلود…» labels are rewritten to تماشا at display time.
 - **Player:** opens from a link, black shutter, buffering indicator, styled error card,
   `setKeepScreenOn(true)` so boxes (Mi Box) never drop to the screensaver mid-play.
+  Every controller button highlights red on focus (`markFocusable()` covers all view classes);
+  CC opens the subtitle dialog, the gear opens a custom quality/audio/subtitle dialog —
+  both use red-on-focus option buttons with apply-on-select.
 - **Updates:** `checkAppUpdate(true)` runs once in `MainActivity.onCreate` (silent unless an
   update is found); the update button calls `checkAppUpdate(false)`.
 
@@ -134,15 +138,14 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 15 / 1.14 on `main` (v1.14 tag released).
+- Current: 16 / 1.15 on `main` (v1.15 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.14 released, Oct 2026)
+## Current state (v1.15 released, Oct 2026)
 
-- v1.14 on `main` (versionCode 15): details two-column (info right, comments+playlist left),
-  portrait poster picker, ghost trailer button, explicit expandable focus wiring,
-  sub-page padding, more tests.
+- v1.15 on `main` (versionCode 16): red focus on all player controls, custom playback
+  settings dialog, red-on-focus dialog options.
 - In-app updater reads `version.json` from `main` via raw.githubusercontent.
 - Screenshot workflow permanently removed — do not re-add emulator CI.
 - Committed `screenshot.png` / `screenshot-details.png` predate the تماشا wording;

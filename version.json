@@ -1,6 +1,6 @@
 {
-  "versionCode": 15,
-  "versionName": "1.14",
+  "versionCode": 16,
+  "versionName": "1.15",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۱۴: چیدمان دوستونه جزئیات، پوستر عمودی، رفع جاماندن فوکوس روی دکمه‌های پخش، دکمه خاکستری تریلر، فاصله‌گذاری صفحه‌های جست‌وجو."
+  "notes": "نسخه ۱٫۱۵: قرمز شدن همه دکمه‌های پخش هنگام فوکوس، دیالوگ تنظیمات پخش با دکمه‌های قرمز."
 }
