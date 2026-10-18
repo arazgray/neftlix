@@ -41,4 +41,30 @@ final class DisplayText {
         }
         return title.isEmpty() ? raw.trim() : title;
     }
+
+    /**
+     * برچسب دکمهٔ لینک: زبان «دانلود» سایت به «تماشا» برمی‌گردد؛
+     * «مستقیم» یعنی تماشای رایگان.
+     */
+    static String watchLabel(String siteLabel) {
+        String label = siteLabel == null ? "" : siteLabel.replace("دانلود", "تماشا").trim();
+        if (label.contains("مستقیم")) return "تماشا رایگان";
+        return label.isEmpty() ? "تماشا" : label;
+    }
+
+    /**
+     * عبارت جست‌وجوی تریلر یوتیوب از روی عنوان و سال، مثلاً
+     * «Spider-Man (2012)» می‌شود «spiderman 2012 trailer».
+     * عنوان کاملاً فارسی همان‌طور که هست جست‌وجو می‌شود.
+     */
+    static String trailerQuery(String title) {
+        String raw = title == null ? "" : title;
+        String latin = raw.replaceAll("[^A-Za-z0-9 ]", "").replaceAll("\\s+", " ").trim()
+                .toLowerCase(java.util.Locale.ROOT);
+        if (latin.isEmpty()) {
+            String fallback = raw.trim();
+            return fallback.isEmpty() ? "trailer" : fallback + " trailer";
+        }
+        return latin + " trailer";
+    }
 }

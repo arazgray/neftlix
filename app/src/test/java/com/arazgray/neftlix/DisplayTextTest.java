@@ -49,4 +49,29 @@ public class DisplayTextTest {
     public void cleanTitle_neverReturnsEmpty() {
         assertEquals("رایگان", DisplayText.cleanTitle("رایگان"));
     }
+
+    @Test
+    public void watchLabel_rewritesSiteWording() {
+        assertEquals("تماشا با کیفیت 1080p",
+                DisplayText.watchLabel("دانلود با کیفیت 1080p"));
+        assertEquals("تماشا رایگان", DisplayText.watchLabel("دانلود مستقیم"));
+        assertEquals("تماشا رایگان", DisplayText.watchLabel("تماشا مستقیم"));
+        assertEquals("تماشا", DisplayText.watchLabel(""));
+        assertEquals("تماشا", DisplayText.watchLabel(null));
+        assertEquals("قسمت ۱", DisplayText.watchLabel("قسمت ۱"));
+    }
+
+    @Test
+    public void trailerQuery_buildsYoutubeSearch() {
+        assertEquals("spiderman 2012 trailer",
+                DisplayText.trailerQuery("Spider-Man (2012)"));
+        assertEquals("animals 2026 trailer",
+                DisplayText.trailerQuery("حیوانات Animals 2026"));
+        assertEquals("god will not help 2025 trailer",
+                DisplayText.trailerQuery("God Will Not Help 2025"));
+        // عنوان کاملاً فارسی همان‌طور که هست جست‌وجو می‌شود
+        assertEquals("حیوانات trailer", DisplayText.trailerQuery("حیوانات"));
+        assertEquals("trailer", DisplayText.trailerQuery(""));
+        assertEquals("trailer", DisplayText.trailerQuery(null));
+    }
 }

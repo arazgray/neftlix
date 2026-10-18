@@ -87,7 +87,7 @@ public class DetailsActivity extends AppCompatActivity {
         scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
         page = ui.column();
         page.setClipChildren(false);
-        page.setPadding(0, ui.dp(4), 0, ui.dp(30));
+        page.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), ui.dp(30));
         scroll.addView(page);
         root.addView(scroll, ui.params(-1, 0, 1f));
 
@@ -181,32 +181,31 @@ public class DetailsActivity extends AppCompatActivity {
         String title = cleanTitle(rawTitle);
         status.setText(summaryOf(details));
 
-        final LinearLayout downloadsColumn = ui.column();
-        addHeader(title, details, downloadsColumn);
+        addHeader(title, details);
 
         if (details.groups.isEmpty() && details.story.isEmpty()) {
             page.addView(note("برای این عنوان اطلاعاتی پیدا نشد."));
             return;
         }
 
-        // راست: توضیحات — چپ: فهرست پخش
-        LinearLayout columns = ui.row();
-        columns.setGravity(Gravity.TOP);
-        LinearLayout infoColumn = ui.column();
-        columns.addView(infoColumn, ui.params(0, -2, 1f));
-        LinearLayout.LayoutParams downloadsParams = ui.params(0, -2, 1.15f);
-        downloadsParams.setMarginStart(ui.dp(20));
-        columns.addView(downloadsColumn, downloadsParams);
-        page.addView(columns, ui.withTop(-1, -2, 4));
-
-        addInfoPanel(infoColumn, details);
-        addDownloadGroups(downloadsColumn, details);
-
-        if (!details.comments.isEmpty()) {
-            page.addView(ui.expandable("نظرات (" + Ui.fa(details.comments.size()) + ")",
-                    commentsView(details), 0), ui.withTop(-1, -2, 10));
+        if (!details.story.isEmpty() || !details.genres.isEmpty() || !details.flags.isEmpty()) {
+            addInfoPanel(page, details);
         }
-        focusFirst(downloadsColumn);
+
+        // نظرات بالای فهرست پخش؛ هر دو پیش‌فرض بسته‌اند
+        if (!details.comments.isEmpty()) {
+            LinearLayout.LayoutParams commentsParams = ui.withTop(-1, -2, 14);
+            commentsParams.bottomMargin = ui.dp(12);
+            page.addView(ui.expandable("نظرات (" + Ui.fa(details.comments.size()) + ")",
+                    commentsView(details), 0), commentsParams);
+        }
+        if (!details.groups.isEmpty()) {
+            LinearLayout watchList = ui.column();
+            addWatchGroups(watchList, details);
+            page.addView(ui.expandable("فهرست پخش", watchList, 0),
+                    ui.withTop(-1, -2, 2));
+        }
+        focusFirst();
     }
 
     /**
@@ -231,8 +230,8 @@ public class DetailsActivity extends AppCompatActivity {
         return summary.toString();
     }
 
-    /** پوستر + عنوان + دکمه‌های اصلی صفحه. */
-    private void addHeader(String title, ItemDetails details, LinearLayout downloadsColumn) {
+    /** پوستر + عنوان + دکمهٔ تریلر. */
+    private void addHeader(String title, ItemDetails details) {
         LinearLayout header = ui.row();
         header.setGravity(Gravity.TOP);
 
@@ -250,7 +249,7 @@ public class DetailsActivity extends AppCompatActivity {
         }
 
         LinearLayout info = ui.column();
-        info.setPadding(ui.dp(20), ui.dp(2), 0, 0);
+        info.setPadding(0, ui.dp(2), 0, 0);
         TextView titleView = ui.text(title, 23, Ui.TEXT, true);
         titleView.setMaxLines(3);
         titleView.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -275,23 +274,15 @@ public class DetailsActivity extends AppCompatActivity {
 
         LinearLayout actions = ui.row();
         actions.setPadding(0, ui.dp(18), 0, 0);
-        final MediaLink playable = firstLink(details);
-        if (playable != null) {
-            TextView play = ui.primaryButton("تماشا", R.drawable.ic_play);
-            play.setTag("play");
-            play.setOnClickListener(v -> play(playable));
-            actions.addView(play, ui.params(-2, ui.dp(44)));
-        }
-        if (!details.groups.isEmpty()) {
-            TextView watchList = ui.ghostButton("فهرست پخش", R.drawable.ic_play);
-            LinearLayout.LayoutParams watchListButtonParams = ui.params(-2, ui.dp(44));
-            if (playable != null) watchListButtonParams.setMarginStart(ui.dp(10));
-            watchList.setOnClickListener(v -> focusFirst(downloadsColumn));
-            actions.addView(watchList, watchListButtonParams);
-        }
+        TextView trailer = ui.primaryButton("پخش تریلر", R.drawable.ic_play);
+        trailer.setTag("play");
+        trailer.setOnClickListener(v -> playTrailer(title));
+        actions.addView(trailer, ui.params(-2, ui.dp(44)));
         info.addView(actions);
 
-        header.addView(info, ui.params(0, -2, 1f));
+        LinearLayout.LayoutParams infoParams = ui.params(0, -2, 1f);
+        infoParams.setMarginStart(ui.dp(16));
+        header.addView(info, infoParams);
         page.addView(header, ui.withTop(-1, -2, 2));
     }
 
@@ -354,7 +345,7 @@ public class DetailsActivity extends AppCompatActivity {
 
     // ── فهرست پخش ──────────────────────────────────────────────────
 
-    private void addDownloadGroups(LinearLayout parent, ItemDetails details) {
+    private void addWatchGroups(LinearLayout parent, ItemDetails details) {
         for (DownloadGroup group : details.groups) {
             if (group.season) {
                 LinearLayout seasonContent = ui.column();
@@ -396,10 +387,7 @@ public class DetailsActivity extends AppCompatActivity {
         container.setPadding(0, ui.dp(8), 0, ui.dp(2));
         List<View> rowCards = new ArrayList<>();
         for (final MediaLink link : option.links) {
-            // برچسب سایت («دانلود …») به زبان تماشا برگردانده می‌شود؛ لینک مستقیم پخش می‌شود
-            String label = link.label == null ? "" : link.label.replace("دانلود", "تماشا").trim();
-            if (label.isEmpty()) label = "تماشا";
-            TextView button = ui.gridButton(label, R.drawable.ic_play);
+            TextView button = ui.gridButton(DisplayText.watchLabel(link.label), R.drawable.ic_play);
             button.setOnClickListener(v -> play(link));
             rowCards.add(button);
             if (rowCards.size() == columns) {
@@ -432,15 +420,24 @@ public class DetailsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private MediaLink firstLink(ItemDetails details) {
-        for (DownloadGroup group : details.groups) {
-            for (DownloadCategory category : group.categories) {
-                for (DownloadOption option : category.options) {
-                    if (!option.links.isEmpty()) return option.links.get(0);
-                }
+    /** تریلر را در اپ یوتیوب جست‌وجو می‌کند؛ اگر نبود، در مرورگر باز می‌کند. */
+    private void playTrailer(String title) {
+        String query = DisplayText.trailerQuery(title);
+        try {
+            Intent search = new Intent(Intent.ACTION_SEARCH);
+            search.setPackage("com.google.android.youtube");
+            search.putExtra("query", query);
+            search.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(search);
+        } catch (Exception first) {
+            try {
+                String url = "https://www.youtube.com/results?search_query="
+                        + java.net.URLEncoder.encode(query, "UTF-8");
+                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+            } catch (Exception second) {
+                Toast.makeText(this, "یوتیوب پیدا نشد", Toast.LENGTH_LONG).show();
             }
         }
-        return null;
     }
 
     // ── نظرات ────────────────────────────────────────────────────────
@@ -487,16 +484,29 @@ public class DetailsActivity extends AppCompatActivity {
         page.addView(note(text == null ? "" : text));
     }
 
-    /** فوکوس اولیه: دکمهٔ تماشا، وگرنه اولین گروه پخش. */
-    private void focusFirst(final LinearLayout downloadsColumn) {
+    /** فوکوس اولیه: دکمهٔ تریلر، وگرنه اولین بخش بازشونده. */
+    private void focusFirst() {
         page.post(() -> {
             View play = findTagged(page, "play");
             if (play != null) {
                 play.requestFocus();
                 return;
             }
-            if (downloadsColumn.getChildCount() > 0) downloadsColumn.getChildAt(0).requestFocus();
+            View first = findFirstFocusable(page);
+            if (first != null) first.requestFocus();
         });
+    }
+
+    private View findFirstFocusable(View root) {
+        if (root.isFocusable()) return root;
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = findFirstFocusable(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private View findTagged(View root, String tag) {

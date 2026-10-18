@@ -58,9 +58,11 @@ app/src/main/java/com/arazgray/neftlix/
   CatalogRepository.java   data layer: Jsoup scraping (home, listings, search, details, episodes/downloads)
   Models.java              POJOs: CatalogData/BrowseSection/BrowseItem/GenreCategory/DetailsInfo/DownloadGroup...
   Ui.java                  design system: scale, palette, widget factories (see below)
-  DisplayText.java         pure display-text helpers (title cleaning), unit-tested
-  MainActivity.java        home: hero billboard + rails/grid + search + genres
-  DetailsActivity.java     details: title/key-art, buttons, synopsis, watch-list hierarchy
+  DisplayText.java         pure display-text helpers (title cleaning, watch labels,
+                           trailer queries), unit-tested
+  MainActivity.java        home: rails/grid + search + genres (no hero), auto update check
+  DetailsActivity.java     details: title/key-art, trailer button, comments + playlist
+                           collapsibles, watch-list hierarchy
   PlayerActivity.java      ExoPlayer wrapper, lightly themed, keep-screen-on
   CrashLogger.java         black crash screen + file log
 app/src/main/res/drawable*/ → brand assets + vector icons (in-app marks use transparent
@@ -77,27 +79,30 @@ The whole redesign lives here; **new screens should use these factories, not raw
   every dimension is `dp(value)` = value * scale. Verified identical at 320dpi (1 dp = 1 px @1080p
   ratio) and 160dpi (scale pegged at max).
 - Palette + tokens for spacing/radii/type; focus ring style.
-- Factories: poster cards (focus ring + scale-up + hi-res image upgrade), pills, ghost/primary
-  buttons, chips, horizontal rails with focus auto-reveal (`reveal()` — RTL-correct, formula
-  verified against AOSP), wrapping grids (`weight-1` rows + `padRow()` to stop the last row
-  stretching), depth-aware `expandable()`.
+- Factories: poster cards (focus ring, no resize + hi-res image upgrade), pills, ghost/primary
+  buttons, centered icon buttons, chips, horizontal rails with focus auto-reveal (`reveal()` —
+  RTL-correct, formula verified against AOSP), wrapping grids (`weight-1` rows + `padRow()` to stop
+  the last row stretching), depth-aware `expandable()`.
+- Focus never resizes anything (user vetoed the zoom: focused views overflowed their frames).
+  Focus = color/border/bold only. Same for `posterCard` and `iconButton`.
 - RTL: everything mirrors automatically; rails start scrollX at `max` (RTL origin). Don't
   "fix" direction math unless you re-derive it.
 
 ## Screen behaviors (so you don't regress them)
 
-- **Hero billboard:** uses the site's «ویژهها» slider (`#suggested-movies`) when present —
-  landscape key art. The slider **comes and goes on the live site**; fallback = first section's
-  daily pick («پیشنهاد امروز») and an async fetch of that item's wide key art from its details
-  page (`heroSection()`, `showHeroBackdrop`, `heroArt` cache, `hasLandscapeArt`). In CI
-  screenshots the fallback path is what usually renders — that's expected.
-- **Home:** hero + horizontal rails; genre rails at the bottom; search box opens listing/search.
-- **Details:** seasons → categories → quality `expandable()` hierarchy; 3-column episode grid;
-  `DisplayText.cleanTitle()` strips noisy site suffixes. Comments section at the bottom.
+- **Home:** status pill (50% translucent, hidden when empty) + horizontal rails; genre rails
+  at the bottom; search box opens listing/search. No hero billboard (removed in v1.13).
+- **Details:** header (poster + title + pills + «پخش تریلر» → YouTube search
+  `DisplayText.trailerQuery()`), glassy story panel, then collapsed «نظرات» and collapsed
+  «فهرست پخش» (seasons → categories → quality `expandable()` hierarchy; 3-column episode grid,
+  «تماشا رایگان» for direct links).
+  `DisplayText.cleanTitle()` strips noisy site suffixes.
   All links stream in the player — there is intentionally **no download feature** (Android TV);
   UI wording is تماشا/پخش everywhere, site «دانلود…» labels are rewritten to تماشا at display time.
 - **Player:** opens from a link, black shutter, buffering indicator, styled error card,
   `setKeepScreenOn(true)` so boxes (Mi Box) never drop to the screensaver mid-play.
+- **Updates:** `checkAppUpdate(true)` runs once in `MainActivity.onCreate` (silent unless an
+  update is found); the update button calls `checkAppUpdate(false)`.
 
 ## Live-site scraping contract (fragile by nature)
 
@@ -127,14 +132,14 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 13 / 1.12 on `main` (v1.12 tag released).
+- Current: 14 / 1.13 on `main` (v1.13 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.12 released, Oct 2026)
+## Current state (v1.13 released, Oct 2026)
 
-- Redesign + stream-only UI + unit tests are merged to `main` and tagged `v1.12`
-  (versionCode 13). Branch `ui-redesign` is deleted.
+- v1.13 on `main` (versionCode 14): no hero, trailer button, collapsible comments/playlist,
+  no-resize focus, translucent status pill, glassy panel, silent auto-update check, more tests.
 - In-app updater reads `version.json` from `main` via raw.githubusercontent.
 - Screenshot workflow permanently removed — do not re-add emulator CI.
 - Committed `screenshot.png` / `screenshot-details.png` predate the تماشا wording;

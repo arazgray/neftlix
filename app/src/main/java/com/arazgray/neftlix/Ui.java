@@ -37,6 +37,10 @@ final class Ui {
     static final int GLASS = 0x14FFFFFF;
     static final int GLASS_STRONG = 0x24FFFFFF;
     static final int HAIRLINE = 0x1FFFFFFF;
+    /** قرص وضعیت: نیمی‌شفاف از SURFACE_2 تا پس‌زمینه از زیرش دیده شود. */
+    static final int STATUS_BG = 0x801D1D24;
+    /** پنل توضیحات: شیشه‌ای و نیمه‌شفاف به‌جای صفحهٔ مات. */
+    static final int PANEL_BG = 0x9914161C;
     static final int SCRIM_TOP = 0xE60A0A0C;
     static final int SCRIM_MID = 0x8C0A0A0C;
 
@@ -259,15 +263,24 @@ final class Ui {
         return pillButton(label, iconRes, true, 44, 14);
     }
 
-    /** دکمهٔ مربعی فقط-آیکن (نوار بالا). */
-    TextView iconButton(int iconRes, String contentDesc) {
-        TextView view = text("", 13, TEXT, true);
-        view.setGravity(Gravity.CENTER);
-        view.setContentDescription(contentDesc);
-        view.setCompoundDrawablesRelativeWithIntrinsicBounds(icon(iconRes, 19), null, null, null);
-        fillFocus(view, false, 40);
-        view.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(40)));
-        return view;
+    /** دکمهٔ مربعی فقط-آیکن (نوار بالا)؛ آیکن با ImageView دقیقاً وسط قاب است. */
+    FrameLayout iconButton(int iconRes, String contentDesc) {
+        FrameLayout box = new FrameLayout(activity);
+        box.setFocusable(true);
+        box.setClickable(true);
+        box.setContentDescription(contentDesc);
+        ImageView image = new ImageView(activity);
+        image.setImageDrawable(icon(iconRes, 19));
+        image.setScaleType(ImageView.ScaleType.CENTER);
+        image.setDuplicateParentStateEnabled(true);
+        box.addView(image, new FrameLayout.LayoutParams(dp(19), dp(19), Gravity.CENTER));
+        // بدون بزرگ‌نمایی فوکوس؛ فقط پس‌زمینه عوض می‌شود تا دایره سالم بماند
+        final GradientDrawable idle = stroked(GLASS, 21, 1, HAIRLINE);
+        final GradientDrawable focused = rounded(BRAND, 21);
+        box.setBackground(idle);
+        box.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
+        box.setLayoutParams(new LinearLayout.LayoutParams(dp(42), dp(42)));
+        return box;
     }
 
     /** تراشهٔ ژانر/فیلتر. */
@@ -317,8 +330,8 @@ final class Ui {
     }
 
     /**
-     * رنگ دکمه‌ها را با فوکوس عوض می‌کند و کمی بزرگ‌نمایی می‌کند.
-     * قلم هم در فوکوس بولد می‌شود تا با ریموت از فاصلهٔ دور مشخص باشد.
+     * رنگ دکمه‌ها را با فوکوس عوض می‌کند؛ اندازه ثابت می‌ماند تا دکمهٔ فوکوس‌شده
+     * از قاب خودش بیرون نزند و گوشه‌های گرد خراب نشود.
      */
     void fillFocus(final TextView view, final boolean primary, final float heightDp) {        fillFocus(view, primary, heightDp, RADIUS_PILL);
     }
@@ -344,8 +357,6 @@ final class Ui {
             } else {
                 view.setTextColor(TEXT);
             }
-            v.animate().scaleX(hasFocus ? 1.04f : 1f).scaleY(hasFocus ? 1.04f : 1f)
-                    .setDuration(120).start();
         });
     }
 
@@ -478,10 +489,9 @@ final class Ui {
         }
 
         card.setOnFocusChangeListener((v, hasFocus) -> {
+            // بدون تغییر اندازه: قاب قرمز و بولد شدن عنوان، فوکوس را نشان می‌دهد
             border.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
             applyText(title, 13, hasFocus ? TEXT : 0xFFE9E9EE, hasFocus);
-            v.animate().scaleX(hasFocus ? 1.06f : 1f).scaleY(hasFocus ? 1.06f : 1f)
-                    .setDuration(130).start();
             if (hasFocus) upgradePoster(poster, item.coverUrl);
         });
         loadCover(poster, item.coverUrl);
@@ -542,7 +552,7 @@ final class Ui {
     View expandable(final String title, final View content, final int depth) {
         LinearLayout box = column();
         LinearLayout.LayoutParams boxParams = new LinearLayout.LayoutParams(-1, -2);
-        boxParams.bottomMargin = dp(8);
+        boxParams.bottomMargin = dp(12);
         boxParams.setMarginStart(dp(depth * 16));
         box.setLayoutParams(boxParams);
 
@@ -565,6 +575,10 @@ final class Ui {
             tintDrawable(summary, TEXT);
         });
         content.setVisibility(View.GONE);
+        // فاصلهٔ تنفسی بین سربرگ و محتوای بازشده
+        LinearLayout.LayoutParams contentParams = new LinearLayout.LayoutParams(-1, -2);
+        contentParams.topMargin = dp(6);
+        content.setLayoutParams(contentParams);
         box.addView(summary);
         box.addView(content);
         summary.setOnClickListener(v -> {
@@ -579,7 +593,7 @@ final class Ui {
     // ── پنل ──────────────────────────────────────────────────────────
     LinearLayout panel() {
         LinearLayout panel = column();
-        panel.setBackground(stroked(SURFACE, RADIUS_CARD, 1, 0x14FFFFFF));
+        panel.setBackground(stroked(PANEL_BG, RADIUS_CARD, 1, 0x26FFFFFF));
         int pad = dp(18);
         panel.setPadding(pad, pad, pad, pad);
         return panel;

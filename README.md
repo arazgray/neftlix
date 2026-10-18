@@ -12,11 +12,9 @@ be downloaded from.
 
 ## Features
 
-- **Home** — a billboard at the top (**پیشنهاد امروز**): when the site has a «ویژهها»
-  slider its landscape art is used, otherwise the app picks one title a day from the
-  freshest section and loads that item's wide key art from its own page. Below it:
-  one horizontal rail per site section (20-item preview + «مشاهده همه»), then genre
-  chip rails for movies and series.
+- **Home** — one horizontal rail per site section (20-item preview + «مشاهده همه»),
+  then genre chip rails for movies and series. Focused cards never change size:
+  focus is shown with a red ring + bold title only, so nothing overflows its frame.
 - **Same look on every TV** — every screen is drawn from one 960dp design space
   (`Ui.java`): sizes, spacing and typography are scaled by `screenWidthDp / 960`, so
   720p, 1080p and 4K panels — and boxes that report `density = 1` — get the same
@@ -30,25 +28,26 @@ be downloaded from.
   first); keyboard hides on submit and focus jumps to the first result.
 - **Details page** — wide key-art header with poster, cleaned title (the noisy
   «دانلود … بدون سانسور …» prefix/suffix of the site title is stripped for display),
-  IMDb rating / satisfaction % / type / link-count pills, a «تماشا» button (first link)
-  and a «فهرست پخش» jump button, then a two-column body: story + genre/flags panel on
-  the right, the watch list on the left. Groups stay collapsed by default
-  (season → dub/sub category → quality → episode link grid, every link streams
-  directly in the internal player) and user comments open at the bottom.
+  IMDb rating / satisfaction % / type / link-count pills and a «پخش تریلر» button
+  (opens the YouTube app searching «`<title> <year> trailer`»). Below: a glassy
+  translucent story + genre/flags panel, then two collapsed sections — comments
+  first, «فهرست پخش» second (season → dub/sub category → quality → episode link
+  grid, every link streams directly in the internal player).
 - **Player** — internal ExoPlayer (Media3): red focus highlights with unchanged
   sizes, first Back hides the controls, second Back exits; ←/→ seek ∓15s only
   while controls are hidden; the screen is kept awake so the box never drops to the
   screensaver mid-play; subtitle (CC) button always visible, Persian preferred
   and auto-selected, Vazirmatn font, transparent background with drop shadow, RTL.
-- **Self-update** — update button checks `version.json`, downloads the new APK
-  with a progress dialog (+cancel), cleans the file afterward, and opens the
-  installer.
+- **Self-update** — the app checks `version.json` once on every launch and shows the
+  update dialog when a newer version exists; the update button checks on demand,
+  downloads the new APK with a progress dialog (+cancel), cleans the file afterward,
+  and opens the installer.
 - **Info** — the info button opens an app card (name, description, media source
   credit, version, author, site link, QR code to arazgray.com).
 
 Remote: D-pad moves, OK opens/expands/plays, Back goes back. Netflix-style black/red
-theme, brand-red focus rings with a slight zoom on the focused card, glassy pills,
-full-screen transparent-logo splash until the catalog shows, launcher name **Neftlix**,
+theme, brand-red focus rings (focused elements never resize, so borders stay intact),
+glassy pills, full-screen transparent-logo splash until the catalog shows, launcher name **Neftlix**,
 icon/banner/logo from `icon.png` / `logo.png` / `main-bg.png` (in-app marks use the
 transparent `logo_transparent.png`), Vazirmatn font throughout (app + subtitles).
 
@@ -102,7 +101,8 @@ JVM unit tests under `app/src/test/` (JUnit 4, run in CI on every push to `app/`
 
 - `UiTest` — Persian digits, content-type labels, hi-res image URLs, 960dp scale
   clamping, grid column math.
-- `DisplayTextTest` — title cleaning (prefix/tails/edge cases).
+- `DisplayTextTest` — title cleaning (prefix/tails/edge cases), watch-label
+  rewriting, YouTube trailer queries.
 - `CatalogRepositoryTest` — pagination URLs, next-page detection, type/host/label
   guards, quick-search JSON incl. the site's `_formatted` fallback, article cards,
   genre extraction, download-link rows (direct/`onclick`/textarea, login-gated skip).
@@ -118,7 +118,7 @@ tested surface: pure logic lives in static/package-private helpers.
   scale factor and the reusable TV widgets (pill buttons, chips, poster cards, rails,
   expandable sections).
 - `app/src/main/java/com/arazgray/neftlix/DisplayText.java` — pure display-text
-  helpers (title cleaning), covered by unit tests.
+  helpers (title cleaning, watch labels, trailer queries), covered by unit tests.
 - `app/src/test/` — JVM unit tests (see Tests above).
 - `version.json` — latest published version consumed by the in-app updater.
 - `icon.png` / `logo.png` — launcher icon/banner and in-app logo sources.

@@ -2,7 +2,6 @@ package com.arazgray.neftlix;
 
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -47,9 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private int listingPage = 1;
     private boolean listingHasNext;
 
-    /** اولین کارت ریل‌ها؛ دکمهٔ «مرور کاتالوگ» بیلبورد فوکوس را به آن می‌دهد. */
-    private View firstCard;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             refreshCatalog(false);
         }
+        // بررسی خودکار نسخه، فقط یک‌بار هنگام اجرا؛ فقط اگر نسخهٔ جدید باشد دیالوگ می‌آید
+        checkAppUpdate(true);
     }
 
     @Override
@@ -163,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
         updateParams.setMarginEnd(ui.dp(8));
         bar.addView(update, updateParams);
 
-        TextView info = ui.iconButton(R.drawable.ic_info, "درباره");
+        View info = ui.iconButton(R.drawable.ic_info, "درباره");
         info.setLayoutParams(ui.params(ui.dp(42), ui.dp(42)));
         info.setOnClickListener(view -> showInfoDialog());
         bar.addView(info);
@@ -174,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         status.setSingleLine(true);
         status.setEllipsize(android.text.TextUtils.TruncateAt.END);
         // قرص وضعیت زیر نوار بالا
-        status.setBackground(ui.stroked(Ui.SURFACE_2, Ui.RADIUS_PILL, 1, Ui.HAIRLINE));
+        status.setBackground(ui.stroked(Ui.STATUS_BG, Ui.RADIUS_PILL, 1, Ui.HAIRLINE));
         status.setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(6));
         status.setVisibility(View.GONE);
         LinearLayout.LayoutParams statusParams = ui.params(-1, -2);
@@ -334,7 +332,15 @@ public class MainActivity extends AppCompatActivity {
             "https://raw.githubusercontent.com/arazgray/neftlix/main/version.json";
 
     private void checkAppUpdate() {
-        setStatus("در حال بررسی نسخه جدید…");
+        checkAppUpdate(false);
+    }
+
+    /**
+     * بررسی نسخهٔ جدید؛ در حالت silent (اجرای خودکار برنامه) هیچ پیام و
+     * وضعیتی نشان داده نمی‌شود و فقط هنگام یافتن نسخهٔ جدید دیالوگ می‌آید.
+     */
+    private void checkAppUpdate(boolean silent) {
+        if (!silent) setStatus("در حال بررسی نسخه جدید…");
         io.execute(() -> {
             try {
                 java.net.HttpURLConnection conn =
@@ -354,13 +360,14 @@ public class MainActivity extends AppCompatActivity {
                 if (latest > BuildConfig.VERSION_CODE && !apkUrl.isEmpty()) {
                     runOnUiThread(() -> showUpdateDialog(versionName, notes, apkUrl));
                     runOnUiThread(() -> setStatus("نسخه جدید پیدا شد"));
-                } else {
+                } else if (!silent) {
                     runOnUiThread(() -> {
                         setStatus("اپ به‌روز است");
                         Toast.makeText(this, "نسخه جدیدی نیست", Toast.LENGTH_SHORT).show();
                     });
                 }
             } catch (Throwable e) {
+                if (silent) return;
                 runOnUiThread(() -> {
                     setStatus("بررسی نسخه ناموفق بود");
                     Toast.makeText(this, "خطا در بررسی به‌روزرسانی", Toast.LENGTH_LONG).show();
@@ -593,13 +600,10 @@ public class MainActivity extends AppCompatActivity {
         showingSubPage = false;
         activeSection = null;
         activeCategory = null;
-        firstCard = null;
         if (catalog == null) {
             addMessage("در حال بارگذاری فهرست", "لطفاً کمی صبر کنید.");
             return;
         }
-
-        addHero(heroSection());
 
         for (BrowseSection section : catalog.sections) {
             addSectionRail(section);
@@ -618,147 +622,6 @@ public class MainActivity extends AppCompatActivity {
         focusFirst();
     }
 
-    /**
-     * بخش بیلبورد: اگر سایت بخش «ویژه» داشته باشد همان، وگرنه اولین بخش فهرست.
-     * (سایت گاهی بخش ویژه را برمی‌دارد؛ در آن حالت برنامه همیشه یک پیشنهاد
-     * روزانه از تازه‌ترین بخش نشان می‌دهد تا سربرگ خالی نماند.)
-     */
-    private BrowseSection heroSection() {
-        if (catalog == null) return null;
-        for (BrowseSection section : catalog.sections) {
-            if (section.title != null && section.title.contains("ویژه") && !section.items.isEmpty()) {
-                return section;
-            }
-        }
-        for (BrowseSection section : catalog.sections) {
-            if (!section.items.isEmpty()) return section;
-        }
-        return null;
-    }
-
-    private boolean isFeatured(BrowseSection section) {
-        return section.title != null && section.title.contains("ویژه");
-    }
-
-    private void addHero(BrowseSection section) {
-        if (section == null) return;
-        // هر روز یک عنوان تازه (بدون تایمر و بدون پرش ناگهانی)
-        int index = (int) (System.currentTimeMillis() / 86400000L) % section.items.size();
-        final BrowseItem item = section.items.get(Math.abs(index));
-
-        FrameLayout hero = new FrameLayout(this);
-        hero.setClipChildren(false);
-
-        final ImageView artView = new ImageView(this);
-        artView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        hero.addView(artView, new FrameLayout.LayoutParams(-1, -1));
-
-        // پس‌زمینهٔ جایگزین تا وقتی هنر افقی برسد
-        final View fallbackArt = ui.scrim(GradientDrawable.Orientation.RIGHT_LEFT,
-                0xFF2B1418, 0xFF17171C, 0xFF0A0A0C);
-        hero.addView(fallbackArt, new FrameLayout.LayoutParams(-1, -1));
-
-        final View sideScrim = ui.scrim(GradientDrawable.Orientation.RIGHT_LEFT,
-                0xF70A0A0C, 0xCC0A0A0C, 0x400A0A0C, 0x050A0A0C);
-        final View bottomScrim = ui.scrim(GradientDrawable.Orientation.BOTTOM_TOP,
-                0xFF0A0A0C, 0x000A0A0C);
-        hero.addView(sideScrim, new FrameLayout.LayoutParams(-1, -1));
-        hero.addView(bottomScrim, new FrameLayout.LayoutParams(-1, -1));
-
-        // بخشهای سایت پوسترهای ۱۸۰×۲۸۰ دارند؛ هنر افقی از صفحهٔ خود عنوان می‌آید.
-        if (hasLandscapeArt(item.coverUrl)) {
-            ui.loadCover(artView, item.coverUrl);
-            fallbackArt.setVisibility(View.GONE);
-        } else {
-            sideScrim.setVisibility(View.GONE);
-            bottomScrim.setVisibility(View.GONE);
-            showHeroBackdrop(item, artView, fallbackArt, sideScrim, bottomScrim);
-        }
-
-        LinearLayout info = ui.column();
-        info.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(34), ui.dp(Ui.PAGE_PAD), ui.dp(18));
-
-        TextView kicker = ui.text(isFeatured(section) ? "ویژهٔ نفتلیکس" : "پیشنهاد امروز",
-                11, Ui.BRAND, true);
-        kicker.setLetterSpacing(0.08f);
-        info.addView(kicker);
-
-        TextView title = ui.text(item.title, 27, Ui.TEXT, true);
-        title.setMaxLines(2);
-        title.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        info.addView(title, ui.withTop(-1, -2, 8));
-
-        LinearLayout tags = ui.row();
-        tags.addView(ui.tagPill(Ui.faType(item.contentType), Ui.BRAND, Ui.BRAND, Ui.TEXT, true));
-        if (item.meta != null && !item.meta.isEmpty()) {
-            TextView meta = ui.tagPill(item.meta, Ui.GLASS, Ui.HAIRLINE, Ui.TEXT_DIM, false);
-            LinearLayout.LayoutParams metaParams = ui.params(-2, -2);
-            metaParams.setMarginStart(ui.dp(8));
-            tags.addView(meta, metaParams);
-        }
-        info.addView(tags, ui.withTop(-1, -2, 14));
-
-        LinearLayout ctas = ui.row();
-        TextView watch = ui.primaryButton("تماشا", R.drawable.ic_play);
-        watch.setOnClickListener(v -> openItem(item));
-        ctas.addView(watch, ui.params(-2, ui.dp(44)));
-        TextView browse = ui.ghostButton("مرور کاتالوگ", 0);
-        browse.setOnClickListener(v -> {
-            if (firstCard != null) firstCard.requestFocus();
-        });
-        LinearLayout.LayoutParams browseParams = ui.params(-2, ui.dp(44));
-        browseParams.setMarginStart(ui.dp(10));
-        ctas.addView(browse, browseParams);
-        info.addView(ctas, ui.withTop(-1, -2, 18));
-
-        FrameLayout.LayoutParams infoParams = new FrameLayout.LayoutParams(
-                ui.dp(560), -2, Gravity.START | Gravity.BOTTOM);
-        hero.addView(info, infoParams);
-        page.addView(hero, ui.params(-1, ui.dp(224)));
-    }
-
-    /** تصویر ویژهٔ سایت افقی است (بدون پسوند اندازهٔ تامبنیل)؟ */
-    private static boolean hasLandscapeArt(String url) {
-        return url != null && !url.isEmpty() && !SIZE_SUFFIX.matcher(url).find();
-    }
-
-    private static final java.util.regex.Pattern SIZE_SUFFIX =
-            java.util.regex.Pattern.compile("-\\d{2,4}x\\d{2,4}\\.(?:jpe?g|png|webp|avif)$",
-                    java.util.regex.Pattern.CASE_INSENSITIVE);
-
-    /** هنر افقی صفحهٔ عنوان را یک‌بار می‌گیرد و در بیلبورد محو می‌کند. */
-    private void showHeroBackdrop(final BrowseItem item, final ImageView artView,
-                                  final View fallbackArt, final View sideScrim, final View bottomScrim) {
-        String cached = heroArt.get(item.url);
-        if (cached != null) {
-            applyHeroBackdrop(artView, fallbackArt, sideScrim, bottomScrim, cached);
-            return;
-        }
-        final String itemUrl = item.url;
-        io.execute(() -> {
-            String backdrop = "";
-            try {
-                backdrop = repository.loadItem(itemUrl).backdropUrl;
-            } catch (Throwable ignored) {
-            }
-            final String url = backdrop == null ? "" : backdrop;
-            if (url.isEmpty()) return;
-            heroArt.put(itemUrl, url);
-            runOnUiThread(() -> applyHeroBackdrop(artView, fallbackArt, sideScrim, bottomScrim, url));
-        });
-    }
-
-    private void applyHeroBackdrop(ImageView artView, View fallbackArt,
-                                   View sideScrim, View bottomScrim, String url) {
-        fallbackArt.setVisibility(View.GONE);
-        sideScrim.setVisibility(View.VISIBLE);
-        bottomScrim.setVisibility(View.VISIBLE);
-        ui.loadBackdrop(artView, url);
-    }
-
-    /** هنر افقی هر عنوان؛ هر بار برگشتن به خانه دوباره گرفته نشود. */
-    private final Map<String, String> heroArt = new java.util.concurrent.ConcurrentHashMap<>();
-
     private void addSectionRail(BrowseSection section) {
         List<View> cards = new ArrayList<>();
         int limit = Math.min(section.items.size(), 20);
@@ -773,7 +636,6 @@ public class MainActivity extends AppCompatActivity {
             page.addView(note("موردی پیدا نشد."));
             return;
         }
-        if (firstCard == null) firstCard = cards.get(0);
         TextView more = null;
         if (section.url != null && !section.url.isEmpty()) {
             more = ui.ghostButton("مشاهده همه", R.drawable.ic_chevron_end);
@@ -934,6 +796,7 @@ public class MainActivity extends AppCompatActivity {
         int columns = ui.gridColumns();
         float cardWidth = ui.gridCardWidthDp(columns);
         LinearLayout grid = ui.column();
+        grid.setPadding(ui.dp(Ui.PAGE_PAD), 0, ui.dp(Ui.PAGE_PAD), 0);
         List<View> rowCards = new ArrayList<>();
         for (final BrowseItem item : items) {
             View card = ui.posterCard(item, cardWidth, true);
