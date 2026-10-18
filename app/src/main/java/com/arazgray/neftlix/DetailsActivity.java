@@ -50,7 +50,7 @@ public class DetailsActivity extends AppCompatActivity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        root.setBackgroundColor(Color.rgb(16, 24, 32));
+        root.setBackgroundColor(Color.rgb(10, 10, 10));
         root.setPadding(dp(22), dp(14), dp(22), dp(10));
 
         LinearLayout toolbar = new LinearLayout(this);
@@ -143,7 +143,8 @@ public class DetailsActivity extends AppCompatActivity {
         for (DownloadOption option : category.options) {
             LinearLayout optionContent = verticalContainer();
             for (MediaLink link : option.links) {
-                Button play = toolbarButton("▶  " + link.label);
+                String displayLabel = "دانلود مستقیم".equals(link.label) ? "پخش رایگان" : link.label;
+                Button play = toolbarButton("▶  " + displayLabel);
                 play.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
                 play.setTextDirection(View.TEXT_DIRECTION_RTL);
                 play.setOnClickListener(v -> {
@@ -208,11 +209,11 @@ public class DetailsActivity extends AppCompatActivity {
     private Button toolbarButton(String text) {
         Button button = new Button(this);
         button.setText(text);
-        button.setTextColor(Color.rgb(16, 24, 32));
+        button.setTextColor(Color.WHITE);
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(150, 242, 7)));
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20)));
         return button;
     }
 

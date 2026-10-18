@@ -4,7 +4,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,7 +23,6 @@ public class PlayerActivity extends AppCompatActivity {
 
     private ExoPlayer player;
     private PlayerView playerView;
-    private TextView titleView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +30,6 @@ public class PlayerActivity extends AppCompatActivity {
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         String url = getIntent().getStringExtra(EXTRA_URL);
-        String title = getIntent().getStringExtra(EXTRA_TITLE);
         if (url == null || url.isEmpty()) {
             Toast.makeText(this, "نشانی پخش نامعتبر است", Toast.LENGTH_LONG).show();
             finish();
@@ -46,28 +43,27 @@ public class PlayerActivity extends AppCompatActivity {
         playerView = new PlayerView(this);
         playerView.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         playerView.setKeepContentOnPlayerReset(true);
+        // دکمه زیرنویس (CC) همیشه در کنترلر دیده شود
+        playerView.setShowSubtitleButton(true);
         FrameLayout.LayoutParams videoParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT);
         root.addView(playerView, videoParams);
-
-        titleView = new TextView(this);
-        titleView.setTextDirection(View.TEXT_DIRECTION_RTL);
-        titleView.setText(title == null ? "" : title);
-        titleView.setTextColor(0xFFFFFFFF);
-        titleView.setTextSize(16);
-        titleView.setPadding(32, 24, 32, 24);
-        titleView.setBackgroundColor(0x80000000);
-        FrameLayout.LayoutParams titleParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT);
-        root.addView(titleView, titleParams);
 
         setContentView(root);
 
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
         playerView.setControllerShowTimeoutMs(4000);
+        // زیرنویس فارسی در اولویت باشد
+        if (player.getTrackSelector()
+                instanceof androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
+            androidx.media3.exoplayer.trackselection.DefaultTrackSelector selector =
+                    (androidx.media3.exoplayer.trackselection.DefaultTrackSelector)
+                            player.getTrackSelector();
+            selector.setParameters(
+                    selector.buildUponParameters().setPreferredTextLanguage("fa"));
+        }
         player.addListener(new Player.Listener() {
             @Override
             public void onPlayerError(PlaybackException error) {

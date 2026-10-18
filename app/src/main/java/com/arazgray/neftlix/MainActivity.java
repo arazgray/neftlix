@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        getWindow().setStatusBarColor(Color.rgb(16, 24, 32));
-        getWindow().setNavigationBarColor(Color.rgb(16, 24, 32));
+        getWindow().setStatusBarColor(Color.rgb(10, 10, 10));
+        getWindow().setNavigationBarColor(Color.rgb(10, 10, 10));
         buildShell();
         refreshCatalog();
     }
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        root.setBackgroundColor(Color.rgb(16, 24, 32));
+        root.setBackgroundColor(Color.rgb(10, 10, 10));
         root.setPadding(dp(22), dp(14), dp(22), dp(10));
 
         LinearLayout toolbar = new LinearLayout(this);
@@ -75,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
         toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
-        TextView brand = new TextView(this);
-        brand.setText("نفتلیکس");
-        brand.setTextColor(Color.rgb(150, 242, 7));
-        brand.setTextSize(22);
-        brand.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        brand.setTextDirection(View.TEXT_DIRECTION_RTL);
-        toolbar.addView(brand, new LinearLayout.LayoutParams(dp(150), dp(52)));
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.app_logo);
+        logo.setAdjustViewBounds(true);
+        logo.setScaleType(ImageView.ScaleType.FIT_START);
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(120), dp(40));
+        logoParams.setMargins(0, 0, 0, 0);
+        toolbar.addView(logo, logoParams);
 
         searchBox = new EditText(this);
         searchBox.setSingleLine(true);
@@ -115,6 +115,10 @@ public class MainActivity extends AppCompatActivity {
         Button refresh = toolbarButton("به‌روزرسانی");
         refresh.setOnClickListener(view -> refreshCatalog());
         toolbar.addView(refresh);
+
+        Button update = toolbarButton("⬇ نسخه جدید");
+        update.setOnClickListener(view -> checkAppUpdate());
+        toolbar.addView(update);
         root.addView(toolbar);
 
         status = new TextView(this);
@@ -160,6 +164,119 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private static final String VERSION_URL =
+            "https://raw.githubusercontent.com/arazgray/neftlix/main/version.json";
+
+    private void checkAppUpdate() {
+        status.setText("در حال بررسی نسخه جدید…");
+        io.execute(() -> {
+            try {
+                java.net.HttpURLConnection conn =
+                        (java.net.HttpURLConnection) new java.net.URL(VERSION_URL).openConnection();
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(15000);
+                conn.setRequestProperty("Accept", "application/json");
+                java.util.Scanner scanner =
+                        new java.util.Scanner(conn.getInputStream(), "UTF-8").useDelimiter("\\A");
+                String body = scanner.hasNext() ? scanner.next() : "";
+                scanner.close();
+                org.json.JSONObject info = new org.json.JSONObject(body);
+                int latest = info.optInt("versionCode", BuildConfig.VERSION_CODE);
+                String apkUrl = info.optString("apkUrl", "");
+                String versionName = info.optString("versionName", "");
+                String notes = info.optString("notes", "");
+                if (latest > BuildConfig.VERSION_CODE && !apkUrl.isEmpty()) {
+                    runOnUiThread(() -> showUpdateDialog(versionName, notes, apkUrl));
+                    runOnUiThread(() -> status.setText("نسخه جدید پیدا شد"));
+                } else {
+                    runOnUiThread(() -> {
+                        status.setText("اپ به‌روز است");
+                        Toast.makeText(this, "نسخه جدیدی نیست", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    status.setText("بررسی نسخه ناموفق بود");
+                    Toast.makeText(this, "خطا در بررسی به‌روزرسانی", Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void showUpdateDialog(String versionName, String notes, String apkUrl) {
+        String title = "نسخه جدید" + (versionName.isEmpty() ? "" : " " + versionName);
+        String message = notes.isEmpty() ? "دانلود و نصب شود؟" : notes + "\n\nدانلود و نصب شود؟";
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("دانلود و نصب", (dialog, which) -> downloadAndInstall(apkUrl))
+                .setNegativeButton("بعداً", null)
+                .show();
+    }
+
+    private void downloadAndInstall(String apkUrl) {
+        status.setText("در حال دانلود به‌روزرسانی…");
+        io.execute(() -> {
+            try {
+                java.io.File dir = new java.io.File(getExternalFilesDir("updates"), "");
+                if (!dir.exists() && !dir.mkdirs()) throw new java.io.IOException("no dir");
+                java.io.File apk = new java.io.File(dir, "neftlix-update.apk");
+                java.net.HttpURLConnection conn =
+                        (java.net.HttpURLConnection) new java.net.URL(apkUrl).openConnection();
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(60000);
+                conn.setRequestProperty("Accept", "application/vnd.android.package-archive");
+                long total = conn.getContentLengthLong();
+                try (java.io.InputStream in = conn.getInputStream();
+                     java.io.FileOutputStream out = new java.io.FileOutputStream(apk)) {
+                    byte[] buffer = new byte[65536];
+                    long done = 0;
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, read);
+                        done += read;
+                        if (total > 0) {
+                            final int percent = (int) (done * 100 / total);
+                            runOnUiThread(() -> status.setText("در حال دانلود… ٪" + toFaDigits(percent)));
+                        }
+                    }
+                }
+                runOnUiThread(() -> {
+                    status.setText("دانلود تمام شد");
+                    installApk(apk);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    status.setText("دانلود ناموفق بود");
+                    Toast.makeText(this, "خطا در دانلود به‌روزرسانی", Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void installApk(java.io.File apk) {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 26
+                    && !getPackageManager().canRequestPackageInstalls()) {
+                startActivity(new Intent(
+                        android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                        android.net.Uri.parse("package:" + getPackageName())));
+                Toast.makeText(this,
+                        "نصب از منابع ناشناس را مجاز کنید و دوباره تلاش کنید",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                    this, getPackageName() + ".fileprovider", apk);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "نصب ممکن نشد", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void renderHome() {
@@ -418,7 +535,7 @@ public class MainActivity extends AppCompatActivity {
 
         TextView kind = new TextView(this);
         kind.setText(faType(item.contentType));
-        kind.setTextColor(Color.rgb(150, 242, 7));
+        kind.setTextColor(Color.rgb(229, 9, 20));
         kind.setTextSize(11);
         kind.setTextDirection(View.TEXT_DIRECTION_RTL);
         kind.setPadding(0, dp(3), 0, 0);
@@ -500,11 +617,11 @@ public class MainActivity extends AppCompatActivity {
     private Button toolbarButton(String text) {
         Button button = new Button(this);
         button.setText(text);
-        button.setTextColor(Color.rgb(16, 24, 32));
+        button.setTextColor(Color.WHITE);
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(150, 242, 7)));
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(229, 9, 20)));
         return button;
     }
 
