@@ -601,6 +601,14 @@ final class Ui {
                 .into(view);
     }
 
+    /** هنر افقی بیلبورد که دیرهنگام می‌رسد؛ نرم محو می‌شود. */
+    void loadBackdrop(final ImageView view, String url) {
+        if (url == null || url.isEmpty()) return;
+        Glide.with(activity).load(url).centerCrop()
+                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(450))
+                .into(view);
+    }
+
     /**
      * کارت‌های ریل با نسخهٔ کوچک تصویر (۱۸۰×۲۸۰) ساخته می‌شوند تا فهرست سریع
      * بیاید؛ وقتی کارتی فوکوس شد نسخهٔ بزرگ‌تر و شارپ‌تر همان تصویر بارگذاری

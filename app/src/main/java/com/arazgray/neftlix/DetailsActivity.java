@@ -177,7 +177,8 @@ public class DetailsActivity extends AppCompatActivity {
 
     private void renderItem(ItemDetails details, String fallbackTitle) {
         page.removeAllViews();
-        String title = details.title == null || details.title.isEmpty() ? fallbackTitle : details.title;
+        String rawTitle = details.title == null || details.title.isEmpty() ? fallbackTitle : details.title;
+        String title = cleanTitle(rawTitle);
         status.setText(summaryOf(details));
 
         final LinearLayout downloadsColumn = ui.column();
@@ -206,6 +207,41 @@ public class DetailsActivity extends AppCompatActivity {
                     commentsView(details), 0), ui.withTop(-1, -2, 10));
         }
         focusFirst(downloadsColumn);
+    }
+
+    /**
+     * عنوان تمیز برای نمایش: پیشوند «دانلود …» و عبارت‌های تبلیغی انتهای عنوان
+     * سایت حذف می‌شوند (فقط برای نمایش؛ دادهٔ اصلی دست‌نخورده می‌ماند).
+     */
+    static String cleanTitle(String raw) {
+        if (raw == null) return "";
+        String title = raw.trim();
+        title = title.replaceFirst(
+                "^دانلود\\s+(فیلم و سریال|فیلم|سریال|انیمیشن|انیمه|مستند|برنامه)\\s+", "");
+        String[] tails = {
+                "بدون سانسور با زیرنویس فارسی چسبیده",
+                "بدون سانسور و زیرنویس فارسی چسبیده",
+                "بدون سانسور با زیرنویس چسبیده",
+                "با زیرنویس فارسی چسبیده",
+                "با زیرنویس چسبیده",
+                "زیرنویس فارسی چسبیده",
+                "زیرنویس چسبیده",
+                "بدون سانسور",
+                "دوبله فارسی",
+                "کامل",
+                "رایگان",
+        };
+        boolean changed = true;
+        for (int round = 0; round < 3 && changed; round++) {
+            changed = false;
+            for (String tail : tails) {
+                if (title.endsWith(tail)) {
+                    title = title.substring(0, title.length() - tail.length()).trim();
+                    changed = true;
+                }
+            }
+        }
+        return title.isEmpty() ? raw.trim() : title;
     }
 
     private String summaryOf(ItemDetails details) {

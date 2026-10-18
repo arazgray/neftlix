@@ -581,8 +581,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        BrowseSection featured = featuredSection();
-        if (featured != null) addHero(featured);
+        addHero(heroSection());
 
         for (BrowseSection section : catalog.sections) {
             addSectionRail(section);
@@ -601,39 +600,68 @@ public class MainActivity extends AppCompatActivity {
         focusFirst();
     }
 
-    /** بخش ویژهٔ سایت (بیلبورد)؛ اگر نبود، هیچ بیلبوردی ساخته نمی‌شود. */
-    private BrowseSection featuredSection() {
+    /**
+     * بخش بیلبورد: اگر سایت بخش «ویژه» داشته باشد همان، وگرنه اولین بخش فهرست.
+     * (سایت گاهی بخش ویژه را برمی‌دارد؛ در آن حالت برنامه همیشه یک پیشنهاد
+     * روزانه از تازه‌ترین بخش نشان می‌دهد تا سربرگ خالی نماند.)
+     */
+    private BrowseSection heroSection() {
         if (catalog == null) return null;
         for (BrowseSection section : catalog.sections) {
             if (section.title != null && section.title.contains("ویژه") && !section.items.isEmpty()) {
                 return section;
             }
         }
+        for (BrowseSection section : catalog.sections) {
+            if (!section.items.isEmpty()) return section;
+        }
         return null;
     }
 
+    private boolean isFeatured(BrowseSection section) {
+        return section.title != null && section.title.contains("ویژه");
+    }
+
     private void addHero(BrowseSection section) {
-        // هر روز یک عنوان ویژه تازه (بدون تایمر و بدون پرش ناگهانی)
+        if (section == null) return;
+        // هر روز یک عنوان تازه (بدون تایمر و بدون پرش ناگهانی)
         int index = (int) (System.currentTimeMillis() / 86400000L) % section.items.size();
         final BrowseItem item = section.items.get(Math.abs(index));
 
         FrameLayout hero = new FrameLayout(this);
         hero.setClipChildren(false);
-        ImageView art = new ImageView(this);
-        art.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        ui.loadCover(art, item.coverUrl);
-        hero.addView(art, new FrameLayout.LayoutParams(-1, -1));
-        hero.addView(ui.scrim(GradientDrawable.Orientation.RIGHT_LEFT,
-                        0xF70A0A0C, 0xCC0A0A0C, 0x400A0A0C, 0x050A0A0C),
-                new FrameLayout.LayoutParams(-1, -1));
-        hero.addView(ui.scrim(GradientDrawable.Orientation.BOTTOM_TOP,
-                        0xFF0A0A0C, 0x000A0A0C),
-                new FrameLayout.LayoutParams(-1, -1));
+
+        final ImageView artView = new ImageView(this);
+        artView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        hero.addView(artView, new FrameLayout.LayoutParams(-1, -1));
+
+        // پس‌زمینهٔ جایگزین تا وقتی هنر افقی برسد
+        final View fallbackArt = ui.scrim(GradientDrawable.Orientation.RIGHT_LEFT,
+                0xFF2B1418, 0xFF17171C, 0xFF0A0A0C);
+        hero.addView(fallbackArt, new FrameLayout.LayoutParams(-1, -1));
+
+        final View sideScrim = ui.scrim(GradientDrawable.Orientation.RIGHT_LEFT,
+                0xF70A0A0C, 0xCC0A0A0C, 0x400A0A0C, 0x050A0A0C);
+        final View bottomScrim = ui.scrim(GradientDrawable.Orientation.BOTTOM_TOP,
+                0xFF0A0A0C, 0x000A0A0C);
+        hero.addView(sideScrim, new FrameLayout.LayoutParams(-1, -1));
+        hero.addView(bottomScrim, new FrameLayout.LayoutParams(-1, -1));
+
+        // بخشهای سایت پوسترهای ۱۸۰×۲۸۰ دارند؛ هنر افقی از صفحهٔ خود عنوان می‌آید.
+        if (hasLandscapeArt(item.coverUrl)) {
+            ui.loadCover(artView, item.coverUrl);
+            fallbackArt.setVisibility(View.GONE);
+        } else {
+            sideScrim.setVisibility(View.GONE);
+            bottomScrim.setVisibility(View.GONE);
+            showHeroBackdrop(item, artView, fallbackArt, sideScrim, bottomScrim);
+        }
 
         LinearLayout info = ui.column();
         info.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(34), ui.dp(Ui.PAGE_PAD), ui.dp(18));
 
-        TextView kicker = ui.text("ویژهٔ نفتلیکس", 11, Ui.BRAND, true);
+        TextView kicker = ui.text(isFeatured(section) ? "ویژهٔ نفتلیکس" : "پیشنهاد امروز",
+                11, Ui.BRAND, true);
         kicker.setLetterSpacing(0.08f);
         info.addView(kicker);
 
@@ -670,6 +698,48 @@ public class MainActivity extends AppCompatActivity {
         hero.addView(info, infoParams);
         page.addView(hero, ui.params(-1, ui.dp(224)));
     }
+
+    /** تصویر ویژهٔ سایت افقی است (بدون پسوند اندازهٔ تامبنیل)؟ */
+    private static boolean hasLandscapeArt(String url) {
+        return url != null && !url.isEmpty() && !SIZE_SUFFIX.matcher(url).find();
+    }
+
+    private static final java.util.regex.Pattern SIZE_SUFFIX =
+            java.util.regex.Pattern.compile("-\\d{2,4}x\\d{2,4}\\.(?:jpe?g|png|webp|avif)$",
+                    java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /** هنر افقی صفحهٔ عنوان را یک‌بار می‌گیرد و در بیلبورد محو می‌کند. */
+    private void showHeroBackdrop(final BrowseItem item, final ImageView artView,
+                                  final View fallbackArt, final View sideScrim, final View bottomScrim) {
+        String cached = heroArt.get(item.url);
+        if (cached != null) {
+            applyHeroBackdrop(artView, fallbackArt, sideScrim, bottomScrim, cached);
+            return;
+        }
+        final String itemUrl = item.url;
+        io.execute(() -> {
+            String backdrop = "";
+            try {
+                backdrop = repository.loadItem(itemUrl).backdropUrl;
+            } catch (Throwable ignored) {
+            }
+            final String url = backdrop == null ? "" : backdrop;
+            if (url.isEmpty()) return;
+            heroArt.put(itemUrl, url);
+            runOnUiThread(() -> applyHeroBackdrop(artView, fallbackArt, sideScrim, bottomScrim, url));
+        });
+    }
+
+    private void applyHeroBackdrop(ImageView artView, View fallbackArt,
+                                   View sideScrim, View bottomScrim, String url) {
+        fallbackArt.setVisibility(View.GONE);
+        sideScrim.setVisibility(View.VISIBLE);
+        bottomScrim.setVisibility(View.VISIBLE);
+        ui.loadBackdrop(artView, url);
+    }
+
+    /** هنر افقی هر عنوان؛ هر بار برگشتن به خانه دوباره گرفته نشود. */
+    private final Map<String, String> heroArt = new java.util.concurrent.ConcurrentHashMap<>();
 
     private void addSectionRail(BrowseSection section) {
         List<View> cards = new ArrayList<>();

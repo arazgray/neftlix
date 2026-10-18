@@ -61,6 +61,9 @@ tap() { # $1=keyevent  $2=delay
 launch_app() { # $1=extra settle seconds
   adb shell am force-stop "$PKG" >/dev/null 2>&1 || true
   sleep 3
+  # یک کلید جهت‌دار روی لانچر: دستگاه از حالت لمسی خارج می‌شود تا فوکوس
+  # خودکار برنامه (requestFocus) مثل تلویزیون واقعی کار کند.
+  adb shell input keyevent KEYCODE_DPAD_DOWN >/dev/null 2>&1 || true
   adb shell am start -n "$PKG/.MainActivity" 2>&1 | tail -1
   wait_until 300 "app window focused" app_window_ready || true
   sleep "${1:-25}"
@@ -85,6 +88,11 @@ capture_pass() { # $1 = label prefix
   tap KEYCODE_DPAD_DOWN 1.5
   tap KEYCODE_DPAD_CENTER 2
   shot "$p-06-level3-open"
+  # پایین صفحهٔ اصلی: ریل ژانرها
+  launch_app 25
+  for i in 1 2 3 4 5 6 7 8 9 10 11 12; do tap KEYCODE_DPAD_DOWN 0.7; done
+  sleep 2
+  shot "$p-07-genres"
 }
 
 log "waiting for the emulator system"
