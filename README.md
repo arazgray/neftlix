@@ -19,8 +19,8 @@ Xiaomi Mi Box 4K.
 
 ## Install
 
-1. Actions → “Build Neftlix TV APK” → download artifact `neftlix-tv-apk` → `app-debug.apk`
-   (or take the APK from the latest GitHub release).
+1. Actions → “Build Neftlix TV APK” → download artifact `neftlix-tv-apk` (contains `app-debug.apk`)
+   (or take `neftlix-android-tv.apk` from the latest GitHub release).
 2. Sideload to Mi Box (USB stick, `adb install`, or a file-manager app) and open it.
    The launcher shows **Neftlix**.
 

@@ -30,6 +30,8 @@ jobs:
         run: gradle --no-daemon assembleDebug
 
       - name: Publish GitHub release
-        run: gh release create "${{ github.ref_name }}" --title "Neftlix ${{ github.ref_name }}" --notes "TV APK build from ${{ github.ref_name }}." --latest app/build/outputs/apk/debug/app-debug.apk
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk neftlix-android-tv.apk
+          gh release create "${{ github.ref_name }}" --title "Neftlix ${{ github.ref_name }}" --notes "TV APK build from ${{ github.ref_name }}." --latest neftlix-android-tv.apk
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
