@@ -6,6 +6,10 @@ android {
     namespace 'com.arazgray.neftlix'
     compileSdk 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId 'com.arazgray.neftlix'
         minSdk 21
