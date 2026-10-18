@@ -64,6 +64,7 @@ final class ItemDetails {
     final String title;
     final String coverUrl;
     final String url;
+    String backdropUrl = "";
     String story = "";
     String imdbRating = "";
     String imdbId = "";

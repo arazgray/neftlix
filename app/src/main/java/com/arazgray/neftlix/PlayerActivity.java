@@ -69,8 +69,10 @@ public class PlayerActivity extends AppCompatActivity {
         }
         androidx.media3.ui.SubtitleView subtitles = playerView.getSubtitleView();
         if (subtitles != null) {
-            // پس‌زمینه مشکی حذف شود؛ فقط سایه ساده
+            // پس‌زمینه مشکی حذف شود؛ فقط سایه ساده + راست‌چین
             subtitles.setApplyEmbeddedStyles(false);
+            subtitles.setTextDirection(View.TEXT_DIRECTION_RTL);
+            subtitles.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
             subtitles.setStyle(new androidx.media3.ui.CaptionStyleCompat(
                     android.graphics.Color.WHITE,
                     android.graphics.Color.TRANSPARENT,
@@ -94,6 +96,8 @@ public class PlayerActivity extends AppCompatActivity {
         player.play();
     }
 
+    private android.graphics.drawable.GradientDrawable focusBackground;
+
     private void markFocusable(View v) {
         if (v instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) v;
@@ -103,11 +107,40 @@ public class PlayerActivity extends AppCompatActivity {
             return;
         }
         if (v.isFocusable()) {
+            if (focusBackground == null) {
+                focusBackground = new android.graphics.drawable.GradientDrawable();
+                focusBackground.setColor(0xFFE50914);
+                focusBackground.setCornerRadius(12f);
+            }
+            final android.graphics.drawable.Drawable normal = v.getBackground();
             v.setOnFocusChangeListener((view, hasFocus) -> {
-                view.setScaleX(hasFocus ? 1.25f : 1f);
-                view.setScaleY(hasFocus ? 1.25f : 1f);
+                if (view instanceof android.widget.ImageButton) {
+                    view.setBackground(hasFocus ? focusBackground : null);
+                    if (!hasFocus && normal != null) view.setBackground(normal);
+                }
             });
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
+        if (player != null) {
+            // چپ/راست بدون باز کردن کنترلر: ۱۵ ثانیه عقب/جلو
+            if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
+                    || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_REWIND) {
+                player.seekTo(Math.max(0, player.getCurrentPosition() - 15000));
+                return true;
+            }
+            if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT
+                    || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
+                long duration = player.getDuration();
+                long target = player.getCurrentPosition() + 15000;
+                player.seekTo(duration == androidx.media3.common.C.TIME_UNSET
+                        ? target : Math.min(duration, target));
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override

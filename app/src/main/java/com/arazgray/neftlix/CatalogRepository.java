@@ -173,8 +173,11 @@ final class CatalogRepository {
         String title = titleElement == null ? "Item" : titleElement.text().trim();
         Element poster = document.selectFirst("#post-intro .entry-poster img, #post-intro img.coverimg");
         String cover = poster == null ? "" : imageUrl(poster, finalUrl);
+        Element backdrop = document.selectFirst("#post-intro img.coverimg");
+        if (backdrop == null) backdrop = document.selectFirst("img.mb-coverimg");
 
         ItemDetails details = new ItemDetails(title, cover, finalUrl);
+        if (backdrop != null) details.backdropUrl = imageUrl(backdrop, finalUrl);
 
         Element excerpt = document.selectFirst(".entry-excerpt");
         if (excerpt != null) details.story = excerpt.text().trim();

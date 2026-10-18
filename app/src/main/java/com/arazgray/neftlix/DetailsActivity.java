@@ -52,7 +52,6 @@ public class DetailsActivity extends AppCompatActivity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        root.setBackgroundColor(Color.rgb(10, 10, 10));
         root.setPadding(dp(22), dp(14), dp(22), dp(10));
 
         LinearLayout toolbar = new LinearLayout(this);
@@ -80,15 +79,37 @@ public class DetailsActivity extends AppCompatActivity {
         page.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         scroll.addView(page);
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
-        setContentView(root);
 
-        status.setText("در حال بارگذاری…");
+        backdropView = new ImageView(this);
+        backdropView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        backdropView.setAlpha(0.22f);
+
+        android.widget.FrameLayout frame = new android.widget.FrameLayout(this);
+        frame.setBackgroundColor(Color.BLACK);
+        frame.addView(backdropView, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        View shade = new View(this);
+        shade.setBackgroundColor(0x99000000);
+        frame.addView(shade, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        frame.addView(root, new android.widget.FrameLayout.LayoutParams(-1, -1));
+
+        loadingOverlay = centeredOverlay("⏳ در حال بارگذاری…");
+        frame.addView(loadingOverlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        setContentView(frame);
+
+        showLoading("⏳ در حال بارگذاری…");
         io.execute(() -> {
             try {
                 ItemDetails details = repository.loadItem(url);
-                runOnUiThread(() -> renderItem(details, fallbackTitle));
+                runOnUiThread(() -> {
+                    hideLoading();
+                    if (details.backdropUrl != null && !details.backdropUrl.isEmpty()) {
+                        Glide.with(this).load(details.backdropUrl).into(backdropView);
+                    }
+                    renderItem(details, fallbackTitle);
+                });
             } catch (IOException e) {
                 runOnUiThread(() -> {
+                    hideLoading();
                     status.setText("خطا در بارگذاری صفحه");
                     addSmallText(e.getMessage() == null ? "" : e.getMessage());
                 });
@@ -96,10 +117,53 @@ public class DetailsActivity extends AppCompatActivity {
         });
     }
 
+    private ImageView backdropView;
+    private android.widget.FrameLayout loadingOverlay;
+    private TextView loadingText;
+
+    private android.widget.FrameLayout centeredOverlay(String text) {
+        android.widget.FrameLayout overlay = new android.widget.FrameLayout(this);
+        overlay.setBackgroundColor(0xCC000000);
+        overlay.setClickable(true);
+        overlay.setFocusable(true);
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER);
+        box.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        android.widget.ProgressBar spinner = new android.widget.ProgressBar(this);
+        android.widget.LinearLayout.LayoutParams spinnerParams =
+                new android.widget.LinearLayout.LayoutParams(dp(56), dp(56));
+        spinnerParams.gravity = Gravity.CENTER_HORIZONTAL;
+        box.addView(spinner, spinnerParams);
+        loadingText = new TextView(this);
+        loadingText.setText(text);
+        loadingText.setTextColor(Color.WHITE);
+        loadingText.setTextSize(16);
+        loadingText.setGravity(Gravity.CENTER);
+        loadingText.setTextDirection(View.TEXT_DIRECTION_RTL);
+        loadingText.setPadding(0, dp(12), 0, 0);
+        box.addView(loadingText);
+        overlay.addView(box, new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER));
+        overlay.setVisibility(View.GONE);
+        return overlay;
+    }
+
+    private void showLoading(String text) {
+        if (loadingText != null) loadingText.setText(text);
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
+    }
+
     private void renderItem(ItemDetails details, String fallbackTitle) {
         page.removeAllViews();
         String title = details.title == null || details.title.isEmpty() ? fallbackTitle : details.title;
-        status.setText(countLinks(details) + " لینک دانلود");
+        status.setText(title == null ? "" : title);
 
         LinearLayout intro = new LinearLayout(this);
         intro.setOrientation(LinearLayout.HORIZONTAL);
@@ -180,6 +244,16 @@ public class DetailsActivity extends AppCompatActivity {
             story.setLineSpacing(0, 1.35f);
             story.setPadding(0, dp(10), 0, dp(4));
             page.addView(story);
+        }
+        int linkCount = countLinks(details);
+        if (linkCount > 0) {
+            TextView counts = new TextView(this);
+            counts.setText(toFa(linkCount) + " لینک دانلود در " + toFa(details.groups.size()) + " گروه");
+            counts.setTextColor(Color.LTGRAY);
+            counts.setTextSize(13);
+            counts.setTextDirection(View.TEXT_DIRECTION_RTL);
+            counts.setPadding(0, 0, 0, dp(4));
+            page.addView(counts);
         }
     }
 

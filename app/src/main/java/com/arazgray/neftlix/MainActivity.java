@@ -90,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        root.setBackgroundColor(Color.rgb(10, 10, 10));
         root.setPadding(dp(22), dp(14), dp(22), dp(10));
 
         LinearLayout toolbar = new LinearLayout(this);
@@ -116,6 +115,12 @@ public class MainActivity extends AppCompatActivity {
         searchBox.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         searchBox.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         searchBox.setPadding(dp(12), 0, dp(12), 0);
+        android.graphics.drawable.GradientDrawable searchBg =
+                new android.graphics.drawable.GradientDrawable();
+        searchBg.setColor(Color.rgb(20, 20, 20));
+        searchBg.setStroke(dp(2), Color.rgb(229, 9, 20));
+        searchBg.setCornerRadius(dp(10));
+        searchBox.setBackground(searchBg);
         LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(0, dp(48), 1f);
         searchParams.setMargins(dp(8), 0, dp(8), 0);
         toolbar.addView(searchBox, searchParams);
@@ -127,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        Button search = toolbarButton("جست‌وجو");
+        Button search = toolbarButton("🔍");
         search.setOnClickListener(view -> showSearchResults());
         toolbar.addView(search);
 
@@ -139,13 +144,17 @@ public class MainActivity extends AppCompatActivity {
         all.setOnClickListener(view -> showAllItems());
         toolbar.addView(all);
 
-        Button refresh = toolbarButton("به‌روزرسانی کاتالوگ");
+        Button refresh = toolbarButton("⟳ کاتالوگ");
         refresh.setOnClickListener(view -> refreshCatalog(false));
         toolbar.addView(refresh);
 
-        Button update = toolbarButton("به‌روزرسانی نفتلیکس");
+        Button update = toolbarButton("⬇ نفتلیکس");
         update.setOnClickListener(view -> checkAppUpdate());
         toolbar.addView(update);
+
+        Button info = toolbarButton("ⓘ");
+        info.setOnClickListener(view -> showInfoDialog());
+        toolbar.addView(info);
         HorizontalScrollView toolbarScroll = new HorizontalScrollView(this);
         toolbarScroll.setHorizontalScrollBarEnabled(false);
         toolbarScroll.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
@@ -167,7 +176,64 @@ public class MainActivity extends AppCompatActivity {
         page.setPadding(0, dp(4), 0, dp(28));
         scroll.addView(page);
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
-        setContentView(root);
+
+        android.widget.FrameLayout frame = new android.widget.FrameLayout(this);
+        frame.setBackgroundColor(Color.BLACK);
+        View backdrop = new View(this);
+        android.graphics.drawable.GradientDrawable gradient =
+                new android.graphics.drawable.GradientDrawable(
+                        android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+                        new int[]{0xFF3A0A0E, 0xFF000000});
+        backdrop.setBackground(gradient);
+        backdrop.setAlpha(0.5f);
+        frame.addView(backdrop, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        frame.addView(root, new android.widget.FrameLayout.LayoutParams(-1, -1));
+
+        loadingOverlay = centeredOverlay("⏳ در حال بارگذاری…");
+        loadingOverlay.setVisibility(View.GONE);
+        frame.addView(loadingOverlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
+        setContentView(frame);
+    }
+
+    private android.widget.FrameLayout loadingOverlay;
+    private TextView loadingText;
+
+    private android.widget.FrameLayout centeredOverlay(String text) {
+        android.widget.FrameLayout overlay = new android.widget.FrameLayout(this);
+        overlay.setBackgroundColor(0xCC000000);
+        overlay.setClickable(true);
+        overlay.setFocusable(true);
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER);
+        box.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        android.widget.ProgressBar spinner = new android.widget.ProgressBar(this);
+        android.widget.LinearLayout.LayoutParams spinnerParams =
+                new android.widget.LinearLayout.LayoutParams(dp(56), dp(56));
+        spinnerParams.gravity = Gravity.CENTER_HORIZONTAL;
+        box.addView(spinner, spinnerParams);
+        loadingText = new TextView(this);
+        loadingText.setText(text);
+        loadingText.setTextColor(Color.WHITE);
+        loadingText.setTextSize(16);
+        loadingText.setGravity(Gravity.CENTER);
+        loadingText.setTextDirection(View.TEXT_DIRECTION_RTL);
+        loadingText.setPadding(0, dp(12), 0, 0);
+        box.addView(loadingText);
+        overlay.addView(box, new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER));
+        return overlay;
+    }
+
+    private void showLoading(String text) {
+        if (loadingText != null) loadingText.setText(text);
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading() {
+        if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
     }
 
     private void refreshCatalog() {
@@ -175,7 +241,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshCatalog(boolean quiet) {
-        if (!quiet) status.setText("در حال به‌روزرسانی فهرست از سایت…");
+        if (quiet) {
+            status.setText("در حال به‌روزرسانی پس‌زمینه…");
+        } else {
+            status.setText("در حال به‌روزرسانی فهرست از سایت…");
+            showLoading("⏳ در حال به‌روزرسانی فهرست…");
+        }
         io.execute(() -> {
             try {
                 CatalogData latest = repository.loadCatalog();
@@ -185,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 runOnUiThread(() -> {
                     catalog = latest;
+                    hideLoading();
                     if (quiet) {
                         status.setText("فهرست به‌روز شد · " + toFaDigits(countItems(latest)) + " عنوان");
                         if (!showingSubPage && page.getChildCount() == 0) renderHome();
@@ -198,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             } catch (IOException error) {
                 runOnUiThread(() -> {
+                    hideLoading();
                     status.setText("به‌روزرسانی ناموفق بود. اینترنت را بررسی کنید و دوباره تلاش کنید.");
                     if (catalog == null) {
                         page.removeAllViews();
@@ -266,11 +339,94 @@ public class MainActivity extends AppCompatActivity {
                     new android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "fa-IR");
-            intent.putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "نام فیلم یا سریال را بگویید");
+            intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+            intent.putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Say the movie or series name");
             voiceLauncher.launch(intent);
         } catch (android.content.ActivityNotFoundException e) {
-            Toast.makeText(this, "جست‌وجوی صوتی روی این دستگاه پشتیبانی نمی‌شود", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Voice search is not supported on this device", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void showInfoDialog() {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        layout.setPadding(dp(8), dp(8), dp(8), dp(8));
+
+        TextView name = new TextView(this);
+        name.setText("نفتلیکس · Neftlix");
+        name.setTextColor(Color.rgb(229, 9, 20));
+        name.setTextSize(20);
+        name.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        name.setGravity(Gravity.CENTER);
+        layout.addView(name);
+
+        TextView desc = new TextView(this);
+        desc.setText("اپ تلویزیون فارسی برای مرور فیلم‌ها و سریال‌ها، جست‌وجوی سراسری آرشیو و پخش مستقیم با پخش‌کننده داخلی.");
+        desc.setTextColor(Color.WHITE);
+        desc.setTextSize(14);
+        desc.setGravity(Gravity.CENTER);
+        desc.setTextDirection(View.TEXT_DIRECTION_RTL);
+        desc.setPadding(0, dp(8), 0, 0);
+        layout.addView(desc);
+
+        TextView version = new TextView(this);
+        version.setText("نسخه " + BuildConfig.VERSION_NAME + " (" + toFaDigits(BuildConfig.VERSION_CODE) + ")");
+        version.setTextColor(Color.LTGRAY);
+        version.setTextSize(13);
+        version.setGravity(Gravity.CENTER);
+        version.setPadding(0, dp(8), 0, 0);
+        layout.addView(version);
+
+        TextView author = new TextView(this);
+        author.setText("سازنده: Araz Gray · arazgray.com");
+        author.setTextColor(Color.LTGRAY);
+        author.setTextSize(13);
+        author.setGravity(Gravity.CENTER);
+        author.setPadding(0, dp(4), 0, dp(8));
+        layout.addView(author);
+
+        android.graphics.Bitmap qr = makeQrBitmap("https://arazgray.com", 420);
+        if (qr != null) {
+            ImageView qrView = new ImageView(this);
+            qrView.setImageBitmap(qr);
+            qrView.setBackgroundColor(Color.WHITE);
+            qrView.setPadding(dp(8), dp(8), dp(8), dp(8));
+            LinearLayout.LayoutParams qrParams =
+                    new LinearLayout.LayoutParams(dp(220), dp(220));
+            qrParams.gravity = Gravity.CENTER_HORIZONTAL;
+            layout.addView(qrView, qrParams);
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("درباره نفتلیکس")
+                .setView(layout)
+                .setPositiveButton("بستن", null)
+                .setNeutralButton("باز کردن سایت", (d, which) -> {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://arazgray.com")));
+                    } catch (Exception ignored) {
+                    }
+                })
+                .show();
+    }
+
+    private android.graphics.Bitmap makeQrBitmap(String text, int size) {
+        try {
+            com.google.zxing.qrcode.QRCodeWriter writer = new com.google.zxing.qrcode.QRCodeWriter();
+            com.google.zxing.common.BitMatrix matrix = writer.encode(
+                    text, com.google.zxing.BarcodeFormat.QR_CODE, size, size);
+            android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                    size, size, android.graphics.Bitmap.Config.RGB_565);
+            for (int x = 0; x < size; x++) {
+                for (int y = 0; y < size; y++) {
+                    bitmap.setPixel(x, y, matrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return bitmap;
+        } catch (Exception ignored) {
+            return null;
         }
     }
 
@@ -423,18 +579,24 @@ public class MainActivity extends AppCompatActivity {
     private void showSearchResults() {
         if (catalog == null) return;
         final String query = searchBox.getText().toString().trim();
+        android.view.inputmethod.InputMethodManager imm =
+                (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (imm != null) imm.hideSoftInputFromWindow(searchBox.getWindowToken(), 0);
+        searchBox.clearFocus();
         showingSubPage = true;
         activeSection = null;
         activeCategory = null;
-        page.removeAllViews();
-        addBackButton();
         if (query.isEmpty()) {
+            page.removeAllViews();
+            addBackButton();
             addHeading("همه عنوان‌ها");
             addItemRow(uniqueItems(catalog.sections));
             return;
         }
+        page.removeAllViews();
+        addBackButton();
         addHeading("نتایج جست‌وجو: " + query);
-        status.setText("در حال جست‌وجو…");
+        showLoading("⏳ در حال جست‌وجو…");
         io.execute(() -> {
             List<BrowseItem> found = new ArrayList<>();
             try {
@@ -452,6 +614,7 @@ public class MainActivity extends AppCompatActivity {
             final List<BrowseItem> direct = found.isEmpty() ? filterLocal(query) : found;
             final String source = found.isEmpty() ? "فهرست" : "سایت";
             runOnUiThread(() -> {
+                hideLoading();
                 page.removeAllViews();
                 addBackButton();
                 addHeading("نتایج جست‌وجو: " + query);
@@ -479,11 +642,12 @@ public class MainActivity extends AppCompatActivity {
         activeCategory = null;
         listingPage = pageNum;
         showingSubPage = true;
-        status.setText("در حال بارگذاری " + section.title + "…");
+        showLoading("⏳ در حال بارگذاری " + section.title + "…");
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(section.url, section.contentType, pageNum);
                 runOnUiThread(() -> {
+                    hideLoading();
                     listingHasNext = result.hasNext;
                     status.setText(section.title + " · صفحه " + toFaDigits(pageNum));
                     page.removeAllViews();
@@ -494,7 +658,10 @@ public class MainActivity extends AppCompatActivity {
                     focusFirst();
                 });
             } catch (IOException error) {
-                runOnUiThread(() -> status.setText("بارگذاری ناموفق بود: " + section.title));
+                runOnUiThread(() -> {
+                    hideLoading();
+                    status.setText("بارگذاری ناموفق بود: " + section.title);
+                });
             }
         });
     }
@@ -504,11 +671,12 @@ public class MainActivity extends AppCompatActivity {
         activeSection = null;
         listingPage = pageNum;
         showingSubPage = true;
-        status.setText("در حال بارگذاری " + category.title + "…");
+        showLoading("⏳ در حال بارگذاری " + category.title + "…");
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(category.url, category.contentType, pageNum);
                 runOnUiThread(() -> {
+                    hideLoading();
                     listingHasNext = result.hasNext;
                     status.setText(category.title + " · صفحه " + toFaDigits(pageNum));
                     page.removeAllViews();
@@ -520,7 +688,10 @@ public class MainActivity extends AppCompatActivity {
                     focusFirst();
                 });
             } catch (IOException error) {
-                runOnUiThread(() -> status.setText("بارگذاری دسته ناموفق بود: " + category.title));
+                runOnUiThread(() -> {
+                    hideLoading();
+                    status.setText("بارگذاری دسته ناموفق بود: " + category.title);
+                });
             }
         });
     }
