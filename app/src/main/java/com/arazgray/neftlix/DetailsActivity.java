@@ -153,7 +153,6 @@ public class DetailsActivity extends AppCompatActivity {
         spinnerParams.gravity = Gravity.CENTER_HORIZONTAL;
         box.addView(spinner, spinnerParams);
         loadingText = null;
-        box.addView(spinner, spinnerParams);
         overlay.addView(box, new android.widget.FrameLayout.LayoutParams(
                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -390,8 +389,7 @@ public class DetailsActivity extends AppCompatActivity {
         summary.setPadding(dp(14), dp(13), dp(14), dp(13));
         summary.setFocusable(true);
         summary.setClickable(true);
-        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(Color.TRANSPARENT);
-        idleBg.setStroke(dp(2), Color.rgb(120, 120, 120));
+        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(0x33FFFFFF);
         final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
         summary.setBackground(idleBg);
         summary.setOnFocusChangeListener((v, hasFocus) -> summary.setBackground(hasFocus ? focusedBg : idleBg));
@@ -434,8 +432,7 @@ public class DetailsActivity extends AppCompatActivity {
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(Color.TRANSPARENT);
-        idleBg.setStroke(dp(2), Color.rgb(229, 9, 20));
+        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(0x33FFFFFF);
         final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
         button.setBackground(idleBg);
         button.setOnFocusChangeListener((v, hasFocus) -> button.setBackground(hasFocus ? focusedBg : idleBg));

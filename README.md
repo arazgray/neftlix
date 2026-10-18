@@ -37,7 +37,8 @@ site directly.
   link, QR code to arazgray.com).
 
 Remote: D-pad moves, OK opens/expands/plays, Back goes back. Black/red Netflix-style
-theme, launcher name **Neftlix**, icon/banner/logo from `icon.png` / `logo.png`,
+theme with glassy buttons, logo splash screen on launch, launcher name **Neftlix**,
+icon/banner/logo from `icon.png` / `logo.png` / `main-bg.png`,
 Vazirmatn font throughout (app + subtitles).
 
 ## Requirements

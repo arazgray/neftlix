@@ -149,11 +149,15 @@ public class MainActivity extends AppCompatActivity {
 
         Button refresh = labeledIconButton("کاتالوگ", R.drawable.ic_refresh);
         refresh.setOnClickListener(view -> refreshCatalog(false));
-        toolbar.addView(refresh);
+        LinearLayout.LayoutParams refreshParams = new LinearLayout.LayoutParams(-2, -2);
+        refreshParams.setMargins(dp(5), 0, dp(5), 0);
+        toolbar.addView(refresh, refreshParams);
 
         Button update = labeledIconButton("نفتلیکس", R.drawable.ic_download);
         update.setOnClickListener(view -> checkAppUpdate());
-        toolbar.addView(update);
+        LinearLayout.LayoutParams updateParams = new LinearLayout.LayoutParams(-2, -2);
+        updateParams.setMargins(dp(5), 0, dp(5), 0);
+        toolbar.addView(update, updateParams);
 
         Button info = iconButton(R.drawable.ic_info, "درباره");
         info.setOnClickListener(view -> showInfoDialog());
@@ -191,7 +195,25 @@ public class MainActivity extends AppCompatActivity {
         loadingOverlay = centeredOverlay("⏳ در حال بارگذاری…");
         loadingOverlay.setVisibility(View.GONE);
         frame.addView(loadingOverlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
+
+        splashOverlay = new android.widget.FrameLayout(this);
+        splashOverlay.setBackgroundColor(Color.BLACK);
+        splashOverlay.setClickable(true);
+        ImageView splashLogo = new ImageView(this);
+        splashLogo.setImageResource(R.drawable.app_logo);
+        splashLogo.setAdjustViewBounds(true);
+        splashLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        android.widget.FrameLayout.LayoutParams splashParams =
+                new android.widget.FrameLayout.LayoutParams(dp(340), -2, Gravity.CENTER);
+        splashOverlay.addView(splashLogo, splashParams);
+        frame.addView(splashOverlay, new android.widget.FrameLayout.LayoutParams(-1, -1));
         setContentView(frame);
+    }
+
+    private android.widget.FrameLayout splashOverlay;
+
+    private void hideSplash() {
+        if (splashOverlay != null) splashOverlay.setVisibility(View.GONE);
     }
 
     private android.widget.FrameLayout loadingOverlay;
@@ -262,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
                     hideLoading();
                     status.setText("به‌روزرسانی ناموفق بود. اینترنت را بررسی کنید و دوباره تلاش کنید.");
                     if (catalog == null) {
+                        hideSplash();
                         page.removeAllViews();
                         addMessage("فهرست در دسترس نیست", error.getMessage());
                     } else {
@@ -536,6 +559,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void renderHome() {
+        hideSplash();
         page.removeAllViews();
         showingSubPage = false;
         activeSection = null;
@@ -795,7 +819,7 @@ public class MainActivity extends AppCompatActivity {
         card.setBackgroundResource(android.R.drawable.list_selector_background);
         card.setPadding(dp(5), dp(5), dp(5), dp(5));
         card.setOnClickListener(view -> openItem(item));
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dp(148), dp(256));
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(dp(148), -2);
         cardParams.setMargins(0, 0, dp(10), 0);
         card.setLayoutParams(cardParams);
         card.setOnFocusChangeListener((v, hasFocus) -> v.setScaleX(hasFocus ? 1.05f : 1f));
@@ -910,8 +934,7 @@ public class MainActivity extends AppCompatActivity {
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
         button.setFocusable(true);
-        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(Color.TRANSPARENT);
-        idleBg.setStroke(dp(2), Color.rgb(229, 9, 20));
+        final android.graphics.drawable.GradientDrawable idleBg = roundedBg(0x33FFFFFF);
         final android.graphics.drawable.GradientDrawable focusedBg = roundedBg(Color.rgb(229, 9, 20));
         button.setBackground(idleBg);
         button.setOnFocusChangeListener((v, hasFocus) -> button.setBackground(hasFocus ? focusedBg : idleBg));
@@ -922,8 +945,11 @@ public class MainActivity extends AppCompatActivity {
         Button button = toolbarButton("");
         button.setContentDescription(desc);
         button.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
-        button.setPadding(dp(12), 0, dp(12), 0);
-        button.setMinimumWidth(dp(48));
+        button.setGravity(Gravity.CENTER);
+        button.setPadding(0, 0, 0, 0);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(46), dp(46));
+        params.setMargins(dp(5), 0, dp(5), 0);
+        button.setLayoutParams(params);
         return button;
     }
 
