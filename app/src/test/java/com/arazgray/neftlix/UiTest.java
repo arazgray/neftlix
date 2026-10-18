@@ -11,7 +11,7 @@ public class UiTest {
     public void fa_convertsLatinDigits() {
         assertEquals("۰۱۲۳۴۵۶۷۸۹", Ui.fa("0123456789"));
         assertEquals("۱۲ لینک پخش", Ui.fa(12) + " لینک پخش");
-        assertEquals("نسخه ۱٫۱۲", Ui.fa("نسخه 1.12"));
+        assertEquals("نسخه ۱.۱۲", Ui.fa("نسخه 1.12"));
     }
 
     @Test
