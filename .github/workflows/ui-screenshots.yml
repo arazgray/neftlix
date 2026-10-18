@@ -3,8 +3,6 @@ name: UI Screenshots (temporary)
 # ورک‌فلوی موقت برای بازبینی چشمی طراحی روی امولاتور تلویزیون.
 # بعد از تأیید نهایی حذف می‌شود.
 on:
-  push:
-    branches: [ui-redesign]
   workflow_dispatch:
 
 jobs:
