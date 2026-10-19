@@ -18,19 +18,23 @@ final class WatchlistStore {
     }
 
     List<BrowseItem> items() {
+        load();
         return new ArrayList<>(items);
     }
 
     int size() {
+        load();
         return items.size();
     }
 
     boolean contains(String url) {
+        load();
         return indexOf(url) >= 0;
     }
 
     /** اضافه می‌کند (تکراری به اول منتقل می‌شود)؛ برمی‌گرداند که داخل فهرست هست. */
     boolean toggle(BrowseItem item) {
+        load();
         if (item == null || item.url == null || item.url.isEmpty()) return false;
         int index = indexOf(item.url);
         if (index >= 0) {
@@ -44,6 +48,7 @@ final class WatchlistStore {
     }
 
     void remove(String url) {
+        load();
         int index = indexOf(url);
         if (index >= 0) {
             items.remove(index);
@@ -52,11 +57,20 @@ final class WatchlistStore {
     }
 
     private int indexOf(String url) {
-        if (url == null) return -1;
+        if (url == null || url.isEmpty()) return -1;
+        String norm = normalizeUrl(url);
         for (int i = 0; i < items.size(); i++) {
-            if (url.equals(items.get(i).url)) return i;
+            String itemUrl = items.get(i).url;
+            if (url.equals(itemUrl) || (itemUrl != null && norm.equals(normalizeUrl(itemUrl)))) return i;
         }
         return -1;
+    }
+
+    private static String normalizeUrl(String url) {
+        if (url == null) return "";
+        return url.replace("https://", "http://")
+                  .replace("www.", "")
+                  .replaceAll("/+$", "");
     }
 
     private void load() {

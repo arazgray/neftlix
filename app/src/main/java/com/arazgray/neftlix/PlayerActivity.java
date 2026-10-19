@@ -60,15 +60,13 @@ public class PlayerActivity extends AppCompatActivity {
         root.addView(playerView, videoParams);
         // هایلایت فوکوس دکمه‌های کنترلر برای ریموت
         playerView.post(() -> {
-            markFocusable(playerView);
+            setupCustomControlIcons(playerView);
+            stylePlayerControls(playerView);
             android.view.View ccButton =
                     playerView.findViewById(androidx.media3.ui.R.id.exo_subtitle);
             if (ccButton != null) {
                 ccButton.setOnClickListener(v -> showSubtitleDialog());
             }
-            // عقب/جلو ۵/۱۵ ثانیه‌ای مستقیم سیم‌کشی می‌شوند تا هایلایت قرمز حتمی باشد
-            wireControlButton(playerView, androidx.media3.ui.R.id.exo_rew);
-            wireControlButton(playerView, androidx.media3.ui.R.id.exo_ffwd);
             // تنظیمات جدا حذف شد؛ همه‌چیز در همان دیالوگ گزینه‌هاست
             android.view.View settingsButton =
                     playerView.findViewById(androidx.media3.ui.R.id.exo_settings);
@@ -76,6 +74,15 @@ public class PlayerActivity extends AppCompatActivity {
                 settingsButton.setVisibility(View.GONE);
             }
         });
+        playerView.setControllerVisibilityListener(
+                (PlayerView.ControllerVisibilityListener) visibility -> {
+                    if (visibility == View.VISIBLE) {
+                        playerView.post(() -> {
+                            setupCustomControlIcons(playerView);
+                            stylePlayerControls(playerView);
+                        });
+                    }
+                });
 
         setContentView(root);
 
@@ -202,16 +209,7 @@ public class PlayerActivity extends AppCompatActivity {
         return bg;
     }
 
-    /** سیم‌کشی مستقیم یک دکمهٔ کنترلر با هایلایت قرمز، مستقل از کلاس ویو. */
-    private void wireControlButton(PlayerView root, int id) {
-        android.view.View button = root.findViewById(id);
-        if (button == null || !button.isFocusable()) return;
-        final android.graphics.drawable.Drawable idle = idleBackgroundFor();
-        final android.graphics.drawable.Drawable focused = focusBackgroundFor();
-        button.setBackground(idle);
-        button.setOnFocusChangeListener((view, hasFocus) ->
-                view.setBackground(hasFocus ? focused : idle));
-    }
+
 
     /** دیالوگ گزینه‌های پخش (زیرنویس/صدا/کیفیت) با دکمه‌های قرمز؛ انتخاب همان‌جا اعمال می‌شود. */
     private void showSubtitleDialog() {
@@ -227,7 +225,7 @@ public class PlayerActivity extends AppCompatActivity {
         LinearLayout list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         list.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        list.setPadding(dp(8), dp(8), dp(8), dp(8));
+        list.setPadding(dp(12), dp(12), dp(12), dp(12));
 
         boolean hasSection = false;
         try {
@@ -240,17 +238,18 @@ public class PlayerActivity extends AppCompatActivity {
             collectTextTracks(tracks, textGroups, labels, selected);
             if (!textGroups.isEmpty()) {
                 hasSection = true;
-                list.addView(settingsSectionLabel("زیرنویس", false));
+                list.addView(settingsSectionLabel("زیرنویس‌ها", false));
                 for (int i = 0; i < labels.size(); i++) {
-                    Button option = dialogOptionButton(
-                            labels.get(i) + (selected.contains(i) ? " (فعال)" : ""));
+                    final boolean isActive = selected.contains(i);
+                    Button option = dialogOptionButton(labels.get(i), isActive);
                     final int trackIndex = i;
                     option.setOnClickListener(v -> applySubtitleChoice(textGroups, trackIndex));
-                    list.addView(option, new LinearLayout.LayoutParams(-1, dp(52)));
+                    list.addView(option);
                 }
-                Button off = dialogOptionButton("خاموش");
+                boolean isOff = selected.isEmpty();
+                Button off = dialogOptionButton("خاموش", isOff);
                 off.setOnClickListener(v -> applySubtitleChoice(textGroups, -1));
-                list.addView(off, new LinearLayout.LayoutParams(-1, dp(52)));
+                list.addView(off);
             }
 
             // صدا (فقط وقتی چند صدا هست)
@@ -271,18 +270,19 @@ public class PlayerActivity extends AppCompatActivity {
             }
             if (audios.size() > 1) {
                 hasSection = true;
-                list.addView(settingsSectionLabel("صدا", true));
-                Button auto = dialogOptionButton("خودکار");
+                list.addView(settingsSectionLabel("زبان صدا", true));
+                boolean anySelected = false;
+                for (AudioOption a : audios) if (a.selected) anySelected = true;
+                Button auto = dialogOptionButton("خودکار", !anySelected);
                 auto.setOnClickListener(v -> selector.setParameters(selector.buildUponParameters()
                         .setPreferredAudioLanguage(null)));
-                list.addView(auto, new LinearLayout.LayoutParams(-1, dp(52)));
+                list.addView(auto);
                 for (final AudioOption audio : audios) {
-                    Button option = dialogOptionButton(
-                            audio.label + (audio.selected ? " (فعال)" : ""));
+                    Button option = dialogOptionButton(audio.label, audio.selected);
                     option.setOnClickListener(v -> selector.setParameters(
                             selector.buildUponParameters()
                                     .setPreferredAudioLanguage(audio.code)));
-                    list.addView(option, new LinearLayout.LayoutParams(-1, dp(52)));
+                    list.addView(option);
                 }
             }
 
@@ -305,19 +305,19 @@ public class PlayerActivity extends AppCompatActivity {
             if (videoLabels.size() > 1) {
                 hasSection = true;
                 list.addView(settingsSectionLabel("کیفیت تصویر", true));
-                Button auto = dialogOptionButton("خودکار");
+                Button auto = dialogOptionButton("خودکار", true);
                 auto.setOnClickListener(v -> selector.setParameters(selector.buildUponParameters()
                         .setMaxVideoSize(Integer.MAX_VALUE, Integer.MAX_VALUE)));
-                list.addView(auto, new LinearLayout.LayoutParams(-1, dp(52)));
+                list.addView(auto);
                 int[][] presets = {{2160, 3840, 2160}, {1080, 1920, 1080}, {720, 1280, 720}, {480, 854, 480}};
                 for (int[] preset : presets) {
                     if (preset[0] > maxHeight) continue;
-                    Button quality = dialogOptionButton(preset[0] + "p");
+                    Button quality = dialogOptionButton(preset[0] + "p", false);
                     final int width = preset[1];
                     final int height = preset[2];
                     quality.setOnClickListener(v -> selector.setParameters(
                             selector.buildUponParameters().setMaxVideoSize(width, height)));
-                    list.addView(quality, new LinearLayout.LayoutParams(-1, dp(52)));
+                    list.addView(quality);
                 }
             }
         } catch (Exception ignored) {
@@ -332,44 +332,44 @@ public class PlayerActivity extends AppCompatActivity {
         scroll.addView(list);
         final androidx.appcompat.app.AlertDialog dialog =
                 new androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("تنظیمات پخش")
                         .setView(scroll)
                         .setNegativeButton("بستن", null)
                         .show();
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(
-                    new android.graphics.drawable.ColorDrawable(0xFF000000));
-            // دیالوگ کوچک‌تر وسط صفحه
+                    ui.stroked(0xF214141A, 16, 1, Ui.HAIRLINE));
             android.view.WindowManager.LayoutParams attributes = dialog.getWindow().getAttributes();
-            attributes.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.5);
+            attributes.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.52);
             dialog.getWindow().setAttributes(attributes);
         }
     }
 
-    /** دکمهٔ شیشه‌ای گزینه‌های دیالوگ؛ روی فوکوس قرمز. */
-    private Button dialogOptionButton(String text) {
+    /** دکمهٔ شیشه‌ای گزینه‌های دیالوگ؛ روی فوکوس قرمز برند. */
+    private Button dialogOptionButton(String text, boolean active) {
         Button button = new Button(this);
-        button.setText(text);
+        button.setText(active ? "✓ " + text : text);
         button.setTextColor(android.graphics.Color.WHITE);
         button.setTextDirection(View.TEXT_DIRECTION_RTL);
         button.setAllCaps(false);
-        button.setTypeface(ui.font, android.graphics.Typeface.NORMAL);
+        button.setTypeface(ui.font, active ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         button.setFocusable(true);
         button.setFocusableInTouchMode(true);
         final android.graphics.drawable.GradientDrawable idle =
                 new android.graphics.drawable.GradientDrawable();
-        idle.setColor(Ui.GLASS);
-        idle.setStroke(dp(1), Ui.HAIRLINE);
+        idle.setColor(active ? 0x29E50914 : Ui.GLASS);
+        idle.setStroke(dp(1), active ? 0xFFE50914 : Ui.HAIRLINE);
         idle.setCornerRadius(dp(10));
         final android.graphics.drawable.GradientDrawable focused =
                 new android.graphics.drawable.GradientDrawable();
         focused.setColor(0xFFE50914);
         focused.setCornerRadius(dp(10));
         button.setBackground(idle);
-        button.setOnFocusChangeListener((v, hasFocus) ->
-                button.setBackground(hasFocus ? focused : idle));
+        button.setOnFocusChangeListener((v, hasFocus) -> {
+            button.setBackground(hasFocus ? focused : idle);
+            button.setTextColor(android.graphics.Color.WHITE);
+        });
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(46));
-        params.setMargins(0, dp(5), 0, dp(5));
+        params.setMargins(0, dp(4), 0, dp(4));
         button.setLayoutParams(params);
         return button;
     }
@@ -396,7 +396,14 @@ public class PlayerActivity extends AppCompatActivity {
                 continue;
             }
             for (int i = 0; i < group.length; i++) {
-                labels.add("زیرنویس " + languageName(group.getTrackFormat(i).language));
+                androidx.media3.common.Format format = group.getTrackFormat(i);
+                String labelText;
+                if (format.label != null && !format.label.trim().isEmpty()) {
+                    labelText = format.label.trim();
+                } else {
+                    labelText = "زیرنویس " + languageName(format.language);
+                }
+                labels.add(labelText);
                 if (group.isTrackSelected(i)) selected.add(index);
                 textGroups.add(group);
                 index++;
@@ -449,67 +456,132 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    private android.widget.TextView settingsSectionLabel(String text, boolean spaced) {
+    private android.widget.LinearLayout settingsSectionLabel(String text, boolean spaced) {
+        LinearLayout row = ui.row();
+        row.setPadding(dp(4), dp(spaced ? 16 : 4), dp(4), dp(6));
+        View accent = new View(this);
+        accent.setBackground(ui.rounded(Ui.BRAND, 2));
+        LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(dp(3), dp(16));
+        accentParams.setMarginEnd(dp(8));
+        row.addView(accent, accentParams);
         android.widget.TextView label = new android.widget.TextView(this);
         label.setText(text);
-        label.setTextColor(Ui.TEXT_DIM);
-        label.setTextSize(13);
-        label.setTypeface(ui.font, android.graphics.Typeface.NORMAL);
+        label.setTextColor(Ui.TEXT);
+        label.setTextSize(14);
+        label.setTypeface(ui.font, android.graphics.Typeface.BOLD);
         label.setTextDirection(View.TEXT_DIRECTION_RTL);
-        label.setPadding(dp(4), dp(spaced ? 12 : 2), dp(4), dp(4));
-        return label;
+        row.addView(label);
+        return row;
     }
 
-    private void markFocusable(View v) {
-        if (v instanceof ViewGroup) {
-            // فقط داخل کانتینرها می‌گردیم؛ خود کانتینر هرگز قرمز نمی‌شود تا هیچ پنلی رنگ نگیرد
-            ViewGroup group = (ViewGroup) v;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                markFocusable(group.getChildAt(i));
-            }
-            return;
+    private void setupCustomControlIcons(PlayerView playerView) {
+        if (playerView == null) return;
+        View rewView = playerView.findViewById(androidx.media3.ui.R.id.exo_rew);
+        if (rewView == null) rewView = playerView.findViewById(androidx.media3.ui.R.id.exo_rew_with_amount);
+        if (rewView instanceof android.widget.ImageView) {
+            ((android.widget.ImageView) rewView).setImageResource(R.drawable.ic_rew_5);
+        } else if (rewView instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) rewView;
+            group.removeAllViews();
+            android.widget.ImageView img = new android.widget.ImageView(this);
+            img.setImageResource(R.drawable.ic_rew_5);
+            img.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+            group.addView(img, new LinearLayout.LayoutParams(dp(44), dp(44)));
         }
-        if (!v.isFocusable()) return;
-        if (v instanceof androidx.media3.ui.DefaultTimeBar) {
-            // نوار پیشرفت: روی فوکوس قرمز شود، بدون تغییر اندازه
-            androidx.media3.ui.DefaultTimeBar bar = (androidx.media3.ui.DefaultTimeBar) v;
-            v.setOnFocusChangeListener((view, hasFocus) -> {
+
+        View ffwdView = playerView.findViewById(androidx.media3.ui.R.id.exo_ffwd);
+        if (ffwdView == null) ffwdView = playerView.findViewById(androidx.media3.ui.R.id.exo_ffwd_with_amount);
+        if (ffwdView instanceof android.widget.ImageView) {
+            ((android.widget.ImageView) ffwdView).setImageResource(R.drawable.ic_ffwd_15);
+        } else if (ffwdView instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) ffwdView;
+            group.removeAllViews();
+            android.widget.ImageView img = new android.widget.ImageView(this);
+            img.setImageResource(R.drawable.ic_ffwd_15);
+            img.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+            group.addView(img, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        }
+    }
+
+    private void stylePlayerControls(PlayerView playerView) {
+        if (playerView == null) return;
+        int[] buttonIds = new int[] {
+            androidx.media3.ui.R.id.exo_play_pause,
+            androidx.media3.ui.R.id.exo_play,
+            androidx.media3.ui.R.id.exo_pause,
+            androidx.media3.ui.R.id.exo_rew,
+            androidx.media3.ui.R.id.exo_ffwd,
+            androidx.media3.ui.R.id.exo_rew_with_amount,
+            androidx.media3.ui.R.id.exo_ffwd_with_amount,
+            androidx.media3.ui.R.id.exo_prev,
+            androidx.media3.ui.R.id.exo_next,
+            androidx.media3.ui.R.id.exo_subtitle
+        };
+        for (int id : buttonIds) {
+            View button = playerView.findViewById(id);
+            if (button != null) {
+                wireSingleButton(button);
+            }
+        }
+        androidx.media3.ui.DefaultTimeBar timeBar =
+                playerView.findViewById(androidx.media3.ui.R.id.exo_progress);
+        if (timeBar != null) {
+            timeBar.setKeyTimeIncrement(60000); // 1 minute step on seek bar
+            timeBar.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
-                    bar.setPlayedColor(0xFFE50914);
-                    bar.setScrubberColor(0xFFE50914);
+                    timeBar.setPlayedColor(0xFFE50914);
+                    timeBar.setScrubberColor(0xFFE50914);
                 } else {
-                    bar.setPlayedColor(0xFFFFFFFF);
-                    bar.setScrubberColor(0xFFFFFFFF);
+                    timeBar.setPlayedColor(0xFFFFFFFF);
+                    timeBar.setScrubberColor(0xFFFFFFFF);
                 }
             });
-            return;
         }
-        // فقط دکمه‌ها (نه هر نمایی) قرمز شوند: عقب/جلو و بقیه از هر کلاسی باشند پوشش داده می‌شوند.
-        // پس‌زمینهٔ کارخانه همان‌جا با شفاف جایگزین می‌شود تا هیچ سفید/پیش‌فرضی نماند.
-        if (!(v instanceof android.widget.ImageView) && !(v instanceof android.widget.Button)) {
-            return;
-        }
+    }
+
+    private void wireSingleButton(View button) {
+        if (button == null) return;
+        button.setFocusable(true);
+        button.setFocusableInTouchMode(true);
+        clearInternalBackgrounds(button);
         final android.graphics.drawable.Drawable idle = idleBackgroundFor();
         final android.graphics.drawable.Drawable focused = focusBackgroundFor();
-        v.setBackground(idle);
-        v.setOnFocusChangeListener((view, hasFocus) ->
-                view.setBackground(hasFocus ? focused : idle));
+        button.setBackground(idle);
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            button.setForeground(null);
+        }
+        button.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
+    }
+
+    private void clearInternalBackgrounds(View v) {
+        if (v == null) return;
+        if (v instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) v;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View child = group.getChildAt(i);
+                child.setBackground(null);
+                if (android.os.Build.VERSION.SDK_INT >= 23) {
+                    child.setForeground(null);
+                }
+                clearInternalBackgrounds(child);
+            }
+        }
     }
 
     @Override
     public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
         if (player != null
                 && (playerView == null || !playerView.isControllerFullyVisible())) {
-            // فقط وقتی کنترلر پنهان است: چپ/راست = ۱۰ ثانیه عقب/جلو
+            // فقط وقتی کنترلر پنهان است: چپ/راست = ۱ دقیقه عقب/جلو
             if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
                     || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_REWIND) {
-                player.seekTo(Math.max(0, player.getCurrentPosition() - 10000));
+                player.seekTo(Math.max(0, player.getCurrentPosition() - 60000));
                 return true;
             }
             if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT
                     || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
                 long duration = player.getDuration();
-                long target = player.getCurrentPosition() + 10000;
+                long target = player.getCurrentPosition() + 60000;
                 player.seekTo(duration == androidx.media3.common.C.TIME_UNSET
                         ? target : Math.min(duration, target));
                 return true;

@@ -62,17 +62,26 @@ public class DetailsActivity extends AppCompatActivity {
         LinearLayout toolbar = ui.row();
         toolbar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(10), ui.dp(Ui.PAGE_PAD), ui.dp(4));
 
-        TextView back = ui.ghostButton("بازگشت", R.drawable.ic_back);
-        back.setOnClickListener(v -> finish());
-        toolbar.addView(back, ui.params(-2, ui.dp(42)));
-
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo_transparent);
         logo.setAdjustViewBounds(true);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        logo.setFocusable(true);
+        logo.setClickable(true);
+        logo.setOnClickListener(v -> goHome());
         LinearLayout.LayoutParams logoParams = ui.params(ui.dp(96), ui.dp(34));
-        logoParams.setMarginStart(ui.dp(12));
+        logoParams.setMarginEnd(ui.dp(12));
         toolbar.addView(logo, logoParams);
+
+        TextView homeBtn = ui.ghostButton("خانه", R.drawable.ic_home);
+        homeBtn.setOnClickListener(v -> goHome());
+        LinearLayout.LayoutParams homeParams = ui.params(-2, ui.dp(42));
+        homeParams.setMarginEnd(ui.dp(8));
+        toolbar.addView(homeBtn, homeParams);
+
+        TextView back = ui.ghostButton("بازگشت", R.drawable.ic_back);
+        back.setOnClickListener(v -> finish());
+        toolbar.addView(back, ui.params(-2, ui.dp(42)));
 
         status = ui.text("", 13, Ui.TEXT_DIM);
         status.setSingleLine(true);
@@ -290,10 +299,12 @@ public class DetailsActivity extends AppCompatActivity {
         trailer.setTag("play");
         trailer.setOnClickListener(v -> playTrailer(title));
         actions.addView(trailer, ui.params(-2, ui.dp(44)));
+        final String intentUrl = getIntent().getStringExtra(EXTRA_URL);
+        final String targetUrl = (details.url != null && !details.url.isEmpty()) ? details.url : intentUrl;
         final BrowseItem savedItem = new BrowseItem(
-                title, "", details.coverUrl, details.url, typeOf(details), "");
+                title, "", details.coverUrl, targetUrl, typeOf(details), "");
         final TextView saved = ui.ghostButton(
-                watchlistStore.contains(details.url) ? "★ در علاقه‌مندی‌ها" : "+ علاقه‌مندی‌ها",
+                watchlistStore.contains(targetUrl) ? "★ در علاقه‌مندی‌ها" : "+ علاقه‌مندی‌ها",
                 R.drawable.ic_bookmark);
         LinearLayout.LayoutParams savedParams = ui.params(-2, ui.dp(44));
         savedParams.setMarginStart(ui.dp(10));
@@ -546,6 +557,13 @@ public class DetailsActivity extends AppCompatActivity {
             }
         }
         return null;
+    }
+
+    private void goHome() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 
     @Override

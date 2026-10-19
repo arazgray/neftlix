@@ -108,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
         logo.setImageResource(R.drawable.logo_transparent);
         logo.setAdjustViewBounds(true);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        logo.setFocusable(true);
+        logo.setClickable(true);
+        logo.setOnClickListener(v -> renderHome());
         LinearLayout.LayoutParams logoParams = ui.params(ui.dp(104), ui.dp(38));
         logoParams.setMarginEnd(ui.dp(14));
         bar.addView(logo, logoParams);
@@ -155,6 +158,12 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+        TextView homeBtn = ui.ghostButton("خانه", R.drawable.ic_home);
+        homeBtn.setOnClickListener(view -> renderHome());
+        LinearLayout.LayoutParams homeBtnParams = ui.params(-2, ui.dp(42));
+        homeBtnParams.setMarginEnd(ui.dp(8));
+        bar.addView(homeBtn, homeBtnParams);
+
         TextView refresh = ui.ghostButton("کاتالوگ", R.drawable.ic_refresh);
         refresh.setOnClickListener(view -> refreshCatalog(false));
         LinearLayout.LayoutParams refreshParams = ui.params(-2, ui.dp(42));
@@ -172,6 +181,12 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams watchlistParams = ui.params(-2, ui.dp(42));
         watchlistParams.setMarginEnd(ui.dp(8));
         bar.addView(watchlist, watchlistParams);
+
+        TextView settings = ui.ghostButton("تنظیمات", R.drawable.ic_settings);
+        settings.setOnClickListener(view -> openSettings());
+        LinearLayout.LayoutParams settingsParams = ui.params(-2, ui.dp(42));
+        settingsParams.setMarginEnd(ui.dp(8));
+        bar.addView(settings, settingsParams);
 
         View info = ui.iconButton(R.drawable.ic_info, "درباره");
         info.setLayoutParams(ui.params(ui.dp(42), ui.dp(42)));
@@ -815,10 +830,24 @@ public class MainActivity extends AppCompatActivity {
         addHeading("علاقه‌مندی‌ها", Ui.fa(saved.size()) + " عنوان");
         setStatus(Ui.fa(saved.size()) + " عنوان در علاقه‌مندی‌ها");
         if (saved.isEmpty()) {
-            addMessage("علاقه‌مندی‌ها", "هنوز چیزی ذخیره نشده؛ از صفحهٔ هر عنوان دکمهٔ «+ علاقه‌مندی‌ها» را بزنید.");
+            page.addView(note("هنوز چیزی ذخیره نشده؛ از صفحهٔ هر عنوان دکمهٔ «+ علاقه‌مندی‌ها» را بزنید."));
         } else {
             addItemsGrid(saved, true);
         }
+        focusFirst();
+    }
+
+    /** صفحهٔ «تنظیمات» فعلاً خالی است و پیام مربوطه را نشان می‌دهد. */
+    private void openSettings() {
+        showingSubPage = true;
+        showingWatchlist = false;
+        activeSection = null;
+        activeCategory = null;
+        page.removeAllViews();
+        addBackButton();
+        addHeading("تنظیمات", null);
+        setStatus("تنظیمات برنامه");
+        page.addView(note("تنظیماتی برای نمایش وجود ندارد."));
         focusFirst();
     }
 
@@ -918,12 +947,21 @@ public class MainActivity extends AppCompatActivity {
     // ── اجزای مشترک ─────────────────────────────────────────────────
 
     private void addBackButton() {
-        TextView back = ui.ghostButton("بازگشت به فهرست", R.drawable.ic_back);
+        LinearLayout bar = ui.row();
+        bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
+
+        TextView back = ui.ghostButton("بازگشت", R.drawable.ic_back);
         back.setTag("back");
         back.setOnClickListener(view -> renderHome());
-        LinearLayout.LayoutParams params = ui.params(-2, ui.dp(42));
-        params.setMargins(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
-        page.addView(back, params);
+        bar.addView(back, ui.params(-2, ui.dp(42)));
+
+        TextView homeBtn = ui.ghostButton("صفحه اصلی", R.drawable.ic_home);
+        homeBtn.setOnClickListener(view -> renderHome());
+        LinearLayout.LayoutParams homeParams = ui.params(-2, ui.dp(42));
+        homeParams.setMarginStart(ui.dp(8));
+        bar.addView(homeBtn, homeParams);
+
+        page.addView(bar);
     }
 
     private void addHeading(String text, String countText) {
