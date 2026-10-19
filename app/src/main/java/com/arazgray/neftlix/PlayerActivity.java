@@ -82,8 +82,6 @@ public class PlayerActivity extends AppCompatActivity {
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
         playerView.setControllerShowTimeoutMs(4000);
-        playerView.setRewindIncrementMs(10000);
-        playerView.setFastForwardIncrementMs(10000);
         // زیرنویس فارسی در اولویت باشد
         if (player.getTrackSelector()
                 instanceof androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
