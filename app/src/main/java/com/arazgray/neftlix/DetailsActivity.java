@@ -36,6 +36,7 @@ public class DetailsActivity extends AppCompatActivity {
     private Ui ui;
     private LinearLayout page;
     private TextView status;
+    private WatchlistStore watchlistStore;
     private ImageView backdropView;
     private FrameLayout loadingOverlay;
     private TextView loadingLabel;
@@ -45,6 +46,7 @@ public class DetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         CrashLogger.install(this);
         ui = new Ui(this);
+        watchlistStore = new WatchlistStore(new java.io.File(getFilesDir(), "watchlist.json"));
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         String url = getIntent().getStringExtra(EXTRA_URL);
@@ -288,6 +290,21 @@ public class DetailsActivity extends AppCompatActivity {
         trailer.setTag("play");
         trailer.setOnClickListener(v -> playTrailer(title));
         actions.addView(trailer, ui.params(-2, ui.dp(44)));
+        final BrowseItem savedItem = new BrowseItem(
+                title, "", details.coverUrl, details.url, typeOf(details), "");
+        final TextView saved = ui.ghostButton(
+                watchlistStore.contains(details.url) ? "★ در علاقه‌مندی‌ها" : "+ علاقه‌مندی‌ها",
+                R.drawable.ic_bookmark);
+        LinearLayout.LayoutParams savedParams = ui.params(-2, ui.dp(44));
+        savedParams.setMarginStart(ui.dp(10));
+        saved.setOnClickListener(v -> {
+            boolean now = watchlistStore.toggle(savedItem);
+            saved.setText(now ? "★ در علاقه‌مندی‌ها" : "+ علاقه‌مندی‌ها");
+            Toast.makeText(this,
+                    now ? "به علاقه‌مندی‌ها اضافه شد" : "از علاقه‌مندی‌ها حذف شد",
+                    Toast.LENGTH_SHORT).show();
+        });
+        actions.addView(saved, savedParams);
         info.addView(actions);
 
         LinearLayout.LayoutParams infoParams = ui.params(0, -2, 1f);

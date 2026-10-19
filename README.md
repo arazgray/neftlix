@@ -25,14 +25,15 @@ The app communicates directly with the media source, requiring no dedicated back
 - **Content details:** Displays wide key art, the portrait poster (same 2:3 cover as the lists), cleaned titles, IMDb ratings, satisfaction scores, content type, and available links — descriptions on the right, collapsible comments and watch list on the left.
 - **YouTube trailers:** Opens the YouTube app with a search query based on the title and release year.
 - **Expandable watch lists:** Browse seasons, dubbing and subtitle categories, video quality options, and episode links. Comments and the watch list are independently expandable sections.
+- **Watch later («علاقه‌مندی‌ها»):** Save any title from its details page; the top-bar button opens the saved grid. Long-press OK on a card to delete it.
 
 ### Video playback
 
 - **Integrated player:** Streams available media links through AndroidX Media3 ExoPlayer.
 - **Persian subtitles:** Automatically prefers Persian subtitles, with Vazirmatn typography, right-to-left text, transparent backgrounds, and drop shadows.
 - **Remote controls:** D-pad navigation, OK to select or expand, and Back to navigate or control playback. Every control highlights red on focus, including rewind/forward.
-- **Playback options:** The subtitle button opens one compact on-brand dialog (subtitles with Off, audio where multiple exist, quality where multiple exist) whose options all turn red on focus; choices apply immediately with no confirmation step.
-- **Playback shortcuts:** Seek backward or forward by 15 seconds while player controls are hidden.
+- **Playback options:** The subtitle button opens one compact glassy dialog (subtitles with Off, audio where multiple exist, quality where multiple exist) whose options all turn red on focus; choices apply immediately with no confirmation step.
+- **Playback shortcuts:** Seek backward or forward by 10 seconds while player controls are hidden; the on-screen rewind/forward buttons step 10 seconds too.
 - **Screen stays awake:** Prevents the TV box from activating its screensaver during playback.
 
 ### Android TV interface
@@ -40,7 +41,7 @@ The app communicates directly with the media source, requiring no dedicated back
 - **Consistent scaling:** A shared 960dp design system (`Ui.java`) scales dimensions, spacing, and typography using `screenWidthDp / 960`, maintaining consistent proportions across 720p, 1080p, and 4K displays.
 - **Stable focus states:** Focused elements use a red outline and bold titles without resizing, preventing layout overflow.
 - **Custom theme:** Netflix-inspired black-and-red styling, translucent panels, glass-like pills, and a full-screen transparent-logo splash screen.
-- **Persian typography:** Vazirmatn throughout the application and subtitle rendering.
+- **Persian typography:** Vazirmatn everywhere — all app text, dialogs, and subtitle rendering (loaded once as a font family, bold included).
 - **App information:** An information card with the app description, version, author, media source attribution, website link, and a QR code linking to `arazgray.com`.
 
 ### Caching and updates

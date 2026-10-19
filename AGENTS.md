@@ -60,16 +60,18 @@ app/src/main/java/com/arazgray/neftlix/
   Ui.java                  design system: scale, palette, widget factories (see below)
   DisplayText.java         pure display-text helpers (title cleaning, watch labels,
                            trailer queries), unit-tested
-  MainActivity.java        home: rails/grid + search + genres (no hero), auto update check
-  DetailsActivity.java     details: title/key-art, trailer button, comments + playlist
-                           collapsibles, watch-list hierarchy
+  MainActivity.java        home: rails/grid + search + genres + watchlist page (no hero),
+                           auto update check
+  DetailsActivity.java     details: title/key-art, trailer + watchlist-toggle buttons,
+                           comments + playlist collapsibles, watch-list hierarchy
+  WatchlistStore.java      persisted watch-later list (JSON file), unit-tested
   PlayerActivity.java      ExoPlayer wrapper, red focus on player buttons only, single
                            compact options dialog, keep-screen-on
   CrashLogger.java         black crash screen + file log
 app/src/main/res/drawable*/ → brand assets + vector icons (in-app marks use transparent
   `logo_transparent.png`); res/font → Vazirmatn
 app/src/test/ → JVM unit tests (JUnit 4): UiTest, DisplayTextTest, CatalogRepositoryTest,
-  CatalogCacheTest — run in CI via `testDebugUnitTest`
+  CatalogCacheTest, WatchlistStoreTest — run in CI via `testDebugUnitTest`
 ```
 
 ## Design system — `Ui.java`
@@ -105,9 +107,13 @@ The whole redesign lives here; **new screens should use these factories, not raw
 - **Player:** opens from a link, black shutter, buffering indicator, styled error card,
   `setKeepScreenOn(true)` so boxes (Mi Box) never drop to the screensaver mid-play.
   Every controller button highlights red on focus (`markFocusable()` covers button views
-  only, never containers; rewind/forward are wired explicitly by id);
-  CC opens one compact playback-options dialog (subtitles + Off, audio, quality — sections only
-  when meaningful), all options red-on-focus with apply-on-select; the gear button is hidden.
+  only, never containers, and replaces stock backgrounds so no white survives;
+  rewind/forward are wired explicitly by id, all stepping 10s);
+  CC opens one compact glassy playback-options dialog (subtitles + Off, audio, quality —
+  sections only when meaningful), all options red-on-focus with apply-on-select; the gear
+  button is hidden.
+- **Watchlist:** «علاقه‌مندی‌ها» top-bar button opens the saved grid; toggle beside the
+  trailer button on details; long-press OK on a card offers delete (`WatchlistStore`).
 - **Updates:** `checkAppUpdate(true)` runs once in `MainActivity.onCreate` (silent unless an
   update is found); the update button calls `checkAppUpdate(false)`.
 
@@ -139,15 +145,15 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 17 / 1.16 on `main` (v1.16 tag released).
+- Current: 18 / 1.17 on `main` (v1.17 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.16 released, Oct 2026)
+## Current state (v1.17 released, Oct 2026)
 
-- v1.16 on `main` (versionCode 17): player focus reverted to buttons-only (no red panels),
-  explicit rewind/forward wiring, single compact options dialog (subs+Off/audio/quality),
-  gear button removed.
+- v1.17 on `main` (versionCode 18): stock button backgrounds replaced at wire time (no white),
+  glassy compact options dialog, watchlist («علاقه‌مندی‌ها») with long-press delete,
+  Vazirmatn everywhere, 10s seek steps.
 - In-app updater reads `version.json` from `main` via raw.githubusercontent.
 - Screenshot workflow permanently removed — do not re-add emulator CI.
 - Committed `screenshot.png` / `screenshot-details.png` predate the تماشا wording;

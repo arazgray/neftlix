@@ -57,6 +57,7 @@ final class Ui {
 
     final Activity activity;
     final float scale;
+    final android.graphics.Typeface font;
     private final float density;
     private final Drawable placeholder;
 
@@ -67,6 +68,14 @@ final class Ui {
         float widthDp = metrics.widthPixels / this.density;
         this.scale = scaleForWidth(widthDp);
         this.placeholder = new android.graphics.drawable.ColorDrawable(SURFACE_2);
+        android.graphics.Typeface loaded = android.graphics.Typeface.DEFAULT;
+        try {
+            android.graphics.Typeface family =
+                    androidx.core.content.res.ResourcesCompat.getFont(activity, R.font.vazirmatn);
+            if (family != null) loaded = family;
+        } catch (Exception ignored) {
+        }
+        this.font = loaded;
     }
 
     int dp(float value) {
@@ -99,7 +108,7 @@ final class Ui {
     void applyText(TextView view, float sizeSp, int color, boolean bold) {
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp(sizeSp));
         view.setTextColor(color);
-        view.setTypeface(Typeface.DEFAULT, bold ? Typeface.BOLD : Typeface.NORMAL);
+        view.setTypeface(font, bold ? Typeface.BOLD : Typeface.NORMAL);
     }
 
     TextView heading(String value) {

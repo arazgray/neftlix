@@ -36,10 +36,12 @@ public class MainActivity extends AppCompatActivity {
     private final CatalogRepository repository = new CatalogRepository();
     private Ui ui;
     private CatalogData catalog;
+    private WatchlistStore watchlistStore;
     private LinearLayout page;
     private TextView status;
     private EditText searchBox;
     private boolean showingSubPage;
+    private boolean showingWatchlist;
 
     private BrowseSection activeSection;
     private BrowseCategory activeCategory;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         CrashLogger.install(this);
         ui = new Ui(this);
+        watchlistStore = new WatchlistStore(new java.io.File(getFilesDir(), "watchlist.json"));
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         getWindow().setStatusBarColor(Ui.BG);
         getWindow().setNavigationBarColor(Ui.BG);
@@ -88,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         // فهرست تازه در onCreate گرفته می‌شود؛ اینجا فقط اگر چیزی نداریم تلاش کن
         if (catalog == null) refreshCatalog();
+        // بازگشت از صفحه جزئیات: فهرست علاقه‌مندی‌ها را تازه کن
+        if (showingWatchlist) openWatchlist();
     }
 
     // ── پوستهٔ صفحه ──────────────────────────────────────────────────
@@ -110,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
         searchBox = new EditText(this);
         searchBox.setSingleLine(true);
         searchBox.setTextColor(Ui.TEXT);
+        searchBox.setTypeface(ui.font, Typeface.NORMAL);
         searchBox.setHintTextColor(Ui.TEXT_MUTED);
         searchBox.setHint("جست‌وجوی فیلم و سریال…");
         searchBox.setTextDirection(View.TEXT_DIRECTION_RTL);
@@ -160,6 +166,12 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams updateParams = ui.params(-2, ui.dp(42));
         updateParams.setMarginEnd(ui.dp(8));
         bar.addView(update, updateParams);
+
+        TextView watchlist = ui.ghostButton("علاقه‌مندی‌ها", R.drawable.ic_bookmark);
+        watchlist.setOnClickListener(view -> openWatchlist());
+        LinearLayout.LayoutParams watchlistParams = ui.params(-2, ui.dp(42));
+        watchlistParams.setMarginEnd(ui.dp(8));
+        bar.addView(watchlist, watchlistParams);
 
         View info = ui.iconButton(R.drawable.ic_info, "درباره");
         info.setLayoutParams(ui.params(ui.dp(42), ui.dp(42)));
@@ -598,6 +610,7 @@ public class MainActivity extends AppCompatActivity {
         hideSplash();
         page.removeAllViews();
         showingSubPage = false;
+        showingWatchlist = false;
         activeSection = null;
         activeCategory = null;
         if (catalog == null) {
@@ -673,6 +686,7 @@ public class MainActivity extends AppCompatActivity {
         if (imm != null) imm.hideSoftInputFromWindow(searchBox.getWindowToken(), 0);
         searchBox.clearFocus();
         showingSubPage = true;
+        showingWatchlist = false;
         activeSection = null;
         activeCategory = null;
         if (query.isEmpty()) {
@@ -732,6 +746,7 @@ public class MainActivity extends AppCompatActivity {
         activeCategory = null;
         listingPage = pageNum;
         showingSubPage = true;
+        showingWatchlist = false;
         showLoading("در حال بارگذاری " + section.title + "…");
         io.execute(() -> {
             try {
@@ -761,6 +776,7 @@ public class MainActivity extends AppCompatActivity {
         activeSection = null;
         listingPage = pageNum;
         showingSubPage = true;
+        showingWatchlist = false;
         showLoading("در حال بارگذاری " + category.title + "…");
         io.execute(() -> {
             try {
@@ -787,8 +803,47 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** فهرست «علاقه‌مندی‌ها»: عنوان‌های ذخیره‌شده برای تماشای بعدی. */
+    private void openWatchlist() {
+        showingSubPage = true;
+        showingWatchlist = true;
+        activeSection = null;
+        activeCategory = null;
+        List<BrowseItem> saved = watchlistStore.items();
+        page.removeAllViews();
+        addBackButton();
+        addHeading("علاقه‌مندی‌ها", Ui.fa(saved.size()) + " عنوان");
+        setStatus(Ui.fa(saved.size()) + " عنوان در علاقه‌مندی‌ها");
+        if (saved.isEmpty()) {
+            addMessage("علاقه‌مندی‌ها", "هنوز چیزی ذخیره نشده؛ از صفحهٔ هر عنوان دکمهٔ «+ علاقه‌مندی‌ها» را بزنید.");
+        } else {
+            addItemsGrid(saved, true);
+        }
+        focusFirst();
+    }
+
+    /** نگه‌داشتن OK روی کارت علاقه‌مندی: دکمهٔ حذف. */
+    private void confirmRemoveFromWatchlist(final BrowseItem item) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(item.title)
+                .setMessage("از علاقه‌مندی‌ها حذف شود؟")
+                .setPositiveButton("حذف", (dialog, which) -> {
+                    watchlistStore.remove(item.url);
+                    openWatchlist();
+                })
+                .setNegativeButton("انصراف", null)
+                .show();
+    }
+
     /** شبکهٔ کارت‌ها برای صفحه‌های آرشیو، ژانر و نتیجهٔ جست‌وجو. */
     private void addItemsGrid(List<BrowseItem> items) {
+        addItemsGrid(items, false);
+    }
+
+    /**
+     * @param deletable نگه‌داشتن OK روی کارت، دیالوگ حذف از علاقه‌مندی‌ها را باز می‌کند
+     */
+    private void addItemsGrid(List<BrowseItem> items, boolean deletable) {
         if (items == null || items.isEmpty()) {
             page.addView(note("موردی پیدا نشد."));
             return;
@@ -801,6 +856,12 @@ public class MainActivity extends AppCompatActivity {
         for (final BrowseItem item : items) {
             View card = ui.posterCard(item, cardWidth, true);
             card.setOnClickListener(v -> openItem(item));
+            if (deletable) {
+                card.setOnLongClickListener(v -> {
+                    confirmRemoveFromWatchlist(item);
+                    return true;
+                });
+            }
             rowCards.add(card);
             if (rowCards.size() == columns) {
                 grid.addView(ui.gridRow(rowCards), bottomMargin());
