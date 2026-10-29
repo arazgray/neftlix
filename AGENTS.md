@@ -4,10 +4,13 @@ Guide for AI agents working on this repo. Read this before touching anything.
 
 ## What this is
 
-Neftlix — a **Persian (RTL) Android TV** client (Java 17, Gradle, minSdk 21 / target 34 /
+Neftlix — a **bilingual (Persian RTL / English LTR) Android TV** client (Java 17, Gradle, minSdk 21 / target 34 /
 compileSdk 35) that scrapes the catalog off `https://www.myf2mi.top/` with Jsoup and plays
 video with media3 ExoPlayer. D-pad remote driven. All UI is built **programmatically in Java —
-there are no XML layouts**. Strings are Persian; keep the RTL/fa tone in user-visible text.
+there are no XML layouts**. User-visible strings live in `values/strings.xml` (English)
+and `values-fa/strings.xml` (Persian) — keep both in sync, never hardcode UI text,
+never force layout direction (it follows the locale); site-sourced Persian content
+(story, comments) may keep explicit direction.
 
 Repo: `github.com/arazgray/neftlix` (public). App id: `com.arazgray.neftlix`.
 
@@ -23,7 +26,7 @@ Repo: `github.com/arazgray/neftlix` (public). App id: `com.arazgray.neftlix`.
    Visual reference = committed `screenshot.png` / `screenshot-details.png`.
 4. `version.json` is the update-check/publish manifest — **do not bump it unless releasing**;
    `app/build.gradle` is where version bumps go during normal work.
-5. Keep Persian comments/style of surrounding code; commits are short, terse, often with a
+5. No code comments in the codebase (user request — do not add any); commits are short, terse, often with a
    scope prefix like `v1.11: …` or `Hero fallback …`.
 
 ## Environment / toolchain
@@ -57,7 +60,13 @@ key for debug+release so updates install over previous installs). Env vars:
 app/src/main/java/com/arazgray/neftlix/
   CatalogRepository.java   data layer: Jsoup scraping (home, listings, search, details, episodes/downloads)
   Models.java              POJOs: CatalogData/BrowseSection/BrowseItem/GenreCategory/DetailsInfo/DownloadGroup...
-  Ui.java                  design system: scale, palette, widget factories (see below)
+  SettingsStore.java       SharedPreferences: UI language (fa/en) + accent color index
+  LocaleHelper.java        wraps context with the stored locale (attachBaseContext in each activity)
+  Ui.java                  design system (scale, palette, widget factories — see below)
+                           + per-activity `brand` accent / `persian` flag, locale-aware
+                           digits, rails mirror automatically via layout direction (reveal() clamps
+                           both ways; chevron/back icons mirror); **new screens should use these
+                           factories, not raw views.**
   DisplayText.java         pure display-text helpers (title cleaning, watch labels,
                            trailer queries), unit-tested
   MainActivity.java        home: rails/grid + search + genres + watchlist page (no hero),
@@ -65,11 +74,11 @@ app/src/main/java/com/arazgray/neftlix/
   DetailsActivity.java     details: title/key-art, trailer + watchlist-toggle buttons,
                            comments + playlist collapsibles, watch-list hierarchy
   WatchlistStore.java      persisted watch-later list (JSON file), unit-tested
-  PlayerActivity.java      ExoPlayer wrapper, red focus on player buttons only, single
+  PlayerActivity.java      ExoPlayer wrapper, accent focus on player buttons only, single
                            compact options dialog, keep-screen-on
   CrashLogger.java         black crash screen + file log
 app/src/main/res/drawable*/ → brand assets + vector icons (in-app marks use transparent
-  `logo_transparent.png`); res/font → Vazirmatn
+  `logo_transparent.png`, fa locale overrides in `drawable-fa-nodpi/`); res/font → Vazirmatn
 app/src/test/ → JVM unit tests (JUnit 4): UiTest, DisplayTextTest, CatalogRepositoryTest,
   CatalogCacheTest, WatchlistStoreTest — run in CI via `testDebugUnitTest`
 ```
@@ -84,11 +93,11 @@ The whole redesign lives here; **new screens should use these factories, not raw
 - Palette + tokens for spacing/radii/type; focus ring style.
 - Factories: poster cards (focus ring, no resize + hi-res image upgrade), pills, ghost/primary
   buttons, centered icon buttons, chips, horizontal rails with focus auto-reveal (`reveal()` —
-  RTL-correct, formula verified against AOSP), wrapping grids (`weight-1` rows + `padRow()` to stop
+  direction-agnostic, formula verified against AOSP), wrapping grids (`weight-1` rows + `padRow()` to stop
   the last row stretching), depth-aware `expandable()`.
 - Focus never resizes anything (user vetoed the zoom: focused views overflowed their frames).
   Focus = color/border/bold only. Same for `posterCard` and `iconButton`.
-- RTL: everything mirrors automatically; rails start scrollX at `max` (RTL origin). Don't
+- Layout follows the locale (RTL fa / LTR en); rails clamp visibility both ways. Don't
   "fix" direction math unless you re-derive it.
 
 ## Screen behaviors (so you don't regress them)

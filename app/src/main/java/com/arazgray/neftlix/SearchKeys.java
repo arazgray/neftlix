@@ -1,9 +1,5 @@
 package com.arazgray.neftlix;
 
-/**
- * چیدمان صفحه‌کلید داخل برنامه و ویرایش متن جست‌وجو.
- * منطق خالص است تا بدون اندروید تست شود.
- */
 final class SearchKeys {
     static final String DIGITS = "1234567890";
 
@@ -12,7 +8,6 @@ final class SearchKeys {
     private SearchKeys() {
     }
 
-    /** ردیف‌های حروف؛ ارقام جداگانه در {@link #DIGITS} هستند. */
     static String[] letterRows(boolean persian) {
         if (persian) {
             return new String[] {

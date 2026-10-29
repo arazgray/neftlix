@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-/** تست تمیزکاری عنوان نمایشی. */
 public class DisplayTextTest {
 
     @Test
@@ -69,7 +68,7 @@ public class DisplayTextTest {
                 DisplayText.trailerQuery("حیوانات Animals 2026"));
         assertEquals("god will not help 2025 trailer",
                 DisplayText.trailerQuery("God Will Not Help 2025"));
-        // عنوان کاملاً فارسی همان‌طور که هست جست‌وجو می‌شود
+        
         assertEquals("حیوانات trailer", DisplayText.trailerQuery("حیوانات"));
         assertEquals("trailer", DisplayText.trailerQuery(""));
         assertEquals("trailer", DisplayText.trailerQuery(null));

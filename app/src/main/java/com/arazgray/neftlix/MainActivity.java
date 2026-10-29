@@ -1,6 +1,7 @@
 package com.arazgray.neftlix;
 
 import android.content.Intent;
+import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -23,14 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * صفحهٔ اصلی: راست‌چین، فارسی و مناسب ریموت‌کنترل تلویزیون.
- *
- * ساختار: نوار بالا (لوگو، جست‌وجو، کاتالوگ، به‌روزرسانی، درباره) → بیلبورد ویژه →
- * ریل‌های افقی فیلم و سریال → دسته‌بندی ژانرها. هر بار که باز می‌شود فهرست از
- * سایت تازه می‌شود و تا وقتی پاسخ بیاید، فهرست ذخیره‌شدهٔ روی دستگاه نشان
- * داده می‌شود.
- */
 public class MainActivity extends AppCompatActivity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final CatalogRepository repository = new CatalogRepository();
@@ -50,26 +43,30 @@ public class MainActivity extends AppCompatActivity {
     private boolean listingHasNext;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         CrashLogger.install(this);
         ui = new Ui(this);
         watchlistStore = new WatchlistStore(new java.io.File(getFilesDir(), "watchlist.json"));
-        getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         getWindow().setStatusBarColor(Ui.BG);
         getWindow().setNavigationBarColor(Ui.BG);
-        // پس‌زمینهٔ پنجره تا ست‌کانتنت‌ویو سیاه نماند.
+        
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Ui.BG));
-        // جست‌وجو صفحه‌کلید خودش را دارد؛ کیبورد سیستم هیچ‌وقت نباید باز شود
+        
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
                 | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
-        // پاک‌سازی فایل به‌روزرسانی قبلی (بعد از نصب دیگر لازم نیست)
+        
         try {
             java.io.File updatesDir = new java.io.File(getExternalFilesDir("updates"), "");
             java.io.File[] leftovers = updatesDir.listFiles();
             if (leftovers != null) {
                 for (java.io.File file : leftovers) {
-                    //noinspection ResultOfMethodCallIgnored
+                    
                     file.delete();
                 }
             }
@@ -82,34 +79,31 @@ public class MainActivity extends AppCompatActivity {
         CatalogData cached = CatalogCache.load(cacheFile);
         if (cached != null) {
             catalog = cached;
-            setStatus("نمایش فهرست ذخیره‌شده…");
+            setStatus(getString(R.string.status_cached));
             renderHome();
             refreshCatalog(true);
         } else {
             refreshCatalog(false);
         }
-        // بررسی خودکار نسخه، فقط یک‌بار هنگام اجرا؛ فقط اگر نسخهٔ جدید باشد دیالوگ می‌آید
+        
         checkAppUpdate(true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // فهرست تازه در onCreate گرفته می‌شود؛ اینجا فقط اگر چیزی نداریم تلاش کن
+        
         if (catalog == null) refreshCatalog();
-        // بازگشت از صفحه جزئیات: فهرست علاقه‌مندی‌ها را تازه کن
+        
         if (showingWatchlist) openWatchlist();
     }
-
-    // ── پوستهٔ صفحه ──────────────────────────────────────────────────
 
     private void buildShell() {
         LinearLayout root = ui.column();
 
-        // نوار بالا
         LinearLayout bar = ui.row();
         bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(9), ui.dp(Ui.PAGE_PAD), ui.dp(5));
-        // مشکی نیمه‌شفاف و بالاتر از کارت‌های زوم‌شده تا فهرست از زیرش رد شود.
+        
         bar.setBackgroundColor(0xB30A0A0C);
         bar.setElevation(ui.dp(16));
 
@@ -136,9 +130,8 @@ public class MainActivity extends AppCompatActivity {
         searchBox.setTextColor(Ui.TEXT);
         searchBox.setTypeface(ui.font, Typeface.NORMAL);
         searchBox.setHintTextColor(Ui.TEXT_MUTED);
-        searchBox.setHint("جستجو");
+        searchBox.setHint(getString(R.string.search_hint));
         searchBox.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
-        searchBox.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         searchBox.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         searchBox.setBackground(ui.stroked(Ui.SURFACE_2, 22, 1, Ui.HAIRLINE));
         searchBox.setPadding(ui.dp(15), 0, ui.dp(15), 0);
@@ -147,13 +140,13 @@ public class MainActivity extends AppCompatActivity {
         searchBox.setCompoundDrawablePadding(ui.dp(9));
         searchBox.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(
                 ui.stroked(hasFocus ? 0xFF17171C : Ui.SURFACE_2, 22, 1,
-                        hasFocus ? Ui.BRAND : Ui.HAIRLINE)));
+                        hasFocus ? ui.brand : Ui.HAIRLINE)));
         LinearLayout.LayoutParams searchParams = ui.params(0, ui.dp(42), 1f);
         searchParams.setMarginEnd(ui.dp(10));
         bar.addView(searchBox, searchParams);
         searchPad = new SearchPad(ui, searchBox, this::showSearchResults);
         searchBox.setOnClickListener(v -> searchPad.open());
-        // TextView است تا کیبورد سیستم باز نشود. OK صفحه‌کلید خودمان را می‌آورد.
+        
         searchBox.setOnKeyListener((v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER
@@ -184,37 +177,37 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        TextView homeBtn = ui.ghostButton("خانه", R.drawable.ic_home);
+        TextView homeBtn = ui.ghostButton(getString(R.string.nav_home), R.drawable.ic_home);
         homeBtn.setOnClickListener(view -> renderHome());
         LinearLayout.LayoutParams homeBtnParams = ui.params(-2, ui.dp(42));
         homeBtnParams.setMarginEnd(ui.dp(8));
         bar.addView(homeBtn, homeBtnParams);
 
-        TextView refresh = ui.ghostButton("کاتالوگ", R.drawable.ic_refresh);
+        TextView refresh = ui.ghostButton(getString(R.string.nav_catalog), R.drawable.ic_refresh);
         refresh.setOnClickListener(view -> refreshCatalog(false));
         LinearLayout.LayoutParams refreshParams = ui.params(-2, ui.dp(42));
         refreshParams.setMarginEnd(ui.dp(8));
         bar.addView(refresh, refreshParams);
 
-        TextView update = ui.ghostButton("به‌روزرسانی", R.drawable.ic_download);
+        TextView update = ui.ghostButton(getString(R.string.nav_update), R.drawable.ic_download);
         update.setOnClickListener(view -> checkAppUpdate());
         LinearLayout.LayoutParams updateParams = ui.params(-2, ui.dp(42));
         updateParams.setMarginEnd(ui.dp(8));
         bar.addView(update, updateParams);
 
-        TextView watchlist = ui.ghostButton("علاقه‌مندی‌ها", R.drawable.ic_bookmark);
+        TextView watchlist = ui.ghostButton(getString(R.string.nav_watchlist), R.drawable.ic_bookmark);
         watchlist.setOnClickListener(view -> openWatchlist());
         LinearLayout.LayoutParams watchlistParams = ui.params(-2, ui.dp(42));
         watchlistParams.setMarginEnd(ui.dp(8));
         bar.addView(watchlist, watchlistParams);
 
-        TextView settings = ui.ghostButton("تنظیمات", R.drawable.ic_settings);
+        TextView settings = ui.ghostButton(getString(R.string.nav_settings), R.drawable.ic_settings);
         settings.setOnClickListener(view -> openSettings());
         LinearLayout.LayoutParams settingsParams = ui.params(-2, ui.dp(42));
         settingsParams.setMarginEnd(ui.dp(8));
         bar.addView(settings, settingsParams);
 
-        View info = ui.iconButton(R.drawable.ic_info, "درباره");
+        View info = ui.iconButton(R.drawable.ic_info, getString(R.string.about_title));
         info.setLayoutParams(ui.params(ui.dp(42), ui.dp(42)));
         info.setOnClickListener(view -> showInfoDialog());
         bar.addView(info);
@@ -224,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         status = ui.text("", 12, Ui.TEXT_MUTED);
         status.setSingleLine(true);
         status.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        // قرص وضعیت زیر نوار بالا
+        
         status.setBackground(ui.stroked(Ui.STATUS_BG, Ui.RADIUS_PILL, 1, Ui.HAIRLINE));
         status.setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(6));
         status.setVisibility(View.GONE);
@@ -297,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void hideSplash() {
         if (splashOverlay == null || splashOverlay.getVisibility() != View.VISIBLE) return;
-        // اسپلش حداقل کمی بماند تا فقط یک چشمک نباشد.
+        
         long wait = 900 - (android.os.SystemClock.uptimeMillis() - splashShownAt);
         Runnable fade = () -> {
             if (splashOverlay == null) return;
@@ -353,14 +346,11 @@ public class MainActivity extends AppCompatActivity {
         if (loadingOverlay.hasFocus()) focusFirst();
     }
 
-    /** متن قرص وضعیت؛ خالی یعنی قرص پنهان شود. */
     private void setStatus(String text) {
         if (status == null) return;
         status.setText(text == null ? "" : text);
         status.setVisibility(text == null || text.isEmpty() ? View.GONE : View.VISIBLE);
     }
-
-    // ── فهرست و به‌روزرسانی ─────────────────────────────────────────
 
     private void refreshCatalog() {
         refreshCatalog(false);
@@ -368,10 +358,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void refreshCatalog(boolean quiet) {
         if (quiet) {
-            setStatus("در حال به‌روزرسانی پس‌زمینه…");
+            setStatus(getString(R.string.status_updating_bg));
         } else {
-            setStatus("در حال به‌روزرسانی فهرست از سایت…");
-            showLoading("در حال به‌روزرسانی فهرست…");
+            setStatus(getString(R.string.status_updating_site));
+            showLoading(getString(R.string.loading_list));
         }
         io.execute(() -> {
             try {
@@ -384,26 +374,26 @@ public class MainActivity extends AppCompatActivity {
                     catalog = latest;
                     hideLoading();
                     if (quiet) {
-                        setStatus("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان");
+                        setStatus(getString(R.string.status_updated, ui.digits(countItems(latest))));
                         if (!showingSubPage && page.getChildCount() == 0) renderHome();
                         return;
                     }
                     showingSubPage = false;
                     activeSection = null;
                     activeCategory = null;
-                    setStatus("فهرست به‌روز شد · " + Ui.fa(countItems(latest)) + " عنوان · با ریموت انتخاب کنید");
+                    setStatus(getString(R.string.status_updated_pick, ui.digits(countItems(latest))));
                     renderHome();
                 });
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    setStatus("به‌روزرسانی ناموفق بود. اینترنت را بررسی کنید و دوباره تلاش کنید.");
+                    setStatus(getString(R.string.status_update_failed));
                     if (catalog == null) {
                         hideSplash();
                         page.removeAllViews();
-                        addMessage("فهرست در دسترس نیست", error.getMessage());
+                        addMessage(getString(R.string.catalog_unavailable), error.getMessage());
                     } else {
-                        Toast.makeText(this, "به‌روزرسانی ناموفق بود؛ آخرین فهرست نمایش داده شد", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, getString(R.string.toast_stale), Toast.LENGTH_LONG).show();
                     }
                 });
             }
@@ -417,12 +407,8 @@ public class MainActivity extends AppCompatActivity {
         checkAppUpdate(false);
     }
 
-    /**
-     * بررسی نسخهٔ جدید؛ در حالت silent (اجرای خودکار برنامه) هیچ پیام و
-     * وضعیتی نشان داده نمی‌شود و فقط هنگام یافتن نسخهٔ جدید دیالوگ می‌آید.
-     */
     private void checkAppUpdate(boolean silent) {
-        if (!silent) setStatus("در حال بررسی نسخه جدید…");
+        if (!silent) setStatus(getString(R.string.status_checking));
         io.execute(() -> {
             try {
                 java.net.HttpURLConnection conn =
@@ -441,31 +427,31 @@ public class MainActivity extends AppCompatActivity {
                 String notes = info.optString("notes", "");
                 if (latest > BuildConfig.VERSION_CODE && !apkUrl.isEmpty()) {
                     runOnUiThread(() -> showUpdateDialog(versionName, notes, apkUrl));
-                    runOnUiThread(() -> setStatus("نسخه جدید پیدا شد"));
+                    runOnUiThread(() -> setStatus(getString(R.string.status_update_found)));
                 } else if (!silent) {
                     runOnUiThread(() -> {
-                        setStatus("اپ به‌روز است");
-                        Toast.makeText(this, "نسخه جدیدی نیست", Toast.LENGTH_SHORT).show();
+                        setStatus(getString(R.string.status_up_to_date));
+                        Toast.makeText(this, getString(R.string.toast_no_update), Toast.LENGTH_SHORT).show();
                     });
                 }
             } catch (Throwable e) {
                 if (silent) return;
                 runOnUiThread(() -> {
-                    setStatus("بررسی نسخه ناموفق بود");
-                    Toast.makeText(this, "خطا در بررسی به‌روزرسانی", Toast.LENGTH_LONG).show();
+                    setStatus(getString(R.string.status_check_failed));
+                    Toast.makeText(this, getString(R.string.toast_check_error), Toast.LENGTH_LONG).show();
                 });
             }
         });
     }
 
     private void showUpdateDialog(String versionName, String notes, String apkUrl) {
-        String title = "نسخه جدید" + (versionName.isEmpty() ? "" : " " + versionName);
-        String message = notes.isEmpty() ? "دانلود و نصب شود؟" : notes + "\n\nدانلود و نصب شود؟";
+        String title = getString(R.string.update_new) + (versionName.isEmpty() ? "" : " " + versionName);
+        String message = notes.isEmpty() ? getString(R.string.update_confirm) : notes + "\n\n" + getString(R.string.update_confirm);
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton("دانلود و نصب", (dialog, which) -> downloadAndInstall(apkUrl))
-                .setNegativeButton("بعداً", null)
+                .setPositiveButton(getString(R.string.btn_download_install), (dialog, which) -> downloadAndInstall(apkUrl))
+                .setNegativeButton(getString(R.string.btn_later), null)
                 .show();
     }
 
@@ -481,18 +467,18 @@ public class MainActivity extends AppCompatActivity {
         scroll.addView(traceView);
         androidx.appcompat.app.AlertDialog crashDialog =
                 new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("خطای اجرای قبلی")
-                .setMessage("برنامه دفعه قبل به‌طور غیرمنتظره بسته شد. متن خطا:")
+                .setTitle(getString(R.string.crash_title))
+                .setMessage(getString(R.string.crash_msg))
                 .setView(scroll)
-                .setPositiveButton("کپی متن خطا", (d, which) -> {
+                .setPositiveButton(getString(R.string.crash_copy), (d, which) -> {
                     android.content.ClipboardManager clipboard =
                             (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                     if (clipboard != null) {
                         clipboard.setPrimaryClip(android.content.ClipData.newPlainText("crash", trace));
-                        Toast.makeText(this, "کپی شد", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.crash_copied), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("بستن", null)
+                .setNegativeButton(getString(R.string.btn_close), null)
                 .show();
         if (crashDialog.getWindow() != null) {
             crashDialog.getWindow().setBackgroundDrawable(
@@ -513,25 +499,25 @@ public class MainActivity extends AppCompatActivity {
         logoParams.gravity = Gravity.CENTER_HORIZONTAL;
         layout.addView(logo, logoParams);
 
-        TextView desc = ui.text("اپ تلویزیون فارسی برای مرور فیلم‌ها و سریال‌ها، جست‌وجوی سراسری آرشیو و تماشای مستقیم با پخش‌کننده داخلی.",
+        TextView desc = ui.text(getString(R.string.info_desc),
                 13, Ui.TEXT_DIM);
         desc.setGravity(Gravity.CENTER);
         desc.setPadding(0, ui.dp(12), 0, 0);
         layout.addView(desc);
 
-        TextView source = ui.text("منبع رسانه: فیلم۲مدیا (myf2mi.top) — همهٔ آرشیو را می‌توانید از آنجا دانلود کنید.",
+        TextView source = ui.text(getString(R.string.info_source),
                 12, Ui.TEXT_MUTED);
         source.setGravity(Gravity.CENTER);
         source.setPadding(0, ui.dp(8), 0, 0);
         layout.addView(source);
 
-        TextView version = ui.text("نسخه " + BuildConfig.VERSION_NAME + " (" + Ui.fa(BuildConfig.VERSION_CODE) + ")",
+        TextView version = ui.text(getString(R.string.info_version, BuildConfig.VERSION_NAME, ui.digits(BuildConfig.VERSION_CODE)),
                 12, Ui.TEXT_MUTED);
         version.setGravity(Gravity.CENTER);
         version.setPadding(0, ui.dp(10), 0, 0);
         layout.addView(version);
 
-        TextView author = ui.text("سازنده: Araz Gray · arazgray.com", 12, Ui.TEXT_MUTED);
+        TextView author = ui.text(getString(R.string.info_maker), 12, Ui.TEXT_MUTED);
         author.setGravity(Gravity.CENTER);
         author.setPadding(0, ui.dp(4), 0, 0);
         layout.addView(author);
@@ -551,8 +537,8 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout buttons = ui.row();
         buttons.setGravity(Gravity.CENTER);
         buttons.setPadding(0, ui.dp(12), 0, 0);
-        TextView close = infoDialogButton("بستن");
-        TextView site = infoDialogButton("باز کردن سایت");
+        TextView close = infoDialogButton(getString(R.string.btn_close));
+        TextView site = infoDialogButton(getString(R.string.btn_open_site));
         LinearLayout.LayoutParams closeParams = ui.params(-2, ui.dp(40));
         closeParams.setMarginEnd(ui.dp(14));
         buttons.addView(close, closeParams);
@@ -573,16 +559,15 @@ public class MainActivity extends AppCompatActivity {
         });
         close.requestFocus();
         if (dialog.getWindow() != null) {
-            // مشکی نیمه‌شفاف با قاب نازک قرمز؛ کوچک‌تر از حالت پیش‌فرض.
+            
             dialog.getWindow().setBackgroundDrawable(
-                    ui.stroked(0xCC000000, 16, 1, Ui.BRAND));
+                    ui.stroked(0xCC000000, 16, 1, ui.brand));
             android.view.WindowManager.LayoutParams attributes = dialog.getWindow().getAttributes();
             attributes.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.45);
             dialog.getWindow().setAttributes(attributes);
         }
     }
 
-    /** دکمهٔ سفید دیالوگ درباره؛ فقط با فوکوس قرمز می‌شود. */
     private TextView infoDialogButton(String label) {
         TextView button = ui.text(label, 14, 0xFF0A0A0C, true);
         button.setGravity(Gravity.CENTER);
@@ -593,7 +578,7 @@ public class MainActivity extends AppCompatActivity {
         button.setClickable(true);
         if (android.os.Build.VERSION.SDK_INT >= 26) button.setDefaultFocusHighlightEnabled(false);
         final android.graphics.drawable.GradientDrawable idle = ui.rounded(Ui.TEXT, 20);
-        final android.graphics.drawable.GradientDrawable focused = ui.rounded(Ui.BRAND, 20);
+        final android.graphics.drawable.GradientDrawable focused = ui.rounded(ui.brand, 20);
         button.setBackground(idle);
         button.setOnFocusChangeListener((v, hasFocus) -> {
             v.setBackground(hasFocus ? focused : idle);
@@ -628,15 +613,15 @@ public class MainActivity extends AppCompatActivity {
         progress.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
         LinearLayout layout = ui.column();
         layout.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), ui.dp(8));
-        final TextView label = ui.text("در حال دانلود… ٪۰", 13, Ui.TEXT);
+        final TextView label = ui.text(getString(R.string.downloading_pct, ui.digits(0)), 13, Ui.TEXT);
         layout.addView(label, ui.params(-1, -2));
         layout.addView(progress, ui.params(-1, ui.dp(24)));
         final boolean[] cancelled = {false};
         androidx.appcompat.app.AlertDialog dialog =
                 new androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("دانلود به‌روزرسانی")
+                        .setTitle(getString(R.string.dlg_downloading))
                         .setView(layout)
-                        .setNegativeButton("لغو", (d, which) -> cancelled[0] = true)
+                        .setNegativeButton(getString(R.string.btn_cancel), (d, which) -> cancelled[0] = true)
                         .setCancelable(false)
                         .show();
         io.execute(() -> {
@@ -657,11 +642,11 @@ public class MainActivity extends AppCompatActivity {
                     int read;
                     while ((read = in.read(buffer)) != -1) {
                         if (cancelled[0]) {
-                            //noinspection ResultOfMethodCallIgnored
+                            
                             apk.delete();
                             runOnUiThread(() -> {
                                 dialog.dismiss();
-                                setStatus("دانلود لغو شد");
+                                setStatus(getString(R.string.status_dl_canceled));
                             });
                             return;
                         }
@@ -671,21 +656,21 @@ public class MainActivity extends AppCompatActivity {
                             final int percent = (int) (done * 100 / total);
                             runOnUiThread(() -> {
                                 progress.setProgress(percent);
-                                label.setText("در حال دانلود… ٪" + Ui.fa(percent));
+                                label.setText(getString(R.string.downloading_pct, ui.digits(percent)));
                             });
                         }
                     }
                 }
                 runOnUiThread(() -> {
                     dialog.dismiss();
-                    setStatus("دانلود تمام شد");
+                    setStatus(getString(R.string.status_dl_done));
                     installApk(apk);
                 });
             } catch (Throwable e) {
                 runOnUiThread(() -> {
                     if (!cancelled[0]) dialog.dismiss();
-                    setStatus("دانلود ناموفق بود");
-                    Toast.makeText(this, "خطا در دانلود به‌روزرسانی", Toast.LENGTH_LONG).show();
+                    setStatus(getString(R.string.status_dl_failed));
+                    Toast.makeText(this, getString(R.string.toast_dl_error), Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -699,7 +684,7 @@ public class MainActivity extends AppCompatActivity {
                         android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                         android.net.Uri.parse("package:" + getPackageName())));
                 Toast.makeText(this,
-                        "نصب از منابع ناشناس را مجاز کنید و دوباره تلاش کنید",
+                        getString(R.string.toast_allow_unknown),
                         Toast.LENGTH_LONG).show();
                 return;
             }
@@ -710,11 +695,9 @@ public class MainActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         } catch (Throwable e) {
-            Toast.makeText(this, "نصب ممکن نشد", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.toast_install_failed), Toast.LENGTH_LONG).show();
         }
     }
-
-    // ── صفحهٔ اصلی ───────────────────────────────────────────────────
 
     private void renderHome() {
         hideSplash();
@@ -724,7 +707,7 @@ public class MainActivity extends AppCompatActivity {
         activeSection = null;
         activeCategory = null;
         if (catalog == null) {
-            addMessage("در حال بارگذاری فهرست", "لطفاً کمی صبر کنید.");
+            addMessage(getString(R.string.loading_catalog), getString(R.string.loading_wait));
             return;
         }
 
@@ -733,13 +716,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (!catalog.movieCategories.isEmpty()) {
-            page.addView(ui.sectionHeader("دسته‌بندی فیلم‌ها",
-                    Ui.fa(catalog.movieCategories.size()) + " ژانر", null));
+            page.addView(ui.sectionHeader(getString(R.string.movie_genres),
+                    getString(R.string.genres_n, ui.digits(catalog.movieCategories.size())), null));
             page.addView(ui.rail(chipViews(catalog.movieCategories)));
         }
         if (!catalog.seriesCategories.isEmpty()) {
-            page.addView(ui.sectionHeader("دسته‌بندی سریال‌ها",
-                    Ui.fa(catalog.seriesCategories.size()) + " ژانر", null));
+            page.addView(ui.sectionHeader(getString(R.string.series_genres),
+                    getString(R.string.genres_n, ui.digits(catalog.seriesCategories.size())), null));
             page.addView(ui.rail(chipViews(catalog.seriesCategories)));
         }
         focusFirst();
@@ -756,23 +739,23 @@ public class MainActivity extends AppCompatActivity {
         }
         if (cards.isEmpty()) {
             page.addView(ui.sectionHeader(section.title, null, null));
-            page.addView(note("موردی پیدا نشد."));
+            page.addView(note(getString(R.string.no_items)));
             return;
         }
         TextView more = null;
         if (section.url != null && !section.url.isEmpty()) {
-            more = ui.ghostButton("مشاهده همه", R.drawable.ic_chevron_end);
+            more = ui.ghostButton(getString(R.string.see_all), R.drawable.ic_chevron_end);
             more.setLayoutParams(ui.params(-2, ui.dp(34)));
             more.setOnClickListener(v -> openSection(section, 1));
         }
-        page.addView(ui.sectionHeader(section.title, Ui.fa(section.items.size()) + " عنوان", more));
+        page.addView(ui.sectionHeader(section.title, getString(R.string.titles_n, ui.digits(section.items.size())), more));
         page.addView(ui.rail(cards));
     }
 
     private List<View> chipViews(List<BrowseCategory> categories) {
         List<View> chips = new ArrayList<>();
         for (final BrowseCategory category : categories) {
-            TextView chip = ui.chip(category.title, Ui.fa(category.count));
+            TextView chip = ui.chip(category.title, getString(R.string.genres_n, ui.digits(category.count)));
             chip.setOnClickListener(view -> openCategory(category, 1));
             chips.add(chip);
         }
@@ -786,8 +769,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    // ── زیرصفحه‌ها ───────────────────────────────────────────────────
-
     private void showSearchResults() {
         if (catalog == null) return;
         final String query = searchBox.getText().toString().trim();
@@ -800,15 +781,15 @@ public class MainActivity extends AppCompatActivity {
         if (query.isEmpty()) {
             page.removeAllViews();
             addBackButton();
-            addHeading("همه عنوان‌ها", Ui.fa(uniqueItems(catalog.sections).size()) + " عنوان");
+            addHeading(getString(R.string.all_titles), getString(R.string.titles_n, ui.digits(uniqueItems(catalog.sections).size())));
             addItemsGrid(uniqueItems(catalog.sections));
             focusFirst();
             return;
         }
         page.removeAllViews();
         addBackButton();
-        addHeading("نتایج جست‌وجو", query);
-        showLoading("در حال جست‌وجو…");
+        addHeading(getString(R.string.search_results), query);
+        showLoading(getString(R.string.loading_searching));
         io.execute(() -> {
             List<BrowseItem> found = new ArrayList<>();
             try {
@@ -824,13 +805,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             final List<BrowseItem> direct = found.isEmpty() ? filterLocal(query) : found;
-            final String source = found.isEmpty() ? "فهرست" : "سایت";
+            final String source = found.isEmpty() ? getString(R.string.source_catalog) : getString(R.string.source_site);
             runOnUiThread(() -> {
                 hideLoading();
                 page.removeAllViews();
                 addBackButton();
-                addHeading("نتایج جست‌وجو", query);
-                setStatus(Ui.fa(direct.size()) + " نتیجه از " + source);
+                addHeading(getString(R.string.search_results), query);
+                setStatus(getString(R.string.results_from, ui.digits(direct.size()), source));
                 addItemsGrid(direct);
                 focusFirst();
             });
@@ -855,17 +836,17 @@ public class MainActivity extends AppCompatActivity {
         listingPage = pageNum;
         showingSubPage = true;
         showingWatchlist = false;
-        showLoading("در حال بارگذاری " + section.title + "…");
+        showLoading(getString(R.string.loading_section, section.title));
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(section.url, section.contentType, pageNum);
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    setStatus(section.title + " · صفحه " + Ui.fa(pageNum));
+                    setStatus(section.title + " · " + getString(R.string.page_n, ui.digits(pageNum)));
                     page.removeAllViews();
                     addBackButton();
-                    addHeading(section.title, "صفحه " + Ui.fa(pageNum));
+                    addHeading(section.title, getString(R.string.page_n, ui.digits(pageNum)));
                     addItemsGrid(result.items);
                     addPaginationBar();
                     focusFirst();
@@ -873,7 +854,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    setStatus("بارگذاری ناموفق بود: " + section.title);
+                    setStatus(getString(R.string.d_err_load, section.title));
                 });
             }
         });
@@ -885,18 +866,18 @@ public class MainActivity extends AppCompatActivity {
         listingPage = pageNum;
         showingSubPage = true;
         showingWatchlist = false;
-        showLoading("در حال بارگذاری " + category.title + "…");
+        showLoading(getString(R.string.loading_section, category.title));
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(category.url, category.contentType, pageNum);
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    setStatus(category.title + " · صفحه " + Ui.fa(pageNum));
+                    setStatus(category.title + " · " + getString(R.string.page_n, ui.digits(pageNum)));
                     page.removeAllViews();
                     addBackButton();
                     String count = category.count == null || category.count.isEmpty()
-                            ? "" : Ui.fa(category.count) + " عنوان";
+                            ? "" : getString(R.string.titles_n, ui.digits(category.count));
                     addHeading(category.title, count);
                     addItemsGrid(result.items);
                     addPaginationBar();
@@ -905,13 +886,12 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    setStatus("بارگذاری دسته ناموفق بود: " + category.title);
+                    setStatus(getString(R.string.d_err_load, category.title));
                 });
             }
         });
     }
 
-    /** فهرست «علاقه‌مندی‌ها»: عنوان‌های ذخیره‌شده برای تماشای بعدی. */
     private void openWatchlist() {
         showingSubPage = true;
         showingWatchlist = true;
@@ -920,17 +900,16 @@ public class MainActivity extends AppCompatActivity {
         List<BrowseItem> saved = watchlistStore.items();
         page.removeAllViews();
         addBackButton();
-        addHeading("علاقه‌مندی‌ها", Ui.fa(saved.size()) + " عنوان");
-        setStatus(Ui.fa(saved.size()) + " عنوان در علاقه‌مندی‌ها");
+        addHeading(getString(R.string.nav_watchlist), getString(R.string.titles_n, ui.digits(saved.size())));
+        setStatus(getString(R.string.watchlist_n, ui.digits(saved.size())));
         if (saved.isEmpty()) {
-            page.addView(note("هنوز چیزی ذخیره نشده؛ از صفحهٔ هر عنوان دکمهٔ «+ علاقه‌مندی‌ها» را بزنید."));
+            page.addView(note(getString(R.string.watchlist_empty)));
         } else {
             addItemsGrid(saved, true);
         }
         focusFirst();
     }
 
-    /** صفحهٔ «تنظیمات» فعلاً خالی است و پیام مربوطه را نشان می‌دهد. */
     private void openSettings() {
         showingSubPage = true;
         showingWatchlist = false;
@@ -938,36 +917,97 @@ public class MainActivity extends AppCompatActivity {
         activeCategory = null;
         page.removeAllViews();
         addBackButton();
-        addHeading("تنظیمات", null);
-        setStatus("تنظیمات برنامه");
-        page.addView(note("تنظیماتی برای نمایش وجود ندارد."));
+        addHeading(getString(R.string.nav_settings), null);
+        setStatus(getString(R.string.settings_sub));
+        page.addView(ui.sectionHeader(getString(R.string.set_language), null, null));
+        page.addView(languageRow());
+        page.addView(ui.sectionHeader(getString(R.string.set_accent), null, null));
+        page.addView(accentRow());
         focusFirst();
     }
 
-    /** نگه‌داشتن OK روی کارت علاقه‌مندی: دکمهٔ حذف. */
+    private LinearLayout languageRow() {
+        LinearLayout row = ui.row();
+        row.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
+        boolean persian = SettingsStore.isPersian(this);
+        TextView fa = persian
+                ? ui.primaryButton(getString(R.string.lang_fa), 0)
+                : ui.ghostButton(getString(R.string.lang_fa), 0);
+        TextView en = !persian
+                ? ui.primaryButton(getString(R.string.lang_en), 0)
+                : ui.ghostButton(getString(R.string.lang_en), 0);
+        fa.setOnClickListener(v -> {
+            SettingsStore.setLang(this, SettingsStore.LANG_FA);
+            recreate();
+        });
+        en.setOnClickListener(v -> {
+            SettingsStore.setLang(this, SettingsStore.LANG_EN);
+            recreate();
+        });
+        LinearLayout.LayoutParams faParams = ui.params(-2, ui.dp(44));
+        faParams.setMarginEnd(ui.dp(10));
+        row.addView(fa, faParams);
+        row.addView(en, ui.params(-2, ui.dp(44)));
+        return row;
+    }
+
+    private LinearLayout accentRow() {
+        LinearLayout row = ui.row();
+        row.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
+        int current = SettingsStore.getAccentIndex(this);
+        int[] names = {
+                R.string.accent_red, R.string.accent_blue, R.string.accent_green,
+                R.string.accent_purple, R.string.accent_orange,
+        };
+        for (int i = 0; i < SettingsStore.ACCENTS.length; i++) {
+            final int index = i;
+            TextView swatch = accentSwatch(SettingsStore.ACCENTS[i],
+                    getString(names[i]), index == current);
+            swatch.setOnClickListener(v -> {
+                SettingsStore.setAccentIndex(this, index);
+                recreate();
+            });
+            LinearLayout.LayoutParams params = ui.params(0, ui.dp(48), 1f);
+            if (i < SettingsStore.ACCENTS.length - 1) params.setMarginEnd(ui.dp(10));
+            row.addView(swatch, params);
+        }
+        return row;
+    }
+
+    private TextView accentSwatch(int color, String name, boolean selected) {
+        TextView view = ui.text(selected ? "✓ " + name : name, 13, Ui.TEXT, true);
+        view.setGravity(Gravity.CENTER);
+        view.setSingleLine(true);
+        view.setFocusable(true);
+        view.setFocusableInTouchMode(true);
+        view.setClickable(true);
+        if (android.os.Build.VERSION.SDK_INT >= 26) view.setDefaultFocusHighlightEnabled(false);
+        final android.graphics.drawable.GradientDrawable idle = ui.rounded(color, 12);
+        final android.graphics.drawable.GradientDrawable focused = ui.stroked(color, 12, 3, 0xFFFFFFFF);
+        view.setBackground(idle);
+        view.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
+        return view;
+    }
+
     private void confirmRemoveFromWatchlist(final BrowseItem item) {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(item.title)
-                .setMessage("از علاقه‌مندی‌ها حذف شود؟")
-                .setPositiveButton("حذف", (dialog, which) -> {
+                .setMessage(getString(R.string.confirm_remove))
+                .setPositiveButton(getString(R.string.btn_remove), (dialog, which) -> {
                     watchlistStore.remove(item.url);
                     openWatchlist();
                 })
-                .setNegativeButton("انصراف", null)
+                .setNegativeButton(getString(R.string.btn_dismiss), null)
                 .show();
     }
 
-    /** شبکهٔ کارت‌ها برای صفحه‌های آرشیو، ژانر و نتیجهٔ جست‌وجو. */
     private void addItemsGrid(List<BrowseItem> items) {
         addItemsGrid(items, false);
     }
 
-    /**
-     * @param deletable نگه‌داشتن OK روی کارت، دیالوگ حذف از علاقه‌مندی‌ها را باز می‌کند
-     */
     private void addItemsGrid(List<BrowseItem> items, boolean deletable) {
         if (items == null || items.isEmpty()) {
-            page.addView(note("موردی پیدا نشد."));
+            page.addView(note(getString(R.string.no_items)));
             return;
         }
         int columns = ui.gridColumns();
@@ -993,8 +1033,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (!rowCards.isEmpty()) {
-            // ردیف آخر ناقص است؛ جای خالی‌ها هم‌اندازه نگه داشته می‌شوند تا
-            // کارت‌ها بی‌دلیل پهن نشوند.
+            
             padRow(rowCards, columns);
             grid.addView(ui.gridRow(rowCards), bottomMargin());
         }
@@ -1007,7 +1046,6 @@ public class MainActivity extends AppCompatActivity {
         return params;
     }
 
-    /** پر کردن ردیف ناقص با جای خالی تا کارت‌های آخر هم‌عرض بقیه بمانند. */
     private void padRow(List<View> cells, int columns) {
         while (cells.size() < columns) cells.add(new View(this));
     }
@@ -1018,18 +1056,18 @@ public class MainActivity extends AppCompatActivity {
         bar.setPadding(0, ui.dp(6), 0, ui.dp(10));
 
         if (listingPage > 1) {
-            TextView prev = ui.ghostButton("صفحه قبل", R.drawable.ic_back);
+            TextView prev = ui.ghostButton(getString(R.string.prev_page), R.drawable.ic_back);
             prev.setOnClickListener(v -> {
                 if (activeSection != null) openSection(activeSection, listingPage - 1);
                 else if (activeCategory != null) openCategory(activeCategory, listingPage - 1);
             });
             bar.addView(prev, ui.params(-2, ui.dp(42)));
         }
-        TextView num = ui.text("صفحه " + Ui.fa(listingPage), 14, Ui.TEXT, true);
+        TextView num = ui.text(getString(R.string.page_n, ui.digits(listingPage)), 14, Ui.TEXT, true);
         num.setPadding(ui.dp(18), 0, ui.dp(18), 0);
         bar.addView(num);
         if (listingHasNext) {
-            TextView next = ui.ghostButton("صفحه بعد", R.drawable.ic_chevron_end);
+            TextView next = ui.ghostButton(getString(R.string.next_page), R.drawable.ic_chevron_end);
             next.setOnClickListener(v -> {
                 if (activeSection != null) openSection(activeSection, listingPage + 1);
                 else if (activeCategory != null) openCategory(activeCategory, listingPage + 1);
@@ -1039,14 +1077,11 @@ public class MainActivity extends AppCompatActivity {
         page.addView(bar);
     }
 
-    // ── اجزای مشترک ─────────────────────────────────────────────────
-
     private void addBackButton() {
         LinearLayout bar = ui.row();
         bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
 
-        // دکمهٔ «خانه» در نوار بالا هست؛ اینجا فقط بازگشت.
-        TextView back = ui.ghostButton("بازگشت", R.drawable.ic_back);
+        TextView back = ui.ghostButton(getString(R.string.back), R.drawable.ic_back);
         back.setTag("back");
         back.setOnClickListener(view -> renderHome());
         bar.addView(back, ui.params(-2, ui.dp(42)));
@@ -1058,7 +1093,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout header = ui.row();
         header.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(16), ui.dp(Ui.PAGE_PAD), ui.dp(6));
         View accent = new View(this);
-        accent.setBackground(ui.rounded(Ui.BRAND, 2));
+        accent.setBackground(ui.rounded(ui.brand, 2));
         LinearLayout.LayoutParams accentParams = ui.params(ui.dp(3), ui.dp(18));
         accentParams.setMarginEnd(ui.dp(9));
         header.addView(accent, accentParams);
@@ -1092,7 +1127,7 @@ public class MainActivity extends AppCompatActivity {
 
     private View findFirstFocusable(View root) {
         if ("back".equals(root.getTag())) {
-            // دکمه بازگشت هیچ‌وقت فوکوس خودکار نگیرد؛ اولین آیتم نتیجه فوکوس شود
+            
         } else if (root.isFocusable()) {
             return root;
         }

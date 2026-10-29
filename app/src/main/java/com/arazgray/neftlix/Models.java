@@ -150,7 +150,6 @@ final class ListingPage {
     }
 }
 
-/** حافظه ساده فهرست روی حافظه داخلی: بدون اینترنت هم آخرین فهرست نمایش داده می‌شود. */
 final class CatalogCache {
     static void save(File file, CatalogData catalog) throws Exception {
         org.json.JSONObject root = new org.json.JSONObject();

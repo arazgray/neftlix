@@ -72,16 +72,12 @@ final class CatalogRepository {
         boolean hasNext = hasNextPage(document);
         List<BrowseItem> items = parseArticles(document.select("main article.entry"), contentType, document.location(), null);
         if (items.isEmpty()) {
-            // جست‌وجو و بعضی آرشیوها آیتم‌ها را خارج از main برمی‌گردانند
+            
             items = parseArticles(document.select("article.entry"), contentType, document.location(), null);
         }
         return new ListingPage(items, hasNext, document.location());
     }
 
-    /**
-     * جست‌وجوی سراسری آرشیو از طریق quick-search (کل آرشیو، نه فقط فهرست دانلودشده).
-     * پاسخ JSON است؛ title ممکن است تگ <em> داشته باشد و مقادیر می‌توانند عدد باشند.
-     */
     List<BrowseItem> quickSearch(String query) throws IOException {
         String q = query == null ? "" : query.trim();
         if (q.isEmpty()) return new ArrayList<>();
@@ -103,10 +99,6 @@ final class CatalogRepository {
         }
     }
 
-    /**
-     * تجزیهٔ پاسخ quick-search؛ خالص و بدون شبکه برای تست واحد.
-     * گاهی سایت به‌جای فیلدهای مستقیم، آبجکت `_formatted` برمی‌گرداند.
-     */
     static List<BrowseItem> parseQuickSearch(String body, String origin) throws org.json.JSONException {
         List<BrowseItem> items = new ArrayList<>();
         org.json.JSONArray results = new org.json.JSONArray(body);
@@ -161,8 +153,6 @@ final class CatalogRepository {
         }
         return items;
     }
-
-    // ── کمک‌متدهای زیر modificator ندارند تا تست واحد به آن‌ها دسترسی داشته باشد ──
 
     String pageUrl(String url, int page) {
         if (page <= 1 || url == null) return url;
@@ -334,7 +324,6 @@ final class CatalogRepository {
         return items;
     }
 
-    /** خط کوتاه زیر کارت: امتیاز و یکی دو ژانر، اگر در صفحه باشد. */
     String cardMeta(Element article) {
         String rating = "";
         Element ratingElement = article.selectFirst(".entry-meta strong");
@@ -467,10 +456,6 @@ final class CatalogRepository {
     private static final Pattern PORTRAIT_IMAGE = Pattern.compile(
             "-(\\d{2,4})x(\\d{2,4})\\.", Pattern.CASE_INSENSITIVE);
 
-    /**
-     * پوستر عمودی عنوان (مثل کارت‌های فهرست)؛ هنر افقی coverimg برای پس‌زمینه می‌ماند.
-     * بدون شبکه و بدون اندروید تا تست واحد داشته باشد.
-     */
     static Element pickPoster(Element root) {
         if (root == null) return null;
         Element explicit = root.selectFirst("#post-intro .entry-poster img");

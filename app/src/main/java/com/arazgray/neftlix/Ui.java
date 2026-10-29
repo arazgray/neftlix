@@ -18,17 +18,10 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * سیستم طراحی برنامه: رنگ‌ها، فاصله‌ها و ویجت‌های آمادهٔ تلویزیون.
- *
- * همهٔ اندازه‌ها در فضای طراحی «۹۶۰dp» نوشته شده‌اند (اندازهٔ معمول یک تلویزیون
- * ۱۰۸۰p) و با ضریب {@link #scale} به هر رزولوشن/چگالی‌ای که دستگاه گزارش کند
- * نگاشت می‌شوند؛ نتیجه این‌که ظاهر برنامه روی ۷۲۰p، ۱۰۸۰p و ۴K یکسان است.
- */
 final class Ui {
-    // ── پالت ──────────────────────────────────────────────────────────
+    
     static final int BG = 0xFF0A0A0C;
-    static final int BRAND = 0xFFE50914;
+    static final int BRAND_DEFAULT = 0xFFE50914;
     static final int SURFACE = 0xFF14141A;
     static final int SURFACE_2 = 0xFF1D1D24;
     static final int TEXT = 0xFFFFFFFF;
@@ -37,19 +30,18 @@ final class Ui {
     static final int GLASS = 0x14FFFFFF;
     static final int GLASS_STRONG = 0x24FFFFFF;
     static final int HAIRLINE = 0x1FFFFFFF;
-    /** قرص وضعیت: نیمی‌شفاف از SURFACE_2 تا پس‌زمینه از زیرش دیده شود. */
+    
     static final int STATUS_BG = 0x801D1D24;
-    /** پنل توضیحات: شیشه‌ای و نیمه‌شفاف به‌جای صفحهٔ مات. */
+    
     static final int PANEL_BG = 0x9914161C;
     static final int SCRIM_TOP = 0xE60A0A0C;
     static final int SCRIM_MID = 0x8C0A0A0C;
 
-    // ── اندازه‌های چیدمان (بر حسب dp طراحی) ───────────────────────────
     static final float PAGE_PAD = 22f;
     static final float CARD_W = 136f;
     static final float CARD_GAP = 12f;
     static final float RADIUS_CARD = 10f;
-    /** بزرگ‌شدن کل کارت هنگام فوکوس؛ خودِ تصویر جدا زوم نمی‌شود. */
+    
     static final float FOCUS_SCALE = 1.15f;
     static final float FOCUS_STROKE = 3f;
     static final float RADIUS_BUTTON = 12f;
@@ -61,11 +53,16 @@ final class Ui {
     final Activity activity;
     final float scale;
     final android.graphics.Typeface font;
+    
+    final int brand;
+    final boolean persian;
     private final float density;
     private final Drawable placeholder;
 
     Ui(Activity activity) {
         this.activity = activity;
+        this.brand = SettingsStore.getAccentColor(activity);
+        this.persian = SettingsStore.isPersian(activity);
         android.util.DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         this.density = Math.max(1f, metrics.density);
         float widthDp = metrics.widthPixels / this.density;
@@ -85,7 +82,6 @@ final class Ui {
         return Math.round(value * scale * density);
     }
 
-    /** اندازهٔ متن در فضای طراحی (sp طراحی). */
     private float sp(float value) {
         return value * scale;
     }
@@ -94,7 +90,6 @@ final class Ui {
         return Math.round(activity.getResources().getDisplayMetrics().widthPixels / density);
     }
 
-    // ── متن ──────────────────────────────────────────────────────────
     TextView text(String value, float sizeSp, int color) {
         return text(value, sizeSp, color, false);
     }
@@ -103,9 +98,17 @@ final class Ui {
         TextView view = new TextView(activity);
         view.setText(value == null ? "" : value);
         applyText(view, sizeSp, color, bold);
-        view.setTextDirection(View.TEXT_DIRECTION_RTL);
-        view.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         return view;
+    }
+
+    String digits(Object value) {
+        return persian ? fa(value) : String.valueOf(value);
+    }
+
+    String typeName(String type) {
+        if ("series".equalsIgnoreCase(type)) return activity.getString(R.string.type_series);
+        if ("movie".equalsIgnoreCase(type)) return activity.getString(R.string.type_movie);
+        return activity.getString(R.string.type_mixed);
     }
 
     void applyText(TextView view, float sizeSp, int color, boolean bold) {
@@ -125,18 +128,15 @@ final class Ui {
         return text(value, sizeSp, TEXT_MUTED);
     }
 
-    // ── ظرف‌ها ────────────────────────────────────────────────────────
     LinearLayout column() {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         return layout;
     }
 
     LinearLayout row() {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         layout.setGravity(Gravity.CENTER_VERTICAL);
         return layout;
     }
@@ -159,14 +159,12 @@ final class Ui {
         parent.addView(new View(activity), new LinearLayout.LayoutParams(1, dp(heightDp)));
     }
 
-    /** خط جداکنندهٔ مویی. */
     View divider() {
         View view = new View(activity);
         view.setBackgroundColor(HAIRLINE);
         return view;
     }
 
-    // ── شکل‌ها ───────────────────────────────────────────────────────
     GradientDrawable rounded(int color, float radiusDp) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.RECTANGLE);
@@ -187,18 +185,20 @@ final class Ui {
         return drawable;
     }
 
-    /** پوشش تیرهٔ روی تصویر؛ سمت راست (محل متن فارسی) تیره‌تر است. */
     View scrim(GradientDrawable.Orientation orientation, int... colors) {
         View view = new View(activity);
         view.setBackground(gradient(colors, orientation));
         return view;
     }
 
-    // ── آیکن‌ها ───────────────────────────────────────────────────────
-    /** آیکن برداری با اندازهٔ دلخواه (برای drawable ترکیبی TextView). */
     Drawable icon(int res, float sizeDp) {
         Drawable base = androidx.core.content.ContextCompat.getDrawable(activity, res);
         if (base == null) return null;
+        if (res == R.drawable.ic_back || res == R.drawable.ic_chevron_end) {
+            base.setAutoMirrored(true);
+            base.setLayoutDirection(
+                    activity.getResources().getConfiguration().getLayoutDirection());
+        }
         final int size = dp(sizeDp);
         final Drawable inner = base;
         return new Drawable() {
@@ -221,7 +221,7 @@ final class Ui {
             @Override
             public void setTintList(android.content.res.ColorStateList tint) {
                 inner.setTintList(tint);
-                // تغییر تینت باید ویو را دوباره بکشد؛ وگرنه رنگ تا فوکوس بعدی دیده نمی‌شود.
+                
                 invalidateSelf();
             }
 
@@ -250,11 +250,6 @@ final class Ui {
         return view;
     }
 
-    // ── دکمه‌ها ──────────────────────────────────────────────────────
-    /**
-     * دکمهٔ قرصی. حالت عادی شیشه‌ای و حالت فوکوس قرمز برند است؛ برای دکمه‌های
-     * اصلی (primary) فوکوس سفید می‌شود تا روی ریموت کاملاً واضح باشد.
-     */
     TextView pillButton(String label, int iconRes, boolean primary, float heightDp, float sizeSp) {
         TextView view = text(label, sizeSp, TEXT, true);
         view.setGravity(Gravity.CENTER);
@@ -277,7 +272,6 @@ final class Ui {
         return pillButton(label, iconRes, true, 44, 14);
     }
 
-    /** دکمهٔ مربعی فقط-آیکن (نوار بالا)؛ آیکن با ImageView دقیقاً وسط قاب است. */
     FrameLayout iconButton(int iconRes, String contentDesc) {
         FrameLayout box = new FrameLayout(activity);
         box.setFocusable(true);
@@ -289,16 +283,15 @@ final class Ui {
         image.setScaleType(ImageView.ScaleType.CENTER);
         image.setDuplicateParentStateEnabled(true);
         box.addView(image, new FrameLayout.LayoutParams(dp(19), dp(19), Gravity.CENTER));
-        // بدون بزرگ‌نمایی فوکوس؛ فقط پس‌زمینه عوض می‌شود تا دایره سالم بماند
+        
         final GradientDrawable idle = stroked(GLASS, 21, 1, HAIRLINE);
-        final GradientDrawable focused = rounded(BRAND, 21);
+        final GradientDrawable focused = rounded(brand, 21);
         box.setBackground(idle);
         box.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
         box.setLayoutParams(new LinearLayout.LayoutParams(dp(42), dp(42)));
         return box;
     }
 
-    /** تراشهٔ ژانر/فیلتر. */
     TextView chip(String label, String countText) {
         TextView view = text(label, 13, TEXT, false);
         view.setGravity(Gravity.CENTER);
@@ -314,7 +307,6 @@ final class Ui {
         return view;
     }
 
-    /** دکمهٔ کوچک بخش‌های تاشو (کیفیت/زیرنویس). */
     TextView rowButton(String label, int iconRes, boolean strong) {
         TextView view = text(label, strong ? 15 : 13, TEXT, strong);
         view.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
@@ -329,7 +321,6 @@ final class Ui {
         return view;
     }
 
-    /** دکمهٔ قسمت‌ها در شبکهٔ لینک‌های دانلود. */
     TextView gridButton(String label, int iconRes) {
         TextView view = text(label, 13, TEXT, false);
         view.setGravity(Gravity.CENTER);
@@ -344,25 +335,21 @@ final class Ui {
         return view;
     }
 
-    /**
-     * رنگ دکمه‌ها را با فوکوس عوض می‌کند؛ اندازه ثابت می‌ماند تا دکمهٔ فوکوس‌شده
-     * از قاب خودش بیرون نزند و گوشه‌های گرد خراب نشود.
-     */
     void fillFocus(final TextView view, final boolean primary, final float heightDp) {        fillFocus(view, primary, heightDp, RADIUS_PILL);
     }
 
     void fillFocus(final TextView view, final boolean primary, final float heightDp, final float radiusDp) {
         final float radius = radiusDp >= 999 ? heightDp / 2f : radiusDp;
         final GradientDrawable idle = primary
-                ? rounded(BRAND, radius)
+                ? rounded(brand, radius)
                 : stroked(GLASS, radius, 1, HAIRLINE);
         final GradientDrawable focused = primary
                 ? rounded(TEXT, radius)
-                : rounded(BRAND, radius);
+                : rounded(brand, radius);
         view.setBackground(idle);
         view.setTextColor(primary ? TEXT : TEXT);
         view.setFocusable(true);
-        // روی باکس‌هایی که گاهی حالت لمسی فعال می‌شود هم فوکوس ریموت کار کند
+        
         view.setFocusableInTouchMode(true);
         view.setClickable(true);
         view.setMinimumHeight(dp(heightDp));
@@ -386,12 +373,11 @@ final class Ui {
         }
     }
 
-    // ── سرتیتر بخش + «مشاهده همه» ────────────────────────────────────
     LinearLayout sectionHeader(String title, String countText, TextView action) {
         LinearLayout header = row();
         header.setPadding(dp(PAGE_PAD), dp(18), dp(PAGE_PAD), dp(8));
         View accent = new View(activity);
-        accent.setBackground(rounded(BRAND, 2));
+        accent.setBackground(rounded(brand, 2));
         LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(dp(3), dp(16));
         accentParams.setMarginEnd(dp(9));
         header.addView(accent, accentParams);
@@ -407,11 +393,6 @@ final class Ui {
         return header;
     }
 
-    // ── ریل افقی کارت‌ها ─────────────────────────────────────────────
-    /**
-     * ریل افقی. کارت‌ها از راست چیده می‌شوند و ورود عمودی روی اولین کارت می‌نشیند.
-     * اسکرول فقط به‌اندازه‌ای که کارتِ فوکوس دیده شود، نه تا وسط صفحه.
-     */
     HorizontalScrollView rail(List<View> cards) {
         LinearLayout content = row();
         content.setClipChildren(false);
@@ -437,12 +418,11 @@ final class Ui {
             }
         };
         scroller.setHorizontalScrollBarEnabled(false);
-        scroller.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         scroller.setClipChildren(false);
         scroller.setClipToPadding(false);
         scroller.setOverScrollMode(View.OVER_SCROLL_NEVER);
         scroller.addView(content, new FrameLayout.LayoutParams(-2, -2));
-        // شروع ریل لبهٔ راست است؛ اولین عنوان همان‌جا دیده می‌شود
+        
         scroller.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom,
@@ -463,12 +443,10 @@ final class Ui {
         return scroller;
     }
 
-    /** ورود عمودی به ریل فقط اولین کارت (راست‌ترین در RTL) را پیشنهاد می‌کند. */
     private static boolean isVerticalEntry(int direction) {
         return direction == View.FOCUS_UP || direction == View.FOCUS_DOWN;
     }
 
-    /** اولین فرزند مستقیمِ فوکوس‌پذیر؛ در ردیف RTL همان آیتم راست است. */
     private static View firstDirectFocusable(View container) {
         if (!(container instanceof android.view.ViewGroup)) return null;
         android.view.ViewGroup group = (android.view.ViewGroup) container;
@@ -487,10 +465,6 @@ final class Ui {
         }
     }
 
-    /**
-     * کارت را کاملاً داخل دید نگه می‌دارد، بدون کشیدن اولین کارت به وسط.
-     * اگر همین حالا دیده شود دست نمی‌زند تا لبهٔ راست ریل سر جایش بماند.
-     */
     void reveal(final HorizontalScrollView scroller, final View card) {
         scroller.post(() -> {
             int viewport = scroller.getWidth();
@@ -509,8 +483,6 @@ final class Ui {
         });
     }
 
-    // ── کارت پوستر ───────────────────────────────────────────────────
-    /** کارت فیلم/سریال: پوستر ۲:۳، برچسب نوع، عنوان و امتیاز. */
     View posterCard(final BrowseItem item, float widthDp, boolean showMeta) {
         final int posterHeight = Math.round(dp(widthDp) * 1.5f);
         LinearLayout card = column();
@@ -531,7 +503,7 @@ final class Ui {
         } catch (Exception ignored) {
         }
         box.addView(poster, new FrameLayout.LayoutParams(-1, -1));
-        String badge = faType(item.contentType);
+        String badge = typeName(item.contentType);
         if (badge != null) {
             TextView tag = text(badge, 10, TEXT, true);
             tag.setGravity(Gravity.CENTER);
@@ -542,9 +514,9 @@ final class Ui {
             tagParams.setMargins(dp(7), dp(7), dp(7), 0);
             box.addView(tag, tagParams);
         }
-        // قاب بیرونِ تصویر است تا فوکوس، خودِ پوستر را کوچک‌تر نشان ندهد.
+        
         final View border = new View(activity);
-        border.setBackground(stroked(0x00000000, RADIUS_CARD + FOCUS_STROKE, FOCUS_STROKE, BRAND));
+        border.setBackground(stroked(0x00000000, RADIUS_CARD + FOCUS_STROKE, FOCUS_STROKE, brand));
         border.setVisibility(View.INVISIBLE);
         final int stroke = dp(FOCUS_STROKE);
         FrameLayout.LayoutParams borderParams = new FrameLayout.LayoutParams(-1, -1);
@@ -573,7 +545,7 @@ final class Ui {
             card.setDefaultFocusHighlightEnabled(false);
         }
         card.setOnFocusChangeListener((v, hasFocus) -> {
-            // کل کارت با قاب و عنوان بزرگ می‌شود؛ کراپ تصویر عوض نمی‌شود.
+            
             border.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
             applyText(title, 13, hasFocus ? TEXT : 0xFFE9E9EE, hasFocus);
             v.animate().cancel();
@@ -588,7 +560,6 @@ final class Ui {
         return card;
     }
 
-    /** کارت‌های یک ردیف با عرض مساوی (صفحهٔ آرشیو و نتایج جست‌وجو). */
     LinearLayout gridRow(List<View> cards) {
         LinearLayout row = new LinearLayout(activity) {
             @Override
@@ -604,7 +575,6 @@ final class Ui {
             }
         };
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         row.setGravity(Gravity.TOP);
         row.setClipChildren(false);
         row.setClipToPadding(false);
@@ -620,33 +590,24 @@ final class Ui {
         return gridColumnsFor(PAGE_PAD, CARD_W, CARD_GAP);
     }
 
-    /** تعداد ستون شبکه فقط از روی ثابت‌های طراحی؛ بدون نیاز به نمونه. */
     static int gridColumnsFor(float pagePad, float cardW, float cardGap) {
         float available = 960 - pagePad * 2;
         return Math.max(3, (int) ((available + cardGap) / (cardW + cardGap)));
     }
 
-    /** عرض هر کارت در شبکه (dp طراحی) تا نسبت تصویر درست بماند. */
     float gridCardWidthDp(int columns) {
         return gridCardWidthDpFor(columns, PAGE_PAD, CARD_GAP);
     }
 
-    /** نسخهٔ خالص محاسبهٔ عرض کارت برای تست واحد. */
     static float gridCardWidthDpFor(int columns, float pagePad, float cardGap) {
         float available = 960 - pagePad * 2 - cardGap * (columns - 1);
         return available / columns;
     }
 
-    /** ضریب مقیاس فضای طراحی ۹۶۰dp؛ بدون نیاز به نمونه برای تست واحد. */
     static float scaleForWidth(float widthDp) {
         return Math.max(0.75f, Math.min(widthDp / 960f, 2.4f));
     }
 
-    // ── بخش تاشو (فصل‌ها، کیفیت‌ها، نظرات) ───────────────────────────
-    /**
-     * یک بخش تاشو. تا زمانی که باز نشده، محتوا اندازه‌گیری نمی‌شود؛ پس
-     * صفحه‌های سنگین (۳۵ کیفیت × ۹ قسمت) بدون هزینه ساخته می‌شوند.
-     */
     View expandable(String title, View content) {
         return expandable(title, content, 0);
     }
@@ -655,10 +616,6 @@ final class Ui {
         return expandable(title, content, depth, null);
     }
 
-    /**
-     * @param depth ۰ = فصل، ۱ = دسته (زیرنویس/دوبله)، ۲ = کیفیت
-     * @param onToggle هنگام بازشدن صدا زده می‌شود تا صفحه اسکرول شود؛ ممکن است null باشد.
-     */
     View expandable(final String title, final View content, final int depth, final Runnable onToggle) {
         LinearLayout box = column();
         LinearLayout.LayoutParams boxParams = new LinearLayout.LayoutParams(-1, -2);
@@ -678,7 +635,7 @@ final class Ui {
         final GradientDrawable idle = depth == 0
                 ? stroked(SURFACE_2, RADIUS_BUTTON, 1, HAIRLINE)
                 : stroked(0x0DFFFFFF, RADIUS_BUTTON, 1, 0x14FFFFFF);
-        final GradientDrawable focused = rounded(BRAND, RADIUS_BUTTON);
+        final GradientDrawable focused = rounded(brand, RADIUS_BUTTON);
         summary.setBackground(idle);
         summary.setOnFocusChangeListener((v, hasFocus) -> {
             summary.setBackground(hasFocus ? focused : idle);
@@ -686,7 +643,7 @@ final class Ui {
             tintDrawable(summary, TEXT);
         });
         content.setVisibility(View.GONE);
-        // فاصلهٔ تنفسی بین سربرگ و محتوای بازشده
+        
         LinearLayout.LayoutParams contentParams = new LinearLayout.LayoutParams(-1, -2);
         contentParams.topMargin = dp(6);
         content.setLayoutParams(contentParams);
@@ -703,11 +660,6 @@ final class Ui {
         return box;
     }
 
-    /**
-     * سیم‌کشی صریح فوکوس بین سربرگ و اولین عنصر محتوای بازشده تا ریموت
-     * هیچ دکمه‌ای را جا نیندازد (جست‌وجوی هندسی گاهی دکمه‌های تودرتو را رد می‌کند).
-     * هنگام جمع‌شدن سیم‌کشی پاک می‌شود تا ناوبری عادی هندسی برگردد.
-     */
     private void wireFocus(View summary, View content, boolean expand) {
         if (summary.getId() == View.NO_ID) summary.setId(View.generateViewId());
         View first = firstFocusable(content);
@@ -733,7 +685,6 @@ final class Ui {
         return null;
     }
 
-    // ── پنل ──────────────────────────────────────────────────────────
     LinearLayout panel() {
         LinearLayout panel = column();
         panel.setBackground(stroked(PANEL_BG, RADIUS_CARD, 1, 0x26FFFFFF));
@@ -750,21 +701,18 @@ final class Ui {
         return view;
     }
 
-    /** نام فارسی نوع محتوا برای برچسب روی پوستر. */
     static String faType(String type) {
         if ("series".equalsIgnoreCase(type)) return "سریال";
         if ("movie".equalsIgnoreCase(type)) return "فیلم";
         return "فیلم و سریال";
     }
 
-    /** عدد با ارقام فارسی. */
     static String fa(Object value) {
         return String.valueOf(value).replace('0', '۰').replace('1', '۱').replace('2', '۲')
                 .replace('3', '۳').replace('4', '۴').replace('5', '۵')
                 .replace('6', '۶').replace('7', '۷').replace('8', '۸').replace('9', '۹');
     }
 
-    // ── بارگذاری تصویر ───────────────────────────────────────────────
     void loadCover(final ImageView view, String url) {
         if (url == null || url.isEmpty()) return;
         Glide.with(activity).load(url).centerCrop()
@@ -773,7 +721,6 @@ final class Ui {
                 .into(view);
     }
 
-    /** هنر افقی بیلبورد که دیرهنگام می‌رسد؛ نرم محو می‌شود. */
     void loadBackdrop(final ImageView view, String url) {
         if (url == null || url.isEmpty()) return;
         Glide.with(activity).load(url).centerCrop()
@@ -781,11 +728,6 @@ final class Ui {
                 .into(view);
     }
 
-    /**
-     * کارت‌های ریل با نسخهٔ کوچک تصویر (۱۸۰×۲۸۰) ساخته می‌شوند تا فهرست سریع
-     * بیاید؛ وقتی کارتی فوکوس شد نسخهٔ بزرگ‌تر و شارپ‌تر همان تصویر بارگذاری
-     * می‌شود (تصویر فعلی تا رسیدن آن دیده می‌ماند).
-     */
     void upgradePoster(final ImageView view, String url) {
         final String large = hiRes(url);
         if (large.equals(url) || large.isEmpty()) return;
@@ -796,7 +738,6 @@ final class Ui {
                 .into(view);
     }
 
-    /** نسخهٔ کامل تصویر بدون پسوند اندازه (`-180x280`) در صورت وجود. */
     static String hiRes(String url) {
         if (url == null) return "";
         return SIZED_IMAGE.matcher(url).replaceFirst("$3");

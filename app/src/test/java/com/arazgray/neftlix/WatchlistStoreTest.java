@@ -10,7 +10,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 
-/** تست فهرست علاقه‌مندی‌ها: افزودن/حذف/ماندگاری. */
 public class WatchlistStoreTest {
 
     @Rule

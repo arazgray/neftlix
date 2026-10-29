@@ -4,10 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * فهرست «علاقه‌مندی‌ها» روی حافظه داخلی؛ بدون نیاز به حساب یا سرور.
- * فقط با File و org.json کار می‌کند تا تست واحد داشته باشد.
- */
 final class WatchlistStore {
     private final File file;
     private final List<BrowseItem> items = new ArrayList<>();
@@ -32,7 +28,6 @@ final class WatchlistStore {
         return indexOf(url) >= 0;
     }
 
-    /** اضافه می‌کند (تکراری به اول منتقل می‌شود)؛ برمی‌گرداند که داخل فهرست هست. */
     boolean toggle(BrowseItem item) {
         load();
         if (item == null || item.url == null || item.url.isEmpty()) return false;

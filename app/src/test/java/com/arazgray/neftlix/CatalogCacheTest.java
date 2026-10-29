@@ -11,7 +11,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.util.Arrays;
 
-/** تست رفت‌وبرگشت حافظهٔ فهرست روی دیسک. */
 public class CatalogCacheTest {
 
     @Rule

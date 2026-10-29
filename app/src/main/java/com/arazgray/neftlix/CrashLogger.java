@@ -1,9 +1,5 @@
 package com.arazgray.neftlix;
 
-/**
- * ذخیره رد خطای کرش در حافظه داخلی تا در اجرای بعد نمایش داده شود.
- * هندلر پیش‌فرض زنجیره می‌شود؛ رفتار خروج برنامه تغییر نمی‌کند.
- */
 final class CrashLogger {
     private CrashLogger() {
     }
@@ -27,7 +23,6 @@ final class CrashLogger {
         });
     }
 
-    /** خواندن رد خطا و پاک‌سازی آن؛ null یعنی کرشی ثبت نشده است. */
     static String consume(android.content.Context context) {
         java.io.File file = logFile(context);
         if (!file.exists()) return null;
@@ -42,7 +37,7 @@ final class CrashLogger {
                 lines++;
             }
             reader.close();
-            //noinspection ResultOfMethodCallIgnored
+            
             file.delete();
             String result = body.toString().trim();
             return result.isEmpty() ? null : result;
@@ -51,12 +46,11 @@ final class CrashLogger {
         }
     }
 
-    /** خلاصه خوانا از خطا؛ هیچ‌وقت خالی برنمی‌گرداند. */
-    static String describe(Throwable error) {
-        if (error == null) return "خطای ناشناخته";
+    static String describe(android.content.Context context, Throwable error) {
+        if (error == null) return context.getString(R.string.crash_unknown);
         String message = error.getMessage();
         String name = error.getClass().getSimpleName();
-        if (name == null || name.isEmpty()) name = "خطا";
+        if (name == null || name.isEmpty()) name = context.getString(R.string.crash_error);
         if (message == null) message = "";
         message = message.trim();
         if (message.length() > 300) message = message.substring(0, 300);

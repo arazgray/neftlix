@@ -16,7 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** تست تجزیهٔ HTML/JSON سایت؛ بدون شبکه، با نمونه‌های ثابت. */
 public class CatalogRepositoryTest {
     private final CatalogRepository repository = new CatalogRepository();
 
@@ -77,7 +76,7 @@ public class CatalogRepositoryTest {
 
     @Test
     public void parseQuickSearch_fallsBackToFormatted() throws Exception {
-        // پاسخ خراب سایت: فیلدهای اصلی خالی‌اند و همه‌چیز در _formatted است
+        
         String body = "[{\"title\":\"\",\"title_fa\":\"\",\"url\":\"\",\"image\":\"\","
                 + "\"_db_error\":\"x\","
                 + "\"_formatted\":{\"title\":\"<em>Godzilla</em>\",\"title_fa\":\"گودزیلا\","

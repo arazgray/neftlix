@@ -31,7 +31,7 @@ The app communicates directly with the media source, requiring no dedicated back
 
 - **Integrated player:** Streams available media links through AndroidX Media3 ExoPlayer.
 - **Persian subtitles:** Automatically prefers Persian subtitles, with Vazirmatn typography, right-to-left text, transparent backgrounds, and drop shadows.
-- **Remote controls:** D-pad navigation, OK to select or expand, and Back to navigate or control playback. Every control highlights red on focus, including rewind/forward.
+- **Remote controls:** D-pad navigation, OK to select or expand, and Back to navigate or control playback. Every control highlights with the accent color on focus, including rewind/forward.
 - **Playback options:** The subtitle button opens one compact glassy dialog (subtitles with Off, audio where multiple exist, quality where multiple exist) whose options all turn red on focus; choices apply immediately with no confirmation step.
 - **Playback shortcuts:** Seek backward or forward by 10 seconds while player controls are hidden.
 - **Screen stays awake:** Prevents the TV box from activating its screensaver during playback.
@@ -39,8 +39,8 @@ The app communicates directly with the media source, requiring no dedicated back
 ### Android TV interface
 
 - **Consistent scaling:** A shared 960dp design system (`Ui.java`) scales dimensions, spacing, and typography using `screenWidthDp / 960`, maintaining consistent proportions across 720p, 1080p, and 4K displays.
-- **Stable focus states:** Focused elements use a red outline and bold titles without resizing, preventing layout overflow.
-- **Custom theme:** Netflix-inspired black-and-red styling, translucent panels, glass-like pills, and a full-screen transparent-logo splash screen.
+- **Stable focus states:** Focused elements use an accent-color outline and bold titles without resizing, preventing layout overflow.
+- **Custom theme:** Netflix-inspired black styling with a changeable accent color, translucent panels, glass-like pills, and a full-screen transparent-logo splash screen.
 - **Persian typography:** Vazirmatn everywhere — all app text, dialogs, and subtitle rendering (loaded once as a font family, bold included).
 - **App information:** An information card with the app description, version, author, media source attribution, website link, and a QR code linking to `arazgray.com`.
 

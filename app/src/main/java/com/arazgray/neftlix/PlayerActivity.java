@@ -1,6 +1,7 @@
 package com.arazgray.neftlix;
 
 import android.net.Uri;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -17,10 +18,6 @@ import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
-/**
- * پخش‌کننده داخلی تلویزیون: مناسب ریموت‌کنترل، تمام‌صفحه، افقی.
- * دکمه‌های کنترلر پیش‌فرض PlayerView با D-Pad کار می‌کنند.
- */
 public class PlayerActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "url";
     public static final String EXTRA_TITLE = "title";
@@ -30,35 +27,37 @@ public class PlayerActivity extends AppCompatActivity {
     private Ui ui;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ui = new Ui(this);
-        getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         String url = getIntent().getStringExtra(EXTRA_URL);
         if (url == null || url.isEmpty()) {
-            Toast.makeText(this, "نشانی پخش نامعتبر است", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.p_bad_url), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(0xFF000000);
-        root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         playerView = new PlayerView(this);
-        playerView.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         playerView.setKeepContentOnPlayerReset(true);
         playerView.setShutterBackgroundColor(android.graphics.Color.BLACK);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);
         playerView.setShowSubtitleButton(true);
-        // هنگام پخش، دستگاه نباید به اسکرین‌سیور/قفل برود (مثل Mi Box)
+        
         playerView.setKeepScreenOn(true);
         FrameLayout.LayoutParams videoParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT);
         root.addView(playerView, videoParams);
-        // هایلایت فوکوس دکمه‌های کنترلر برای ریموت
+        
         playerView.post(() -> {
             setupCustomControlIcons(playerView);
             stylePlayerControls(playerView);
@@ -67,7 +66,7 @@ public class PlayerActivity extends AppCompatActivity {
             if (ccButton != null) {
                 ccButton.setOnClickListener(v -> showSubtitleDialog());
             }
-            // تنظیمات جدا حذف شد؛ همه‌چیز در همان دیالوگ گزینه‌هاست
+            
             android.view.View settingsButton =
                     playerView.findViewById(androidx.media3.ui.R.id.exo_settings);
             if (settingsButton != null) {
@@ -89,7 +88,7 @@ public class PlayerActivity extends AppCompatActivity {
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
         playerView.setControllerShowTimeoutMs(4000);
-        // زیرنویس فارسی در اولویت باشد
+        
         if (player.getTrackSelector()
                 instanceof androidx.media3.exoplayer.trackselection.DefaultTrackSelector) {
             androidx.media3.exoplayer.trackselection.DefaultTrackSelector selector =
@@ -100,10 +99,9 @@ public class PlayerActivity extends AppCompatActivity {
         }
         androidx.media3.ui.SubtitleView subtitles = playerView.getSubtitleView();
         if (subtitles != null) {
-            // پس‌زمینه مشکی حذف شود؛ فقط سایه ساده + راست‌چین + فونت وزیرمتن
+            
             subtitles.setApplyEmbeddedStyles(false);
-            subtitles.setTextDirection(View.TEXT_DIRECTION_RTL);
-            subtitles.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            subtitles.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             android.graphics.Typeface subtitleFont = null;
             try {
                 subtitleFont = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.vazirmatn);
@@ -120,7 +118,7 @@ public class PlayerActivity extends AppCompatActivity {
         player.addListener(new Player.Listener() {
             @Override
             public void onPlayerError(PlaybackException error) {
-                showCenterError("خطا در پخش. اتصال اینترنت یا نشانی فایل را بررسی کنید.");
+                showCenterError(getString(R.string.p_error));
             }
 
             @Override
@@ -135,7 +133,6 @@ public class PlayerActivity extends AppCompatActivity {
         player.play();
     }
 
-    /** اگر هیچ زیرنویسی انتخاب نشده ولی ترک متن دارد، اولی را روشن کن. */
     private void ensureSubtitleSelected() {
         if (player == null) return;
         try {
@@ -179,7 +176,6 @@ public class PlayerActivity extends AppCompatActivity {
                 centerError.setTextSize(15);
                 centerError.setTypeface(ui.font, android.graphics.Typeface.NORMAL);
                 centerError.setGravity(android.view.Gravity.CENTER);
-                centerError.setTextDirection(View.TEXT_DIRECTION_RTL);
                 centerError.setBackground(ui.stroked(0xE6141415, 14, 1, Ui.HAIRLINE));
                 centerError.setPadding(ui.dp(28), ui.dp(20), ui.dp(28), ui.dp(20));
                 ((android.widget.FrameLayout) findViewById(android.R.id.content))
@@ -194,7 +190,6 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-    /** چیپ فوکوس کنترلر. هر بار نمونهٔ تازه تا تینت قبلی رویش نماند. */
     private android.graphics.drawable.GradientDrawable controlChip(int color) {
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
         bg.setColor(color);
@@ -202,9 +197,6 @@ public class PlayerActivity extends AppCompatActivity {
         return bg;
     }
 
-
-
-    /** دیالوگ گزینه‌های پخش (زیرنویس/صدا/کیفیت) با دکمه‌های قرمز؛ انتخاب همان‌جا اعمال می‌شود. */
     private void showSubtitleDialog() {
         if (player == null) return;
         if (!(player.getTrackSelector()
@@ -217,21 +209,19 @@ public class PlayerActivity extends AppCompatActivity {
 
         LinearLayout list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
-        list.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         list.setPadding(dp(12), dp(12), dp(12), dp(12));
 
         boolean hasSection = false;
         try {
             androidx.media3.common.Tracks tracks = player.getCurrentTracks();
 
-            // زیرنویس
             java.util.List<androidx.media3.common.Tracks.Group> textGroups = new java.util.ArrayList<>();
             java.util.List<String> labels = new java.util.ArrayList<>();
             java.util.List<Integer> selected = new java.util.ArrayList<>();
             collectTextTracks(tracks, textGroups, labels, selected);
             if (!textGroups.isEmpty()) {
                 hasSection = true;
-                list.addView(settingsSectionLabel("زیرنویس‌ها", false));
+                list.addView(settingsSectionLabel(getString(R.string.p_subtitles), false));
                 for (int i = 0; i < labels.size(); i++) {
                     final boolean isActive = selected.contains(i);
                     Button option = dialogOptionButton(labels.get(i), isActive);
@@ -240,12 +230,11 @@ public class PlayerActivity extends AppCompatActivity {
                     list.addView(option);
                 }
                 boolean isOff = selected.isEmpty();
-                Button off = dialogOptionButton("خاموش", isOff);
+                Button off = dialogOptionButton(getString(R.string.p_off), isOff);
                 off.setOnClickListener(v -> applySubtitleChoice(textGroups, -1));
                 list.addView(off);
             }
 
-            // صدا (فقط وقتی چند صدا هست)
             java.util.List<AudioOption> audios = new java.util.ArrayList<>();
             java.util.List<String> seenCodes = new java.util.ArrayList<>();
             for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
@@ -263,10 +252,10 @@ public class PlayerActivity extends AppCompatActivity {
             }
             if (audios.size() > 1) {
                 hasSection = true;
-                list.addView(settingsSectionLabel("زبان صدا", true));
+                list.addView(settingsSectionLabel(getString(R.string.p_audio), true));
                 boolean anySelected = false;
                 for (AudioOption a : audios) if (a.selected) anySelected = true;
-                Button auto = dialogOptionButton("خودکار", !anySelected);
+                Button auto = dialogOptionButton(getString(R.string.p_auto), !anySelected);
                 auto.setOnClickListener(v -> selector.setParameters(selector.buildUponParameters()
                         .setPreferredAudioLanguage(null)));
                 list.addView(auto);
@@ -279,7 +268,6 @@ public class PlayerActivity extends AppCompatActivity {
                 }
             }
 
-            // کیفیت تصویر (فقط وقتی چند کیفیت هست)
             java.util.List<String> videoLabels = new java.util.ArrayList<>();
             int maxHeight = 0;
             for (androidx.media3.common.Tracks.Group group : tracks.getGroups()) {
@@ -289,7 +277,7 @@ public class PlayerActivity extends AppCompatActivity {
                 }
                 for (int i = 0; i < group.length; i++) {
                     int height = group.getTrackFormat(i).height;
-                    String label = height > 0 ? height + "p" : "کیفیت " + (videoLabels.size() + 1);
+                    String label = height > 0 ? height + "p" : getString(R.string.p_quality_n, ui.digits(videoLabels.size() + 1));
                     if (videoLabels.contains(label)) continue;
                     videoLabels.add(label);
                     if (height > maxHeight) maxHeight = height;
@@ -297,8 +285,8 @@ public class PlayerActivity extends AppCompatActivity {
             }
             if (videoLabels.size() > 1) {
                 hasSection = true;
-                list.addView(settingsSectionLabel("کیفیت تصویر", true));
-                Button auto = dialogOptionButton("خودکار", true);
+                list.addView(settingsSectionLabel(getString(R.string.p_quality), true));
+                Button auto = dialogOptionButton(getString(R.string.p_auto), true);
                 auto.setOnClickListener(v -> selector.setParameters(selector.buildUponParameters()
                         .setMaxVideoSize(Integer.MAX_VALUE, Integer.MAX_VALUE)));
                 list.addView(auto);
@@ -317,7 +305,7 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         if (!hasSection) {
-            android.widget.Toast.makeText(this, "گزینه‌ای برای این ویدیو نیست", Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(this, getString(R.string.p_no_options), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -326,7 +314,7 @@ public class PlayerActivity extends AppCompatActivity {
         final androidx.appcompat.app.AlertDialog dialog =
                 new androidx.appcompat.app.AlertDialog.Builder(this)
                         .setView(scroll)
-                        .setNegativeButton("بستن", null)
+                        .setNegativeButton(getString(R.string.btn_close), null)
                         .show();
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(
@@ -337,24 +325,23 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    /** دکمهٔ شیشه‌ای گزینه‌های دیالوگ؛ روی فوکوس قرمز برند. */
     private Button dialogOptionButton(String text, boolean active) {
         Button button = new Button(this);
         button.setText(active ? "✓ " + text : text);
         button.setTextColor(android.graphics.Color.WHITE);
-        button.setTextDirection(View.TEXT_DIRECTION_RTL);
+        button.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         button.setAllCaps(false);
         button.setTypeface(ui.font, active ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         button.setFocusable(true);
         button.setFocusableInTouchMode(true);
         final android.graphics.drawable.GradientDrawable idle =
                 new android.graphics.drawable.GradientDrawable();
-        idle.setColor(active ? 0x29E50914 : Ui.GLASS);
-        idle.setStroke(dp(1), active ? 0xFFE50914 : Ui.HAIRLINE);
+        idle.setColor(active ? ((ui.brand & 0x00FFFFFF) | 0x29000000) : Ui.GLASS);
+        idle.setStroke(dp(1), active ? ui.brand : Ui.HAIRLINE);
         idle.setCornerRadius(dp(10));
         final android.graphics.drawable.GradientDrawable focused =
                 new android.graphics.drawable.GradientDrawable();
-        focused.setColor(0xFFE50914);
+        focused.setColor(ui.brand);
         focused.setCornerRadius(dp(10));
         button.setBackground(idle);
         button.setOnFocusChangeListener((v, hasFocus) -> {
@@ -367,17 +354,16 @@ public class PlayerActivity extends AppCompatActivity {
         return button;
     }
 
-    /** نام نمایشی زبان ترک (فارسی‌سازی‌شده) برای دیالوگ‌های پخش. */
     private String languageName(String code) {
-        if (code == null || code.isEmpty() || "und".equals(code)) return "نامشخص";
+        if (code == null || code.isEmpty() || "und".equals(code)) return getString(R.string.p_unknown);
         try {
-            return new java.util.Locale(code).getDisplayLanguage(new java.util.Locale("fa"));
+            return new java.util.Locale(code).getDisplayLanguage(
+                    new java.util.Locale(SettingsStore.getLang(this)));
         } catch (Exception ignored) {
             return code;
         }
     }
 
-    /** فهرست ترک‌های زیرنویس؛ خروجی‌ها به ترتیب نمایشی پر می‌شوند. */
     private void collectTextTracks(androidx.media3.common.Tracks tracks,
             java.util.List<androidx.media3.common.Tracks.Group> textGroups,
             java.util.List<String> labels,
@@ -394,7 +380,7 @@ public class PlayerActivity extends AppCompatActivity {
                 if (format.label != null && !format.label.trim().isEmpty()) {
                     labelText = format.label.trim();
                 } else {
-                    labelText = "زیرنویس " + languageName(format.language);
+                    labelText = getString(R.string.p_sub_for, languageName(format.language));
                 }
                 labels.add(labelText);
                 if (group.isTrackSelected(i)) selected.add(index);
@@ -453,7 +439,7 @@ public class PlayerActivity extends AppCompatActivity {
         LinearLayout row = ui.row();
         row.setPadding(dp(4), dp(spaced ? 16 : 4), dp(4), dp(6));
         View accent = new View(this);
-        accent.setBackground(ui.rounded(Ui.BRAND, 2));
+        accent.setBackground(ui.rounded(ui.brand, 2));
         LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(dp(3), dp(16));
         accentParams.setMarginEnd(dp(8));
         row.addView(accent, accentParams);
@@ -462,7 +448,7 @@ public class PlayerActivity extends AppCompatActivity {
         label.setTextColor(Ui.TEXT);
         label.setTextSize(14);
         label.setTypeface(ui.font, android.graphics.Typeface.BOLD);
-        label.setTextDirection(View.TEXT_DIRECTION_RTL);
+        label.setTextDirection(View.TEXT_DIRECTION_INHERIT);
         row.addView(label);
         return row;
     }
@@ -529,11 +515,11 @@ public class PlayerActivity extends AppCompatActivity {
         androidx.media3.ui.DefaultTimeBar timeBar =
                 playerView.findViewById(androidx.media3.ui.R.id.exo_progress);
         if (timeBar != null) {
-            timeBar.setKeyTimeIncrement(60000); // 1 minute step on seek bar
+            timeBar.setKeyTimeIncrement(60000); 
             timeBar.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
-                    timeBar.setPlayedColor(0xFFE50914);
-                    timeBar.setScrubberColor(0xFFE50914);
+                    timeBar.setPlayedColor(ui.brand);
+                    timeBar.setScrubberColor(ui.brand);
                 } else {
                     timeBar.setPlayedColor(0xFFFFFFFF);
                     timeBar.setScrubberColor(0xFFFFFFFF);
@@ -547,14 +533,14 @@ public class PlayerActivity extends AppCompatActivity {
         button.setFocusable(true);
         button.setFocusableInTouchMode(true);
         clearInternalBackgrounds(button);
-        // قاب فوکوس پیش‌فرض سیستم روی پس‌زمینهٔ ساده سفید دیده می‌شود
+        
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             button.setDefaultFocusHighlightEnabled(false);
         }
         if (android.os.Build.VERSION.SDK_INT >= 23) {
             button.setForeground(null);
         }
-        // دکمه‌های −۵ و +۱۵ داخل FrameLayout با selectableItemBackground نشسته‌اند
+        
         if (button.getParent() instanceof View) {
             View wrapper = (View) button.getParent();
             if (wrapper.getId() == View.NO_ID) {
@@ -568,13 +554,8 @@ public class PlayerActivity extends AppCompatActivity {
         button.setOnFocusChangeListener((v, hasFocus) -> paintControlBackground(v, hasFocus));
     }
 
-    /**
-     * پس‌زمینهٔ قرمز فوکوس. دکمه‌های عقب/جلو MaterialButton هستند و استایل
-     * ExoStyledControls برایشان backgroundTint سفید گذاشته؛ AppCompat همان تینت را
-     * بعد از setBackground دوباره روی چیپ می‌کشد و قرمز، سفید دیده می‌شود.
-     */
     private void paintControlBackground(View button, boolean focused) {
-        button.setBackground(controlChip(focused ? 0xFFE50914 : 0x00000000));
+        button.setBackground(controlChip(focused ? ui.brand : 0x00000000));
         androidx.core.view.ViewCompat.setBackgroundTintList(button, null);
     }
 
@@ -597,7 +578,7 @@ public class PlayerActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
         if (player != null
                 && (playerView == null || !playerView.isControllerFullyVisible())) {
-            // فقط وقتی کنترلر پنهان است: چپ/راست = ۱ دقیقه عقب/جلو
+            
             if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
                     || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_REWIND) {
                 player.seekTo(Math.max(0, player.getCurrentPosition() - 60000));
@@ -621,7 +602,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // بار اول کنترلر پنهان شود، بار دوم خروج
+        
         if (playerView != null && playerView.isControllerFullyVisible()) {
             playerView.hideController();
             return;

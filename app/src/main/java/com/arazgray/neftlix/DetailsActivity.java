@@ -1,6 +1,7 @@
 package com.arazgray.neftlix;
 
 import android.content.Intent;
+import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -19,14 +20,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * صفحهٔ جزئیات فیلم/سریال: راست‌چین و فارسی.
- *
- * بالای صفحه: هنر پس‌زمینه، پوستر و عنوان با دکمهٔ «تماشا».
- * پایین صفحه دو ستون است: راست توضیحات، چپ فهرست پخش. فصل‌ها، دسته‌ها و
- * کیفیت‌ها پیش‌فرض جمع‌شده‌اند و با OK باز می‌شوند؛ لینک‌های هر کیفیت در شبکهٔ
- * چندستونی (قسمت‌ها) نمایش داده می‌شوند و مستقیم پخش می‌شوند.
- */
 public class DetailsActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "url";
     public static final String EXTRA_TITLE = "title";
@@ -43,17 +36,21 @@ public class DetailsActivity extends AppCompatActivity {
     private TextView loadingLabel;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         CrashLogger.install(this);
         ui = new Ui(this);
         watchlistStore = new WatchlistStore(new java.io.File(getFilesDir(), "watchlist.json"));
-        getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
 
         String url = getIntent().getStringExtra(EXTRA_URL);
         final String fallbackTitle = getIntent().getStringExtra(EXTRA_TITLE);
         if (url == null || url.isEmpty()) {
-            Toast.makeText(this, "نشانی صفحه نامعتبر است", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.d_bad_url), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -62,7 +59,7 @@ public class DetailsActivity extends AppCompatActivity {
 
         LinearLayout toolbar = ui.row();
         toolbar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(10), ui.dp(Ui.PAGE_PAD), ui.dp(4));
-        // مثل نوار خانه: مشکی نیمه‌شفاف و بالاتر از کارت‌ها تا فهرست از زیرش رد شود.
+        
         toolbar.setBackgroundColor(0xB30A0A0C);
         toolbar.setElevation(ui.dp(16));
 
@@ -77,13 +74,13 @@ public class DetailsActivity extends AppCompatActivity {
         logoParams.setMarginEnd(ui.dp(12));
         toolbar.addView(logo, logoParams);
 
-        TextView homeBtn = ui.ghostButton("خانه", R.drawable.ic_home);
+        TextView homeBtn = ui.ghostButton(getString(R.string.nav_home), R.drawable.ic_home);
         homeBtn.setOnClickListener(v -> goHome());
         LinearLayout.LayoutParams homeParams = ui.params(-2, ui.dp(42));
         homeParams.setMarginEnd(ui.dp(8));
         toolbar.addView(homeBtn, homeParams);
 
-        TextView back = ui.ghostButton("بازگشت", R.drawable.ic_back);
+        TextView back = ui.ghostButton(getString(R.string.back), R.drawable.ic_back);
         back.setOnClickListener(v -> finish());
         toolbar.addView(back, ui.params(-2, ui.dp(42)));
 
@@ -127,7 +124,7 @@ public class DetailsActivity extends AppCompatActivity {
         frame.addView(loadingOverlay, new FrameLayout.LayoutParams(-1, -1));
         setContentView(frame);
 
-        showLoading("در حال بارگذاری…");
+        showLoading(getString(R.string.loading_catalog));
         io.execute(() -> {
             try {
                 final ItemDetails details = repository.loadItem(url);
@@ -140,15 +137,15 @@ public class DetailsActivity extends AppCompatActivity {
                         renderItem(details, fallbackTitle);
                     } catch (Throwable error) {
                         hideLoading();
-                        status.setText("خطا در نمایش صفحه");
-                        addSmallText(CrashLogger.describe(error));
+                        status.setText(getString(R.string.d_err_render));
+                        addSmallText(CrashLogger.describe(this, error));
                     }
                 });
             } catch (Throwable e) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    status.setText("خطا در بارگذاری صفحه");
-                    addSmallText(CrashLogger.describe(e));
+                    status.setText(getString(R.string.d_err_page));
+                    addSmallText(CrashLogger.describe(this, e));
                 });
             }
         });
@@ -190,8 +187,6 @@ public class DetailsActivity extends AppCompatActivity {
         if (loadingOverlay != null) loadingOverlay.setVisibility(View.GONE);
     }
 
-    // ── ساخت صفحه ────────────────────────────────────────────────────
-
     private void renderItem(ItemDetails details, String fallbackTitle) {
         page.removeAllViews();
         String rawTitle = details.title == null || details.title.isEmpty() ? fallbackTitle : details.title;
@@ -201,11 +196,10 @@ public class DetailsActivity extends AppCompatActivity {
         addHeader(title, details);
 
         if (details.groups.isEmpty() && details.story.isEmpty()) {
-            page.addView(note("برای این عنوان اطلاعاتی پیدا نشد."));
+            page.addView(note(getString(R.string.d_no_info)));
             return;
         }
 
-        // راست: توضیحات — چپ: نظرات و فهرست پخش
         LinearLayout columns = ui.row();
         columns.setGravity(Gravity.TOP);
         LinearLayout infoColumn = ui.column();
@@ -220,20 +214,17 @@ public class DetailsActivity extends AppCompatActivity {
             addInfoPanel(infoColumn, details);
         }
         if (!details.comments.isEmpty()) {
-            leftColumn.addView(ui.expandable("نظرات (" + Ui.fa(details.comments.size()) + ")",
+            leftColumn.addView(ui.expandable(getString(R.string.d_comments, ui.digits(details.comments.size())),
                     commentsView(details), 0));
         }
         if (!details.groups.isEmpty()) {
             LinearLayout watchList = ui.column();
             addWatchGroups(watchList, details);
-            leftColumn.addView(ui.expandable("فهرست پخش", watchList, 0, this::scrollPageToBottom));
+            leftColumn.addView(ui.expandable(getString(R.string.d_playlist), watchList, 0, this::scrollPageToBottom));
         }
         focusFirst();
     }
 
-    /**
-     * عنوان تمیز برای نمایش؛ منطق در {@link DisplayText} است تا تست واحد داشته باشد.
-     */
     static String cleanTitle(String raw) {
         return DisplayText.cleanTitle(raw);
     }
@@ -244,16 +235,15 @@ public class DetailsActivity extends AppCompatActivity {
         if (!details.imdbRating.isEmpty()) summary.append("IMDb ").append(details.imdbRating);
         if (!details.satisfaction.isEmpty()) {
             if (summary.length() > 0) summary.append(" · ");
-            summary.append("رضایت ").append(details.satisfaction);
+            summary.append(getString(R.string.d_rating, details.satisfaction));
         }
         if (links > 0) {
             if (summary.length() > 0) summary.append(" · ");
-            summary.append(Ui.fa(links)).append(" لینک پخش");
+            summary.append(getString(R.string.d_links, ui.digits(links)));
         }
         return summary.toString();
     }
 
-    /** پوستر + عنوان + دکمهٔ تریلر. */
     private void addHeader(String title, ItemDetails details) {
         LinearLayout header = ui.row();
         header.setGravity(Gravity.TOP);
@@ -267,7 +257,7 @@ public class DetailsActivity extends AppCompatActivity {
             } catch (Exception ignored) {
             }
             ui.loadCover(poster, details.coverUrl);
-            // قاب ۲:۳ مثل کارت‌های فهرست، با کمی فاصله از پایین
+            
             float posterWidth = 150f;
             LinearLayout.LayoutParams posterParams =
                     ui.params(ui.dp(posterWidth), ui.dp(posterWidth * 3f / 2f));
@@ -286,22 +276,22 @@ public class DetailsActivity extends AppCompatActivity {
         tags.setPadding(0, ui.dp(12), 0, 0);
         boolean first = true;
         if (!details.imdbRating.isEmpty()) {
-            tags.addView(ui.tagPill("IMDb ‏" + details.imdbRating + "/10", Ui.BRAND, Ui.BRAND, Ui.TEXT, true));
+            tags.addView(ui.tagPill("IMDb ‏" + details.imdbRating + "/10", ui.brand, ui.brand, Ui.TEXT, true));
             first = false;
         }
         if (!details.satisfaction.isEmpty()) {
-            first = addTag(tags, "رضایت " + details.satisfaction, first);
+            first = addTag(tags, getString(R.string.d_rating, details.satisfaction), first);
         }
-        first = addTag(tags, Ui.faType(typeOf(details)), first);
+        first = addTag(tags, ui.typeName(typeOf(details)), first);
         int links = countLinks(details);
         if (links > 0) {
-            addTag(tags, Ui.fa(links) + " لینک پخش", first);
+            addTag(tags, getString(R.string.d_links, ui.digits(links)), first);
         }
         info.addView(tags);
 
         LinearLayout actions = ui.row();
         actions.setPadding(0, ui.dp(18), 0, 0);
-        TextView trailer = ui.ghostButton("پخش تریلر", R.drawable.ic_play);
+        TextView trailer = ui.ghostButton(getString(R.string.d_trailer), R.drawable.ic_play);
         trailer.setTag("play");
         trailer.setOnClickListener(v -> playTrailer(title));
         actions.addView(trailer, ui.params(-2, ui.dp(44)));
@@ -309,18 +299,18 @@ public class DetailsActivity extends AppCompatActivity {
         final String targetUrl = (details.url != null && !details.url.isEmpty()) ? details.url : intentUrl;
         final BrowseItem savedItem = new BrowseItem(
                 title, "", details.coverUrl, targetUrl, typeOf(details), "");
-        final TextView saved = ui.ghostButton("علاقه‌مندی‌ها", R.drawable.ic_bookmark);
+        final TextView saved = ui.ghostButton(getString(R.string.d_watchlist), R.drawable.ic_bookmark);
         LinearLayout.LayoutParams savedParams = ui.params(-2, ui.dp(44));
         savedParams.setMarginStart(ui.dp(10));
         tintSavedIcon(saved, watchlistStore.contains(targetUrl));
         saved.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus
-                ? ui.stroked(Ui.GLASS, 20, 2, Ui.BRAND)
+                ? ui.stroked(Ui.GLASS, 20, 2, ui.brand)
                 : ui.stroked(Ui.GLASS, 20, 1, Ui.HAIRLINE)));
         saved.setOnClickListener(v -> {
             boolean now = watchlistStore.toggle(savedItem);
             tintSavedIcon(saved, now);
             Toast.makeText(this,
-                    now ? "به علاقه‌مندی‌ها اضافه شد" : "از علاقه‌مندی‌ها حذف شد",
+                    now ? getString(R.string.d_added) : getString(R.string.d_removed),
                     Toast.LENGTH_SHORT).show();
         });
         actions.addView(saved, savedParams);
@@ -332,10 +322,9 @@ public class DetailsActivity extends AppCompatActivity {
         page.addView(header, ui.withTop(-1, -2, 2));
     }
 
-    /** وضعیت علاقه‌مندی فقط با رنگ آیکن نشان داده می‌شود: قرمز یعنی ذخیره‌شده. */
     private void tintSavedIcon(TextView saved, boolean inList) {
         for (android.graphics.drawable.Drawable drawable : saved.getCompoundDrawablesRelative()) {
-            if (drawable != null) drawable.setTint(inList ? Ui.BRAND : Ui.TEXT);
+            if (drawable != null) drawable.setTint(inList ? ui.brand : Ui.TEXT);
         }
         saved.invalidate();
     }
@@ -355,8 +344,6 @@ public class DetailsActivity extends AppCompatActivity {
         return details.url != null && details.url.contains("/series/") ? "series" : "movie";
     }
 
-    // ── ستون توضیحات ─────────────────────────────────────────────────
-
     private void addInfoPanel(LinearLayout parent, ItemDetails details) {
         LinearLayout panel = ui.panel();
 
@@ -365,7 +352,7 @@ public class DetailsActivity extends AppCompatActivity {
             genres.setGravity(Gravity.TOP);
             boolean first = true;
             for (String genre : details.genres) {
-                TextView pill = ui.tagPill(genre, 0x00000000, Ui.BRAND, Ui.TEXT, false);
+                TextView pill = ui.tagPill(genre, 0x00000000, ui.brand, Ui.TEXT, false);
                 LinearLayout.LayoutParams params = ui.params(-2, -2);
                 if (!first) params.setMarginStart(ui.dp(8));
                 genres.addView(pill, params);
@@ -390,16 +377,13 @@ public class DetailsActivity extends AppCompatActivity {
         if (!details.story.isEmpty()) {
             TextView story = ui.text(details.story, 14, 0xFFE6E6EC);
             story.setLineSpacing(0, 1.5f);
-            story.setTextDirection(View.TEXT_DIRECTION_RTL);
+            story.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             panel.addView(story, ui.withTop(-1, -2, 14));
         }
 
         parent.addView(panel);
     }
 
-    // ── فهرست پخش ──────────────────────────────────────────────────
-
-    /** بعد از هر بازشدن، انتهای فهرست را نشان بده تا محتوای تازه دیده شود. */
     private void scrollPageToBottom() {
         if (pageScroll == null || page == null) return;
         pageScroll.post(() -> pageScroll.smoothScrollTo(0, page.getBottom()));
@@ -422,7 +406,7 @@ public class DetailsActivity extends AppCompatActivity {
     private void addCategory(LinearLayout parent, DownloadCategory category) {
         LinearLayout content = ui.column();
         for (DownloadOption option : category.options) {
-            // تک‌لینک مستقیم پخش می‌شود؛ بدون گام اضافهٔ «دکمهٔ پخش داخل کیفیت».
+            
             if (option.links.size() == 1) {
                 content.addView(singlePlayButton(option));
             } else {
@@ -430,11 +414,10 @@ public class DetailsActivity extends AppCompatActivity {
                         this::scrollPageToBottom));
             }
         }
-        String title = category.title == null || category.title.isEmpty() ? "پخش" : category.title;
+        String title = category.title == null || category.title.isEmpty() ? getString(R.string.d_play) : category.title;
         parent.addView(ui.expandable(title, content, 1, this::scrollPageToBottom));
     }
 
-    /** دکمهٔ پخش مستقیم برای کیفیتی که فقط یک لینک دارد. */
     private View singlePlayButton(DownloadOption option) {
         final MediaLink only = option.links.get(0);
         TextView play = ui.rowButton(singleLabel(option), R.drawable.ic_play, false);
@@ -453,7 +436,7 @@ public class DetailsActivity extends AppCompatActivity {
             if (label.length() > 0) label.append("  ·  ");
             label.append(option.encoder);
         }
-        if (label.length() == 0) label.append("پخش");
+        if (label.length() == 0) label.append(getString(R.string.d_play));
         return label.toString();
     }
 
@@ -464,12 +447,11 @@ public class DetailsActivity extends AppCompatActivity {
             if (label.length() > 0) label.append("  ·  ");
             label.append(option.encoder);
         }
-        if (label.length() == 0) label.append("پخش");
-        label.append("  ·  ").append(Ui.fa(option.links.size())).append(" لینک");
+        if (label.length() == 0) label.append(getString(R.string.d_play));
+        label.append("  ·  ").append(getString(R.string.d_links, ui.digits(option.links.size())));
         return label.toString();
     }
 
-    /** لینک‌های یک کیفیت، سه ستون در صفحه. */
     private View linkGrid(DownloadOption option) {
         int columns = 3;
         LinearLayout container = ui.column();
@@ -491,7 +473,7 @@ public class DetailsActivity extends AppCompatActivity {
     private LinearLayout linkRow(List<View> buttons, int columns) {
         List<View> cells = new ArrayList<>(buttons);
         while (cells.size() < columns) {
-            // جای خالی تا دکمه‌های ردیف آخر هم‌اندازهٔ بقیه بمانند
+            
             cells.add(new View(this));
         }
         LinearLayout row = ui.gridRow(cells);
@@ -509,7 +491,6 @@ public class DetailsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    /** تریلر را در اپ یوتیوب جست‌وجو می‌کند؛ اگر نبود، در مرورگر باز می‌کند. */
     private void playTrailer(String title) {
         String query = DisplayText.trailerQuery(title);
         try {
@@ -524,12 +505,10 @@ public class DetailsActivity extends AppCompatActivity {
                         + java.net.URLEncoder.encode(query, "UTF-8");
                 startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)));
             } catch (Exception second) {
-                Toast.makeText(this, "یوتیوب پیدا نشد", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.d_trailer_missing), Toast.LENGTH_LONG).show();
             }
         }
     }
-
-    // ── نظرات ────────────────────────────────────────────────────────
 
     private View commentsView(ItemDetails details) {
         LinearLayout container = ui.column();
@@ -542,12 +521,14 @@ public class DetailsActivity extends AppCompatActivity {
             cardParams.bottomMargin = ui.dp(10);
             card.setLayoutParams(cardParams);
 
-            String who = comment.author.isEmpty() ? "کاربر" : comment.author;
+            String who = comment.author.isEmpty() ? getString(R.string.d_by_user) : comment.author;
             TextView head = ui.text(who + (comment.time.isEmpty() ? "" : "  ·  " + comment.time),
-                    12, Ui.BRAND, true);
+                    12, ui.brand, true);
+            head.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             card.addView(head);
 
             TextView body = ui.text(comment.text, 14, Ui.TEXT_DIM);
+            body.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
             body.setLineSpacing(0, 1.35f);
             card.addView(body, ui.withTop(-1, -2, 6));
             container.addView(card);
@@ -573,7 +554,6 @@ public class DetailsActivity extends AppCompatActivity {
         page.addView(note(text == null ? "" : text));
     }
 
-    /** فوکوس اولیه: دکمهٔ تریلر، وگرنه اولین بخش بازشونده. */
     private void focusFirst() {
         page.post(() -> {
             View play = findTagged(page, "play");

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-/** چیدمان صفحه‌کلید جست‌وجو و ویرایش متن. */
 public class SearchKeysTest {
 
     @Test

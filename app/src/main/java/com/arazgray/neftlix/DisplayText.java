@@ -1,16 +1,9 @@
 package com.arazgray.neftlix;
 
-/**
- * متن نمایشی عنوان‌ها: خالص و بدون وابستگی به اندروید تا تست واحد داشته باشد.
- */
 final class DisplayText {
     private DisplayText() {
     }
 
-    /**
-     * عنوان تمیز برای نمایش: پیشوند «دانلود …» و عبارت‌های تبلیغی انتهای عنوان
-     * سایت حذف می‌شوند (فقط برای نمایش؛ دادهٔ اصلی دست‌نخورده می‌ماند).
-     */
     static String cleanTitle(String raw) {
         if (raw == null) return "";
         String title = raw.trim();
@@ -42,21 +35,12 @@ final class DisplayText {
         return title.isEmpty() ? raw.trim() : title;
     }
 
-    /**
-     * برچسب دکمهٔ لینک: زبان «دانلود» سایت به «تماشا» برمی‌گردد؛
-     * «مستقیم» یعنی پخش مستقیم.
-     */
     static String watchLabel(String siteLabel) {
         String label = siteLabel == null ? "" : siteLabel.replace("دانلود", "تماشا").trim();
         if (label.contains("مستقیم")) return "پخش مستقیم";
         return label.isEmpty() ? "تماشا" : label;
     }
 
-    /**
-     * عبارت جست‌وجوی تریلر یوتیوب از روی عنوان و سال، مثلاً
-     * «Spider-Man (2012)» می‌شود «spiderman 2012 trailer».
-     * عنوان کاملاً فارسی همان‌طور که هست جست‌وجو می‌شود.
-     */
     static String trailerQuery(String title) {
         String raw = title == null ? "" : title;
         String latin = raw.replaceAll("[^A-Za-z0-9 ]", "").replaceAll("\\s+", " ").trim()

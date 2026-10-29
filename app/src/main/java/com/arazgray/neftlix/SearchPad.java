@@ -10,10 +10,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * صفحه‌کلید روی صفحه برای جست‌وجو. فارسی و انگلیسی را عوض می‌کند و
- * به جای کیبورد سیستم می‌نشیند.
- */
 final class SearchPad {
     private final Ui ui;
     private final TextView field;
@@ -22,7 +18,7 @@ final class SearchPad {
     private final LinearLayout rows;
     private boolean persian = true;
     private boolean open;
-    /** هنگام عوض کردن زبان فوکوس لحظه‌ای از صفحه بیرون می‌رود؛ نباید کیبورد بسته شود. */
+    
     private boolean holdingFocus;
     private View defaultKey;
 
@@ -77,7 +73,6 @@ final class SearchPad {
         return false;
     }
 
-    /** حروف سخت‌افزاری، وقتی صفحه‌کلید باز است، مستقیم به متن جست‌وجو می‌روند. */
     boolean offerKey(KeyEvent event) {
         if (!isOpen() || event.getAction() != KeyEvent.ACTION_DOWN) return false;
         if (event.getKeyCode() == KeyEvent.KEYCODE_DEL) {
@@ -98,7 +93,7 @@ final class SearchPad {
         built.add(addRow(SearchKeys.DIGITS));
         String[] letters = SearchKeys.letterRows(persian);
         for (int i = 0; i < letters.length; i++) {
-            // چیدمان استاندارد صفحه‌کلید: از چپ به راست. ش و ض سمت چپ می‌نشینند.
+            
             LinearLayout row = addRow(letters[i]);
             built.add(row);
             if (i == 0 && row.getChildCount() > 0) defaultKey = row.getChildAt(0);
@@ -121,10 +116,12 @@ final class SearchPad {
     private LinearLayout actionRow() {
         LinearLayout row = ui.row();
         row.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
-        TextView lang = key(persian ? "EN" : "فا", "lang", 1.3f, false);
-        TextView space = key(persian ? "فاصله" : "space", "space", 4f, false);
-        TextView back = key("حذف", "back", 1.3f, false);
-        TextView search = key("جستجو", "search", 1.6f, false);
+        TextView lang = key(persian
+                ? ui.activity.getString(R.string.kb_other_en)
+                : ui.activity.getString(R.string.kb_other_fa), "lang", 1.3f, false);
+        TextView space = key(ui.activity.getString(R.string.kb_space), "space", 4f, false);
+        TextView back = key(ui.activity.getString(R.string.kb_delete), "back", 1.3f, false);
+        TextView search = key(ui.activity.getString(R.string.kb_search), "search", 1.6f, false);
         styleSearchKey(search);
         back.setOnLongClickListener(v -> {
             field.setText("");
@@ -146,14 +143,14 @@ final class SearchPad {
         view.setGravity(Gravity.CENTER);
         view.setSingleLine(true);
         if (Build.VERSION.SDK_INT >= 26) view.setDefaultFocusHighlightEnabled(false);
-        // کلیدها مات‌اند تا فهرست از پشت‌شان دیده نشود؛ فوکوس قرمز می‌شود.
+        
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
         view.setClickable(true);
         view.setMinimumHeight(ui.dp(34));
         final android.graphics.drawable.GradientDrawable idle =
                 ui.stroked(Ui.SURFACE_2, 8, 1, Ui.HAIRLINE);
-        final android.graphics.drawable.GradientDrawable focused = ui.rounded(Ui.BRAND, 8);
+        final android.graphics.drawable.GradientDrawable focused = ui.rounded(ui.brand, 8);
         view.setBackground(idle);
         view.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
         view.setOnClickListener(v -> onKey(label, tag));
@@ -163,10 +160,9 @@ final class SearchPad {
         return view;
     }
 
-    /** دکمهٔ جستجو سفید است و فقط با فوکوس قرمز می‌شود. */
     private void styleSearchKey(TextView view) {
         android.graphics.drawable.GradientDrawable idle = ui.rounded(Ui.TEXT, 8);
-        android.graphics.drawable.GradientDrawable focused = ui.rounded(Ui.BRAND, 8);
+        android.graphics.drawable.GradientDrawable focused = ui.rounded(ui.brand, 8);
         view.setBackground(idle);
         view.setTextColor(0xFF0A0A0C);
         view.setOnFocusChangeListener((v, hasFocus) -> {
