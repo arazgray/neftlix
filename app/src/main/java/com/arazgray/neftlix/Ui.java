@@ -221,6 +221,8 @@ final class Ui {
             @Override
             public void setTintList(android.content.res.ColorStateList tint) {
                 inner.setTintList(tint);
+                // تغییر تینت باید ویو را دوباره بکشد؛ وگرنه رنگ تا فوکوس بعدی دیده نمی‌شود.
+                invalidateSelf();
             }
 
             @Override

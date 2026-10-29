@@ -109,8 +109,8 @@ public class MainActivity extends AppCompatActivity {
         // نوار بالا
         LinearLayout bar = ui.row();
         bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(9), ui.dp(Ui.PAGE_PAD), ui.dp(5));
-        // مات و بالاتر از کارت‌های زوم‌شده تا فهرست از زیرش رد شود، نه از رویش.
-        bar.setBackgroundColor(Ui.BG);
+        // مشکی نیمه‌شفاف و بالاتر از کارت‌های زوم‌شده تا فهرست از زیرش رد شود.
+        bar.setBackgroundColor(0xB30A0A0C);
         bar.setElevation(ui.dp(16));
 
         ImageView logo = new ImageView(this);
@@ -503,13 +503,13 @@ public class MainActivity extends AppCompatActivity {
     private void showInfoDialog() {
         LinearLayout layout = ui.column();
         layout.setGravity(Gravity.CENTER_HORIZONTAL);
-        layout.setPadding(ui.dp(30), ui.dp(26), ui.dp(30), ui.dp(24));
+        layout.setPadding(ui.dp(24), ui.dp(18), ui.dp(24), ui.dp(16));
 
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo_transparent);
         logo.setAdjustViewBounds(true);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        LinearLayout.LayoutParams logoParams = ui.params(ui.dp(170), ui.dp(58));
+        LinearLayout.LayoutParams logoParams = ui.params(ui.dp(130), ui.dp(44));
         logoParams.gravity = Gravity.CENTER_HORIZONTAL;
         layout.addView(logo, logoParams);
 
@@ -542,21 +542,21 @@ public class MainActivity extends AppCompatActivity {
             qrView.setImageBitmap(qr);
             qrView.setBackground(ui.stroked(android.graphics.Color.WHITE, 8, 0, 0));
             qrView.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
-            LinearLayout.LayoutParams qrParams = ui.params(ui.dp(190), ui.dp(190));
+            LinearLayout.LayoutParams qrParams = ui.params(ui.dp(150), ui.dp(150));
             qrParams.gravity = Gravity.CENTER_HORIZONTAL;
-            qrParams.topMargin = ui.dp(12);
+            qrParams.topMargin = ui.dp(8);
             layout.addView(qrView, qrParams);
         }
 
         LinearLayout buttons = ui.row();
         buttons.setGravity(Gravity.CENTER);
-        buttons.setPadding(0, ui.dp(18), 0, 0);
-        TextView close = ui.ghostButton("بستن", 0);
-        TextView site = ui.primaryButton("باز کردن سایت", 0);
-        LinearLayout.LayoutParams closeParams = ui.params(-2, ui.dp(44));
-        closeParams.setMarginEnd(ui.dp(10));
+        buttons.setPadding(0, ui.dp(12), 0, 0);
+        TextView close = infoDialogButton("بستن");
+        TextView site = infoDialogButton("باز کردن سایت");
+        LinearLayout.LayoutParams closeParams = ui.params(-2, ui.dp(40));
+        closeParams.setMarginEnd(ui.dp(14));
         buttons.addView(close, closeParams);
-        buttons.addView(site, ui.params(-2, ui.dp(44)));
+        buttons.addView(site, ui.params(-2, ui.dp(40)));
         layout.addView(buttons);
 
         final androidx.appcompat.app.AlertDialog dialog =
@@ -573,12 +573,33 @@ public class MainActivity extends AppCompatActivity {
         });
         close.requestFocus();
         if (dialog.getWindow() != null) {
+            // مشکی نیمه‌شفاف با قاب نازک قرمز؛ کوچک‌تر از حالت پیش‌فرض.
             dialog.getWindow().setBackgroundDrawable(
-                    ui.stroked(Ui.BG, 16, 2, Ui.BRAND));
+                    ui.stroked(0xCC000000, 16, 1, Ui.BRAND));
             android.view.WindowManager.LayoutParams attributes = dialog.getWindow().getAttributes();
-            attributes.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.7);
+            attributes.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.45);
             dialog.getWindow().setAttributes(attributes);
         }
+    }
+
+    /** دکمهٔ سفید دیالوگ درباره؛ فقط با فوکوس قرمز می‌شود. */
+    private TextView infoDialogButton(String label) {
+        TextView button = ui.text(label, 14, 0xFF0A0A0C, true);
+        button.setGravity(Gravity.CENTER);
+        button.setSingleLine(true);
+        button.setPadding(ui.dp(26), 0, ui.dp(26), 0);
+        button.setFocusable(true);
+        button.setFocusableInTouchMode(true);
+        button.setClickable(true);
+        if (android.os.Build.VERSION.SDK_INT >= 26) button.setDefaultFocusHighlightEnabled(false);
+        final android.graphics.drawable.GradientDrawable idle = ui.rounded(Ui.TEXT, 20);
+        final android.graphics.drawable.GradientDrawable focused = ui.rounded(Ui.BRAND, 20);
+        button.setBackground(idle);
+        button.setOnFocusChangeListener((v, hasFocus) -> {
+            v.setBackground(hasFocus ? focused : idle);
+            button.setTextColor(hasFocus ? Ui.TEXT : 0xFF0A0A0C);
+        });
+        return button;
     }
 
     private android.graphics.Bitmap makeQrBitmap(String text, int size) {

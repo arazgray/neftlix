@@ -62,8 +62,8 @@ public class DetailsActivity extends AppCompatActivity {
 
         LinearLayout toolbar = ui.row();
         toolbar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(10), ui.dp(Ui.PAGE_PAD), ui.dp(4));
-        // مثل نوار خانه: مات و بالاتر از کارت‌ها تا فهرست از زیرش رد شود.
-        toolbar.setBackgroundColor(Ui.BG);
+        // مثل نوار خانه: مشکی نیمه‌شفاف و بالاتر از کارت‌ها تا فهرست از زیرش رد شود.
+        toolbar.setBackgroundColor(0xB30A0A0C);
         toolbar.setElevation(ui.dp(16));
 
         ImageView logo = new ImageView(this);
@@ -337,6 +337,7 @@ public class DetailsActivity extends AppCompatActivity {
         for (android.graphics.drawable.Drawable drawable : saved.getCompoundDrawablesRelative()) {
             if (drawable != null) drawable.setTint(inList ? Ui.BRAND : Ui.TEXT);
         }
+        saved.invalidate();
     }
 
     private boolean addTag(LinearLayout row, String label, boolean first) {
