@@ -503,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
     private void showInfoDialog() {
         LinearLayout layout = ui.column();
         layout.setGravity(Gravity.CENTER_HORIZONTAL);
-        layout.setPadding(ui.dp(14), ui.dp(10), ui.dp(14), ui.dp(6));
+        layout.setPadding(ui.dp(30), ui.dp(26), ui.dp(30), ui.dp(24));
 
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo_transparent);
@@ -533,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
 
         TextView author = ui.text("سازنده: Araz Gray · arazgray.com", 12, Ui.TEXT_MUTED);
         author.setGravity(Gravity.CENTER);
-        author.setPadding(0, ui.dp(4), 0, ui.dp(10));
+        author.setPadding(0, ui.dp(4), 0, 0);
         layout.addView(author);
 
         android.graphics.Bitmap qr = makeQrBitmap("https://arazgray.com", 420);
@@ -544,22 +544,41 @@ public class MainActivity extends AppCompatActivity {
             qrView.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
             LinearLayout.LayoutParams qrParams = ui.params(ui.dp(190), ui.dp(190));
             qrParams.gravity = Gravity.CENTER_HORIZONTAL;
+            qrParams.topMargin = ui.dp(12);
             layout.addView(qrView, qrParams);
         }
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setView(layout)
-                .setPositiveButton("بستن", null)
-                .setNeutralButton("باز کردن سایت", (d, which) -> {
-                    try {
-                        startActivity(new Intent(Intent.ACTION_VIEW,
-                                android.net.Uri.parse("https://arazgray.com")));
-                    } catch (Exception ignored) {
-                    }
-                })
-                .show()
-                .getWindow()
-                .setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Ui.BG));
+        LinearLayout buttons = ui.row();
+        buttons.setGravity(Gravity.CENTER);
+        buttons.setPadding(0, ui.dp(18), 0, 0);
+        TextView close = ui.ghostButton("بستن", 0);
+        TextView site = ui.primaryButton("باز کردن سایت", 0);
+        LinearLayout.LayoutParams closeParams = ui.params(-2, ui.dp(44));
+        closeParams.setMarginEnd(ui.dp(10));
+        buttons.addView(close, closeParams);
+        buttons.addView(site, ui.params(-2, ui.dp(44)));
+        layout.addView(buttons);
+
+        final androidx.appcompat.app.AlertDialog dialog =
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setView(layout)
+                        .show();
+        close.setOnClickListener(v -> dialog.dismiss());
+        site.setOnClickListener(v -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://arazgray.com")));
+            } catch (Exception ignored) {
+            }
+        });
+        close.requestFocus();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(
+                    ui.stroked(Ui.BG, 16, 2, Ui.BRAND));
+            android.view.WindowManager.LayoutParams attributes = dialog.getWindow().getAttributes();
+            attributes.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.7);
+            dialog.getWindow().setAttributes(attributes);
+        }
     }
 
     private android.graphics.Bitmap makeQrBitmap(String text, int size) {
