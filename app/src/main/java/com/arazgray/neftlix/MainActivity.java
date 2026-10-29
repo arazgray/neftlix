@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -39,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private WatchlistStore watchlistStore;
     private LinearLayout page;
     private TextView status;
-    private EditText searchBox;
+    private TextView searchBox;
+    private SearchPad searchPad;
     private boolean showingSubPage;
     private boolean showingWatchlist;
 
@@ -57,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         getWindow().setStatusBarColor(Ui.BG);
         getWindow().setNavigationBarColor(Ui.BG);
+        // جست‌وجو صفحه‌کلید خودش را دارد؛ کیبورد سیستم هیچ‌وقت نباید باز شود
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+                | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
         // پاک‌سازی فایل به‌روزرسانی قبلی (بعد از نصب دیگر لازم نیست)
         try {
             java.io.File updatesDir = new java.io.File(getExternalFilesDir("updates"), "");
@@ -115,16 +119,22 @@ public class MainActivity extends AppCompatActivity {
         logoParams.setMarginEnd(ui.dp(14));
         bar.addView(logo, logoParams);
 
-        searchBox = new EditText(this);
+        searchBox = new TextView(this);
         searchBox.setSingleLine(true);
+        searchBox.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        searchBox.setFocusable(true);
+        searchBox.setFocusableInTouchMode(true);
+        searchBox.setClickable(true);
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            searchBox.setDefaultFocusHighlightEnabled(false);
+        }
         searchBox.setTextColor(Ui.TEXT);
         searchBox.setTypeface(ui.font, Typeface.NORMAL);
         searchBox.setHintTextColor(Ui.TEXT_MUTED);
-        searchBox.setHint("جست‌وجوی فیلم و سریال…");
-        searchBox.setTextDirection(View.TEXT_DIRECTION_RTL);
+        searchBox.setHint("جستجو");
+        searchBox.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         searchBox.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         searchBox.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        searchBox.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         searchBox.setBackground(ui.stroked(Ui.SURFACE_2, 22, 1, Ui.HAIRLINE));
         searchBox.setPadding(ui.dp(15), 0, ui.dp(15), 0);
         searchBox.setCompoundDrawablesRelativeWithIntrinsicBounds(
@@ -136,21 +146,32 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams searchParams = ui.params(0, ui.dp(42), 1f);
         searchParams.setMarginEnd(ui.dp(10));
         bar.addView(searchBox, searchParams);
-        searchBox.setOnEditorActionListener((view, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                showSearchResults();
+        searchPad = new SearchPad(ui, searchBox, this::showSearchResults);
+        searchBox.setOnClickListener(v -> searchPad.open());
+        // TextView است تا کیبورد سیستم باز نشود. OK صفحه‌کلید خودمان را می‌آورد.
+        searchBox.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER
+                    || keyCode == KeyEvent.KEYCODE_ENTER
+                    || keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER) {
+                searchPad.open();
                 return true;
             }
-            return false;
-        });
-        // با ریموت از داخل متن خارج شو: چپ/راست به‌جای حرکت مکان‌نما، فوکوس را جابه‌جا می‌کند
-        searchBox.setOnKeyListener((v, keyCode, event) -> {
-            if (event.getAction() == android.view.KeyEvent.ACTION_DOWN
-                    && (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
-                    || keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT)) {
-                View next = v.focusSearch(keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
+            if (keyCode == KeyEvent.KEYCODE_DEL) {
+                searchBox.setText(SearchKeys.backspace(searchBox.getText().toString()));
+                return true;
+            }
+            int typed = event.getUnicodeChar();
+            if (typed > 0 && !Character.isISOControl(typed)) {
+                searchBox.setText(SearchKeys.insert(
+                        searchBox.getText().toString(), String.valueOf((char) typed)));
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
+                    || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                View next = v.focusSearch(keyCode == KeyEvent.KEYCODE_DPAD_LEFT
                         ? View.FOCUS_LEFT : View.FOCUS_RIGHT);
-                if (next != null) {
+                if (next != null && !searchPad.hosts(next)) {
                     next.requestFocus();
                     return true;
                 }
@@ -208,16 +229,21 @@ public class MainActivity extends AppCompatActivity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
+        scroll.setClipChildren(false);
         scroll.setClipToPadding(false);
         scroll.setVerticalScrollBarEnabled(false);
         scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
         page = ui.column();
         page.setClipChildren(false);
+        page.setClipToPadding(false);
+        root.setClipChildren(false);
         page.setPadding(0, 0, 0, ui.dp(30));
         scroll.addView(page);
         root.addView(scroll, ui.params(-1, 0, 1f));
 
         FrameLayout frame = new FrameLayout(this);
+        frame.setClipChildren(false);
+        frame.setClipToPadding(false);
         frame.setBackgroundColor(Ui.BG);
         ImageView backdrop = new ImageView(this);
         backdrop.setImageResource(R.drawable.main_bg);
@@ -225,6 +251,20 @@ public class MainActivity extends AppCompatActivity {
         backdrop.setAlpha(0.55f);
         frame.addView(backdrop, new FrameLayout.LayoutParams(-1, -1));
         frame.addView(root, new FrameLayout.LayoutParams(-1, -1));
+
+        int keyboardWidth = getResources().getDisplayMetrics().widthPixels / 2;
+        FrameLayout.LayoutParams keyboardParams = new FrameLayout.LayoutParams(
+                keyboardWidth,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        keyboardParams.bottomMargin = ui.dp(12);
+        frame.addView(searchPad.view(), keyboardParams);
+        frame.getViewTreeObserver().addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
+            if (searchPad.isOpen() && !searchPad.holdsFocus() && newFocus != null
+                    && newFocus != searchBox && !searchPad.hosts(newFocus)) {
+                searchPad.close();
+            }
+        });
 
         loadingOverlay = centeredOverlay();
         loadingOverlay.setVisibility(View.GONE);
@@ -696,9 +736,7 @@ public class MainActivity extends AppCompatActivity {
     private void showSearchResults() {
         if (catalog == null) return;
         final String query = searchBox.getText().toString().trim();
-        android.view.inputmethod.InputMethodManager imm =
-                (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        if (imm != null) imm.hideSoftInputFromWindow(searchBox.getWindowToken(), 0);
+        if (searchPad != null) searchPad.close();
         searchBox.clearFocus();
         showingSubPage = true;
         showingWatchlist = false;
@@ -880,7 +918,9 @@ public class MainActivity extends AppCompatActivity {
         int columns = ui.gridColumns();
         float cardWidth = ui.gridCardWidthDp(columns);
         LinearLayout grid = ui.column();
-        grid.setPadding(ui.dp(Ui.PAGE_PAD), 0, ui.dp(Ui.PAGE_PAD), 0);
+        grid.setClipChildren(false);
+        grid.setClipToPadding(false);
+        grid.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(16), ui.dp(Ui.PAGE_PAD), 0);
         List<View> rowCards = new ArrayList<>();
         for (final BrowseItem item : items) {
             View card = ui.posterCard(item, cardWidth, true);
@@ -908,7 +948,7 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout.LayoutParams bottomMargin() {
         LinearLayout.LayoutParams params = ui.params(-1, -2);
-        params.bottomMargin = ui.dp(16);
+        params.bottomMargin = ui.dp(22);
         return params;
     }
 
@@ -1029,7 +1069,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (searchPad != null && searchPad.offerKey(event)) return true;
+        return super.dispatchKeyEvent(event);
+    }
+
+    @Override
     public void onBackPressed() {
+        if (searchPad != null && searchPad.isOpen()) {
+            searchPad.close();
+            searchBox.requestFocus();
+            return;
+        }
         if (showingSubPage) {
             renderHome();
             return;

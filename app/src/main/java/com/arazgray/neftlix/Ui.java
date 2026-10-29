@@ -49,6 +49,9 @@ final class Ui {
     static final float CARD_W = 136f;
     static final float CARD_GAP = 12f;
     static final float RADIUS_CARD = 10f;
+    /** بزرگ‌شدن کل کارت هنگام فوکوس؛ خودِ تصویر جدا زوم نمی‌شود. */
+    static final float FOCUS_SCALE = 1.15f;
+    static final float FOCUS_STROKE = 3f;
     static final float RADIUS_BUTTON = 12f;
     static final float RADIUS_PILL = 999f;
 
@@ -404,26 +407,48 @@ final class Ui {
 
     // ── ریل افقی کارت‌ها ─────────────────────────────────────────────
     /**
-     * ریل افقی؛ با جابه‌جایی فوکوس، کارت فعال به وسط دید می‌آید.
-     * کارت‌ها در RTL از راست به چپ چیده می‌شوند.
+     * ریل افقی. کارت‌ها از راست چیده می‌شوند و ورود عمودی روی اولین کارت می‌نشیند.
+     * اسکرول فقط به‌اندازه‌ای که کارتِ فوکوس دیده شود، نه تا وسط صفحه.
      */
     HorizontalScrollView rail(List<View> cards) {
         LinearLayout content = row();
         content.setClipChildren(false);
-        content.setPadding(dp(PAGE_PAD), dp(10), dp(PAGE_PAD), dp(12));
+        content.setClipToPadding(false);
+        content.setPadding(dp(PAGE_PAD), dp(20), dp(PAGE_PAD), dp(22));
         for (int i = 0; i < cards.size(); i++) {
             View card = cards.get(i);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(CARD_W), -2);
             if (i < cards.size() - 1) lp.setMarginEnd(dp(CARD_GAP));
             content.addView(card, lp);
         }
-        HorizontalScrollView scroller = new HorizontalScrollView(activity);
+        HorizontalScrollView scroller = new HorizontalScrollView(activity) {
+            @Override
+            public void addFocusables(java.util.ArrayList<View> views, int direction, int focusableMode) {
+                if (isVerticalEntry(direction)) {
+                    View first = firstDirectFocusable(getChildCount() > 0 ? getChildAt(0) : null);
+                    if (first != null) {
+                        first.addFocusables(views, direction, focusableMode);
+                        return;
+                    }
+                }
+                super.addFocusables(views, direction, focusableMode);
+            }
+        };
         scroller.setHorizontalScrollBarEnabled(false);
         scroller.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         scroller.setClipChildren(false);
         scroller.setClipToPadding(false);
         scroller.setOverScrollMode(View.OVER_SCROLL_NEVER);
         scroller.addView(content, new FrameLayout.LayoutParams(-2, -2));
+        // شروع ریل لبهٔ راست است؛ اولین عنوان همان‌جا دیده می‌شود
+        scroller.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                scroller.removeOnLayoutChangeListener(this);
+                alignRailStart(scroller);
+            }
+        });
         for (View card : cards) {
             final View focused = card;
             final HorizontalScrollView target = scroller;
@@ -436,14 +461,49 @@ final class Ui {
         return scroller;
     }
 
+    /** ورود عمودی به ریل فقط اولین کارت (راست‌ترین در RTL) را پیشنهاد می‌کند. */
+    private static boolean isVerticalEntry(int direction) {
+        return direction == View.FOCUS_UP || direction == View.FOCUS_DOWN;
+    }
+
+    /** اولین فرزند مستقیمِ فوکوس‌پذیر؛ در ردیف RTL همان آیتم راست است. */
+    private static View firstDirectFocusable(View container) {
+        if (!(container instanceof android.view.ViewGroup)) return null;
+        android.view.ViewGroup group = (android.view.ViewGroup) container;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child.getVisibility() == View.VISIBLE && child.isFocusable()) return child;
+        }
+        return null;
+    }
+
+    private static void alignRailStart(HorizontalScrollView scroller) {
+        if (scroller.getChildCount() == 0 || scroller.getWidth() <= 0) return;
+        int max = Math.max(0, scroller.getChildAt(0).getWidth() - scroller.getWidth());
+        if (scroller.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL) {
+            scroller.scrollTo(max, 0);
+        }
+    }
+
+    /**
+     * کارت را کاملاً داخل دید نگه می‌دارد، بدون کشیدن اولین کارت به وسط.
+     * اگر همین حالا دیده شود دست نمی‌زند تا لبهٔ راست ریل سر جایش بماند.
+     */
     void reveal(final HorizontalScrollView scroller, final View card) {
         scroller.post(() -> {
             int viewport = scroller.getWidth();
             if (viewport <= 0 || card.getWidth() <= 0) return;
-            int target = card.getLeft() - (viewport - card.getWidth()) / 2;
+            int scroll = scroller.getScrollX();
+            int left = card.getLeft();
+            int right = left + card.getWidth();
+            int pad = dp(8);
             int content = scroller.getChildCount() > 0 ? scroller.getChildAt(0).getWidth() : 0;
             int max = Math.max(0, content - viewport);
-            scroller.smoothScrollTo(Math.max(0, Math.min(target, max)), 0);
+            if (left < scroll + pad) {
+                scroller.smoothScrollTo(Math.max(0, left - pad), 0);
+            } else if (right > scroll + viewport - pad) {
+                scroller.smoothScrollTo(Math.min(max, right - viewport + pad), 0);
+            }
         });
     }
 
@@ -459,6 +519,8 @@ final class Ui {
         card.setContentDescription(item.title);
 
         FrameLayout box = new FrameLayout(activity);
+        box.setClipChildren(false);
+        box.setClipToPadding(false);
         final ImageView poster = new ImageView(activity);
         poster.setScaleType(ImageView.ScaleType.CENTER_CROP);
         poster.setBackground(rounded(SURFACE_2, RADIUS_CARD));
@@ -478,10 +540,14 @@ final class Ui {
             tagParams.setMargins(dp(7), dp(7), dp(7), 0);
             box.addView(tag, tagParams);
         }
+        // قاب بیرونِ تصویر است تا فوکوس، خودِ پوستر را کوچک‌تر نشان ندهد.
         final View border = new View(activity);
-        border.setBackground(stroked(0x00000000, RADIUS_CARD, 3, BRAND));
+        border.setBackground(stroked(0x00000000, RADIUS_CARD + FOCUS_STROKE, FOCUS_STROKE, BRAND));
         border.setVisibility(View.INVISIBLE);
-        box.addView(border, new FrameLayout.LayoutParams(-1, -1));
+        final int stroke = dp(FOCUS_STROKE);
+        FrameLayout.LayoutParams borderParams = new FrameLayout.LayoutParams(-1, -1);
+        borderParams.setMargins(-stroke, -stroke, -stroke, -stroke);
+        box.addView(border, borderParams);
         card.addView(box, new LinearLayout.LayoutParams(-1, posterHeight));
 
         final TextView title = text(item.title, 13, 0xFFE9E9EE, false);
@@ -501,10 +567,19 @@ final class Ui {
             card.addView(meta, metaParams);
         }
 
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            card.setDefaultFocusHighlightEnabled(false);
+        }
         card.setOnFocusChangeListener((v, hasFocus) -> {
-            // بدون تغییر اندازه: قاب قرمز و بولد شدن عنوان، فوکوس را نشان می‌دهد
+            // کل کارت با قاب و عنوان بزرگ می‌شود؛ کراپ تصویر عوض نمی‌شود.
             border.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
             applyText(title, 13, hasFocus ? TEXT : 0xFFE9E9EE, hasFocus);
+            v.animate().cancel();
+            float scale = hasFocus ? FOCUS_SCALE : 1f;
+            v.animate().scaleX(scale).scaleY(scale).setDuration(160)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                    .start();
+            v.setTranslationZ(hasFocus ? dp(12) : 0);
             if (hasFocus) upgradePoster(poster, item.coverUrl);
         });
         loadCover(poster, item.coverUrl);
@@ -513,9 +588,24 @@ final class Ui {
 
     /** کارت‌های یک ردیف با عرض مساوی (صفحهٔ آرشیو و نتایج جست‌وجو). */
     LinearLayout gridRow(List<View> cards) {
-        LinearLayout row = row();
-        row.setClipChildren(false);
+        LinearLayout row = new LinearLayout(activity) {
+            @Override
+            public void addFocusables(java.util.ArrayList<View> views, int direction, int focusableMode) {
+                if (isVerticalEntry(direction)) {
+                    View first = firstDirectFocusable(this);
+                    if (first != null) {
+                        first.addFocusables(views, direction, focusableMode);
+                        return;
+                    }
+                }
+                super.addFocusables(views, direction, focusableMode);
+            }
+        };
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         row.setGravity(Gravity.TOP);
+        row.setClipChildren(false);
+        row.setClipToPadding(false);
         for (int i = 0; i < cards.size(); i++) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1f);
             if (i < cards.size() - 1) lp.setMarginEnd(dp(CARD_GAP));

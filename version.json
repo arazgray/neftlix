@@ -1,6 +1,6 @@
 {
-  "versionCode": 19,
-  "versionName": "1.18",
+  "versionCode": 20,
+  "versionName": "1.19",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۱۸: دکمهٔ خانه و لوگوی قابل کلیک، آیکون‌های عقب/جلو، بهبود دیالوگ پخش، رفع ماندگاری علاقه‌مندی‌ها."
+  "notes": "نسخه ۱٫۱۹: صفحه‌کلید فارسی/انگلیسی داخل برنامه، زوم کارت با فوکوس، رفع سفیدی دکمهٔ جلوبر، بهبود ریل و جست‌وجو."
 }
