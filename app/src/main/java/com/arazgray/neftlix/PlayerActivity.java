@@ -194,17 +194,10 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-    private android.graphics.drawable.GradientDrawable focusBackgroundFor() {
+    /** چیپ فوکوس کنترلر. هر بار نمونهٔ تازه تا تینت قبلی رویش نماند. */
+    private android.graphics.drawable.GradientDrawable controlChip(int color) {
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
-        bg.setColor(0xFFE50914);
-        bg.setCornerRadius(12f);
-        return bg;
-    }
-
-    /** پس‌زمینهٔ شفاف حالت عادی دکمه‌های کنترلر. */
-    private android.graphics.drawable.GradientDrawable idleBackgroundFor() {
-        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
-        bg.setColor(0x00000000);
+        bg.setColor(color);
         bg.setCornerRadius(12f);
         return bg;
     }
@@ -478,7 +471,12 @@ public class PlayerActivity extends AppCompatActivity {
         if (playerView == null) return;
         View rewView = playerView.findViewById(androidx.media3.ui.R.id.exo_rew);
         if (rewView == null) rewView = playerView.findViewById(androidx.media3.ui.R.id.exo_rew_with_amount);
-        if (rewView instanceof android.widget.ImageView) {
+        if (rewView instanceof android.widget.TextView) {
+            android.widget.TextView tv = (android.widget.TextView) rewView;
+            tv.setText("");
+            tv.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_rew_5, 0, 0, 0);
+            tv.setPadding(dp(10), dp(10), dp(10), dp(10));
+        } else if (rewView instanceof android.widget.ImageView) {
             ((android.widget.ImageView) rewView).setImageResource(R.drawable.ic_rew_5);
         } else if (rewView instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) rewView;
@@ -491,7 +489,12 @@ public class PlayerActivity extends AppCompatActivity {
 
         View ffwdView = playerView.findViewById(androidx.media3.ui.R.id.exo_ffwd);
         if (ffwdView == null) ffwdView = playerView.findViewById(androidx.media3.ui.R.id.exo_ffwd_with_amount);
-        if (ffwdView instanceof android.widget.ImageView) {
+        if (ffwdView instanceof android.widget.TextView) {
+            android.widget.TextView tv = (android.widget.TextView) ffwdView;
+            tv.setText("");
+            tv.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_ffwd_15, 0, 0, 0);
+            tv.setPadding(dp(10), dp(10), dp(10), dp(10));
+        } else if (ffwdView instanceof android.widget.ImageView) {
             ((android.widget.ImageView) ffwdView).setImageResource(R.drawable.ic_ffwd_15);
         } else if (ffwdView instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) ffwdView;
@@ -544,13 +547,35 @@ public class PlayerActivity extends AppCompatActivity {
         button.setFocusable(true);
         button.setFocusableInTouchMode(true);
         clearInternalBackgrounds(button);
-        final android.graphics.drawable.Drawable idle = idleBackgroundFor();
-        final android.graphics.drawable.Drawable focused = focusBackgroundFor();
-        button.setBackground(idle);
+        // قاب فوکوس پیش‌فرض سیستم روی پس‌زمینهٔ ساده سفید دیده می‌شود
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            button.setDefaultFocusHighlightEnabled(false);
+        }
         if (android.os.Build.VERSION.SDK_INT >= 23) {
             button.setForeground(null);
         }
-        button.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
+        // دکمه‌های −۵ و +۱۵ داخل FrameLayout با selectableItemBackground نشسته‌اند
+        if (button.getParent() instanceof View) {
+            View wrapper = (View) button.getParent();
+            if (wrapper.getId() == View.NO_ID) {
+                wrapper.setBackground(null);
+                if (android.os.Build.VERSION.SDK_INT >= 26) {
+                    wrapper.setDefaultFocusHighlightEnabled(false);
+                }
+            }
+        }
+        paintControlBackground(button, false);
+        button.setOnFocusChangeListener((v, hasFocus) -> paintControlBackground(v, hasFocus));
+    }
+
+    /**
+     * پس‌زمینهٔ قرمز فوکوس. دکمه‌های عقب/جلو MaterialButton هستند و استایل
+     * ExoStyledControls برایشان backgroundTint سفید گذاشته؛ AppCompat همان تینت را
+     * بعد از setBackground دوباره روی چیپ می‌کشد و قرمز، سفید دیده می‌شود.
+     */
+    private void paintControlBackground(View button, boolean focused) {
+        button.setBackground(controlChip(focused ? 0xFFE50914 : 0x00000000));
+        androidx.core.view.ViewCompat.setBackgroundTintList(button, null);
     }
 
     private void clearInternalBackgrounds(View v) {
