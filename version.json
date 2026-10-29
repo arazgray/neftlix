@@ -1,6 +1,6 @@
 {
-  "versionCode": 23,
-  "versionName": "1.22",
+  "versionCode": 24,
+  "versionName": "1.23",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۲۲: رفع تأخیر رنگ آیکن علاقه‌مندی، نوارهای نیمه‌شفاف، دیالوگ درباره کوچک‌تر و شفاف با دکمه‌های سفید."
+  "notes": "نسخه ۱٫۲۳: انگلیسی و فارسی با چیدمان درست، رنگ تاکیدی قابل تغییر، پخش رایگان، پس‌زمینهٔ زنده، پشتیبانی موس."
 }
