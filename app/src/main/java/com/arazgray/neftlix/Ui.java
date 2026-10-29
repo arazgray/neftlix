@@ -376,6 +376,7 @@ final class Ui {
                 : rounded(brand, radius);
         view.setBackground(idle);
         view.setTextColor(primary ? TEXT : TEXT);
+        view.setIncludeFontPadding(false);
         view.setFocusable(true);
 
         view.setFocusableInTouchMode(true);
@@ -663,6 +664,7 @@ final class Ui {
         summary.setPadding(dp(14), dp(depth == 0 ? 13 : 11), dp(14), dp(depth == 0 ? 13 : 11));
         summary.setCompoundDrawablesRelativeWithIntrinsicBounds(icon(R.drawable.ic_chevron_end, 15), null, null, null);
         summary.setCompoundDrawablePadding(dp(9));
+        summary.setIncludeFontPadding(false);
         summary.setFocusable(true);
         summary.setClickable(true);
         summary.setFocusableInTouchMode(true);
@@ -759,6 +761,7 @@ final class Ui {
     void loadBackdrop(final ImageView view, String url) {
         if (url == null || url.isEmpty()) return;
         Glide.with(activity).load(url).centerCrop()
+                .transform(new BackdropBlur(6))
                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(450))
                 .into(view);
     }

@@ -1,6 +1,6 @@
 {
-  "versionCode": 24,
-  "versionName": "1.23",
+  "versionCode": 25,
+  "versionName": "1.24",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۲۳: انگلیسی و فارسی با چیدمان درست، رنگ تاکیدی قابل تغییر، پخش رایگان، پس‌زمینهٔ زنده، پشتیبانی موس."
+  "notes": "نسخه ۱٫۲۴: پس‌زمینهٔ محو و تیره، وسط‌چین متن دکمه‌ها، کیوآر ایمیل سازنده."
 }

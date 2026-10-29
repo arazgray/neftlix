@@ -154,12 +154,14 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 24 / 1.23 on `main` (v1.23 tag released).
+- Current: 25 / 1.24 on `main` (v1.24 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.23 released, Oct 2026)
+## Current state (v1.24 released, Oct 2026)
 
+- v1.24 on `main` (versionCode 25): blurred + dimmed live backdrops, font-padding fix
+  for button text centering, About dialog with email-QR + contact line + Close only.
 - v1.23 on `main` (versionCode 24): bilingual EN/FA UI with locale layout, changeable
   accent color (settings), EN catalog dictionary, Free-play jump button, live item
   backdrops, mouse hover/click support, no code comments, fa logos, unified sub-headers.

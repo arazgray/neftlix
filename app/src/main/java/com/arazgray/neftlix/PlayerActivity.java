@@ -327,6 +327,7 @@ public class PlayerActivity extends AppCompatActivity {
         Button button = new Button(this);
         button.setText(active ? "✓ " + text : text);
         button.setTextColor(android.graphics.Color.WHITE);
+        button.setIncludeFontPadding(false);
         button.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         button.setAllCaps(false);
         button.setTypeface(ui.font, active ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);

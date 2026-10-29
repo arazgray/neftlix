@@ -66,6 +66,7 @@
     <string name="info_maker">سازنده: Araz Gray · arazgray.com</string>
     <string name="btn_close">بستن</string>
     <string name="btn_open_site">باز کردن سایت</string>
+    <string name="contact_line">تماس با سازنده برای پیشنهادات و انتقادات:</string>
     <string name="about_title">درباره</string>
     <string name="watchlist_empty">هنوز چیزی ذخیره نشده؛ از صفحهٔ هر عنوان دکمهٔ «علاقه‌مندی‌ها» را بزنید.</string>
     <string name="watchlist_n">%1$s عنوان در علاقه‌مندی‌ها</string>

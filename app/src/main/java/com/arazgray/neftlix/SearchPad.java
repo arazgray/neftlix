@@ -142,6 +142,7 @@ final class SearchPad {
         view.setTag(tag);
         view.setGravity(Gravity.CENTER);
         view.setSingleLine(true);
+        view.setIncludeFontPadding(false);
         if (Build.VERSION.SDK_INT >= 26) view.setDefaultFocusHighlightEnabled(false);
         
         view.setFocusable(true);

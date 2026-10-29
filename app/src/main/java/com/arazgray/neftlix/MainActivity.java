@@ -263,9 +263,12 @@ public class MainActivity extends AppCompatActivity {
         frame.addView(backdrop, new FrameLayout.LayoutParams(-1, -1));
         ImageView liveBackdrop = new ImageView(this);
         liveBackdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        liveBackdrop.setAlpha(0.35f);
+        liveBackdrop.setAlpha(0.5f);
         frame.addView(liveBackdrop, new FrameLayout.LayoutParams(-1, -1));
         this.liveBackdrop = liveBackdrop;
+        View dim = new View(this);
+        dim.setBackgroundColor(0x660A0A0C);
+        frame.addView(dim, new FrameLayout.LayoutParams(-1, -1));
         ui.setCardFocusListener(this::onCardFocused);
         frame.addView(root, new FrameLayout.LayoutParams(-1, -1));
 
@@ -412,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadLiveBackdrop(String url) {
-        if (liveBackdrop != null) ui.loadCover(liveBackdrop, url);
+        if (liveBackdrop != null) ui.loadBackdrop(liveBackdrop, url);
     }
 
     private void refreshCatalog() {
@@ -585,7 +588,12 @@ public class MainActivity extends AppCompatActivity {
         author.setPadding(0, ui.dp(4), 0, 0);
         layout.addView(author);
 
-        android.graphics.Bitmap qr = makeQrBitmap("https://arazgray.com", 420);
+        TextView contact = ui.text(getString(R.string.contact_line), 12, Ui.TEXT_DIM);
+        contact.setGravity(Gravity.CENTER);
+        contact.setPadding(0, ui.dp(10), 0, 0);
+        layout.addView(contact);
+
+        android.graphics.Bitmap qr = makeQrBitmap("mailto:contact@arazgray.com", 420);
         if (qr != null) {
             ImageView qrView = new ImageView(this);
             qrView.setImageBitmap(qr);
@@ -601,11 +609,7 @@ public class MainActivity extends AppCompatActivity {
         buttons.setGravity(Gravity.CENTER);
         buttons.setPadding(0, ui.dp(12), 0, 0);
         TextView close = infoDialogButton(getString(R.string.btn_close));
-        TextView site = infoDialogButton(getString(R.string.btn_open_site));
-        LinearLayout.LayoutParams closeParams = ui.params(-2, ui.dp(40));
-        closeParams.setMarginEnd(ui.dp(14));
-        buttons.addView(close, closeParams);
-        buttons.addView(site, ui.params(-2, ui.dp(40)));
+        buttons.addView(close, ui.params(-2, ui.dp(40)));
         layout.addView(buttons);
 
         final androidx.appcompat.app.AlertDialog dialog =
@@ -613,13 +617,6 @@ public class MainActivity extends AppCompatActivity {
                         .setView(layout)
                         .show();
         close.setOnClickListener(v -> dialog.dismiss());
-        site.setOnClickListener(v -> {
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        android.net.Uri.parse("https://arazgray.com")));
-            } catch (Exception ignored) {
-            }
-        });
         close.requestFocus();
         if (dialog.getWindow() != null) {
             
@@ -635,6 +632,7 @@ public class MainActivity extends AppCompatActivity {
         TextView button = ui.text(label, 14, 0xFF0A0A0C, true);
         button.setGravity(Gravity.CENTER);
         button.setSingleLine(true);
+        button.setIncludeFontPadding(false);
         button.setPadding(ui.dp(26), 0, ui.dp(26), 0);
         button.setFocusable(true);
         button.setFocusableInTouchMode(true);
@@ -1040,6 +1038,7 @@ public class MainActivity extends AppCompatActivity {
         TextView view = ui.text(selected ? "✓ " + name : name, 13, Ui.TEXT, true);
         view.setGravity(Gravity.CENTER);
         view.setSingleLine(true);
+        view.setIncludeFontPadding(false);
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
         view.setClickable(true);
