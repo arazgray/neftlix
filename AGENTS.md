@@ -145,12 +145,14 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 21 / 1.20 on `main` (v1.20 tag released).
+- Current: 22 / 1.21 on `main` (v1.21 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.20 released, Oct 2026)
+## Current state (v1.21 released, Oct 2026)
 
+- v1.21 on `main` (versionCode 22): About dialog with red border, 0.7x width, roomier
+  padding, «بستن»/«باز کردن سایت» side by side bottom-center.
 - v1.20 on `main` (versionCode 21): watchlist toggle via red bookmark icon (red-bordered
   focus), opaque on-screen keyboard, top bars elevated above zoomed cards, playlist
   auto-scroll-to-bottom + single-link direct play + «پخش مستقیم» wording, min-duration

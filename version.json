@@ -1,6 +1,6 @@
 {
-  "versionCode": 21,
-  "versionName": "1.20",
+  "versionCode": 22,
+  "versionName": "1.21",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۲۰: دکمهٔ علاقه‌مندی با آیکن قرمز، کیبورد مات، نوار بالا روی فهرست، اسکرول خودکار فهرست پخش، پخش مستقیم تک‌لینک، اسپلش ماندگار."
+  "notes": "نسخه ۱٫۲۱: دیالوگ درباره با قاب قرمز، کوچک‌تر و دکمه‌های پایین وسط."
 }
