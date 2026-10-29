@@ -145,12 +145,16 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 20 / 1.19 on `main` (v1.19 tag released).
+- Current: 21 / 1.20 on `main` (v1.20 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.19 released, Oct 2026)
+## Current state (v1.20 released, Oct 2026)
 
+- v1.20 on `main` (versionCode 21): watchlist toggle via red bookmark icon (red-bordered
+  focus), opaque on-screen keyboard, top bars elevated above zoomed cards, playlist
+  auto-scroll-to-bottom + single-link direct play + «پخش مستقیم» wording, min-duration
+  splash + window background, dropped redundant «صفحه اصلی» button.
 - v1.19 on `main` (versionCode 20): on-screen Persian/English keyboard (`SearchPad` +
   `SearchKeys`, unit-tested) replacing the system keyboard, card focus zoom (1.15x),
   edge-anchored rail reveal with first-card vertical entry, player fwd/rew white-tint fix.

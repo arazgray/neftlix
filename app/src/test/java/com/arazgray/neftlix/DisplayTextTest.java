@@ -54,8 +54,8 @@ public class DisplayTextTest {
     public void watchLabel_rewritesSiteWording() {
         assertEquals("تماشا با کیفیت 1080p",
                 DisplayText.watchLabel("دانلود با کیفیت 1080p"));
-        assertEquals("تماشا رایگان", DisplayText.watchLabel("دانلود مستقیم"));
-        assertEquals("تماشا رایگان", DisplayText.watchLabel("تماشا مستقیم"));
+        assertEquals("پخش مستقیم", DisplayText.watchLabel("دانلود مستقیم"));
+        assertEquals("پخش مستقیم", DisplayText.watchLabel("تماشا مستقیم"));
         assertEquals("تماشا", DisplayText.watchLabel(""));
         assertEquals("تماشا", DisplayText.watchLabel(null));
         assertEquals("قسمت ۱", DisplayText.watchLabel("قسمت ۱"));

@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         getWindow().setStatusBarColor(Ui.BG);
         getWindow().setNavigationBarColor(Ui.BG);
+        // پس‌زمینهٔ پنجره تا ست‌کانتنت‌ویو سیاه نماند.
+        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Ui.BG));
         // جست‌وجو صفحه‌کلید خودش را دارد؛ کیبورد سیستم هیچ‌وقت نباید باز شود
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
                 | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
@@ -107,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
         // نوار بالا
         LinearLayout bar = ui.row();
         bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(9), ui.dp(Ui.PAGE_PAD), ui.dp(5));
+        // مات و بالاتر از کارت‌های زوم‌شده تا فهرست از زیرش رد شود، نه از رویش.
+        bar.setBackgroundColor(Ui.BG);
+        bar.setElevation(ui.dp(16));
 
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo_transparent);
@@ -223,6 +228,7 @@ public class MainActivity extends AppCompatActivity {
         status.setBackground(ui.stroked(Ui.STATUS_BG, Ui.RADIUS_PILL, 1, Ui.HAIRLINE));
         status.setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(6));
         status.setVisibility(View.GONE);
+        status.setElevation(ui.dp(16));
         LinearLayout.LayoutParams statusParams = ui.params(-1, -2);
         statusParams.setMargins(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
         root.addView(status, statusParams);
@@ -282,16 +288,25 @@ public class MainActivity extends AppCompatActivity {
                 new FrameLayout.LayoutParams(ui.dp(300), -2, Gravity.CENTER);
         splashOverlay.addView(splashLogo, splashParams);
         frame.addView(splashOverlay, new FrameLayout.LayoutParams(-1, -1));
+        splashShownAt = android.os.SystemClock.uptimeMillis();
         setContentView(frame);
     }
 
     private FrameLayout splashOverlay;
+    private long splashShownAt;
 
     private void hideSplash() {
         if (splashOverlay == null || splashOverlay.getVisibility() != View.VISIBLE) return;
-        splashOverlay.animate().alpha(0f).setDuration(280).withEndAction(() -> {
-            if (splashOverlay != null) splashOverlay.setVisibility(View.GONE);
-        }).start();
+        // اسپلش حداقل کمی بماند تا فقط یک چشمک نباشد.
+        long wait = 900 - (android.os.SystemClock.uptimeMillis() - splashShownAt);
+        Runnable fade = () -> {
+            if (splashOverlay == null) return;
+            splashOverlay.animate().alpha(0f).setDuration(280).withEndAction(() -> {
+                if (splashOverlay != null) splashOverlay.setVisibility(View.GONE);
+            }).start();
+        };
+        if (wait > 0) splashOverlay.postDelayed(fade, wait);
+        else fade.run();
     }
 
     private FrameLayout loadingOverlay;
@@ -990,16 +1005,11 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout bar = ui.row();
         bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
 
+        // دکمهٔ «خانه» در نوار بالا هست؛ اینجا فقط بازگشت.
         TextView back = ui.ghostButton("بازگشت", R.drawable.ic_back);
         back.setTag("back");
         back.setOnClickListener(view -> renderHome());
         bar.addView(back, ui.params(-2, ui.dp(42)));
-
-        TextView homeBtn = ui.ghostButton("صفحه اصلی", R.drawable.ic_home);
-        homeBtn.setOnClickListener(view -> renderHome());
-        LinearLayout.LayoutParams homeParams = ui.params(-2, ui.dp(42));
-        homeParams.setMarginStart(ui.dp(8));
-        bar.addView(homeBtn, homeParams);
 
         page.addView(bar);
     }

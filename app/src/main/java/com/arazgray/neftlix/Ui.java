@@ -649,10 +649,15 @@ final class Ui {
         return expandable(title, content, 0);
     }
 
+    View expandable(String title, View content, int depth) {
+        return expandable(title, content, depth, null);
+    }
+
     /**
      * @param depth ۰ = فصل، ۱ = دسته (زیرنویس/دوبله)، ۲ = کیفیت
+     * @param onToggle هنگام بازشدن صدا زده می‌شود تا صفحه اسکرول شود؛ ممکن است null باشد.
      */
-    View expandable(final String title, final View content, final int depth) {
+    View expandable(final String title, final View content, final int depth, final Runnable onToggle) {
         LinearLayout box = column();
         LinearLayout.LayoutParams boxParams = new LinearLayout.LayoutParams(-1, -2);
         boxParams.bottomMargin = dp(12);
@@ -691,6 +696,7 @@ final class Ui {
             summary.setCompoundDrawablesRelativeWithIntrinsicBounds(
                     icon(expand ? R.drawable.ic_chevron_down : R.drawable.ic_chevron_end, 15), null, null, null);
             wireFocus(summary, content, expand);
+            if (expand && onToggle != null) onToggle.run();
         });
         return box;
     }

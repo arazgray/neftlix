@@ -34,6 +34,7 @@ public class DetailsActivity extends AppCompatActivity {
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final CatalogRepository repository = new CatalogRepository();
     private Ui ui;
+    private ScrollView pageScroll;
     private LinearLayout page;
     private TextView status;
     private WatchlistStore watchlistStore;
@@ -61,6 +62,9 @@ public class DetailsActivity extends AppCompatActivity {
 
         LinearLayout toolbar = ui.row();
         toolbar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(10), ui.dp(Ui.PAGE_PAD), ui.dp(4));
+        // مثل نوار خانه: مات و بالاتر از کارت‌ها تا فهرست از زیرش رد شود.
+        toolbar.setBackgroundColor(Ui.BG);
+        toolbar.setElevation(ui.dp(16));
 
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo_transparent);
@@ -101,6 +105,7 @@ public class DetailsActivity extends AppCompatActivity {
         page.setClipChildren(false);
         page.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), ui.dp(30));
         scroll.addView(page);
+        pageScroll = scroll;
         root.addView(scroll, ui.params(-1, 0, 1f));
 
         backdropView = new ImageView(this);
@@ -221,7 +226,7 @@ public class DetailsActivity extends AppCompatActivity {
         if (!details.groups.isEmpty()) {
             LinearLayout watchList = ui.column();
             addWatchGroups(watchList, details);
-            leftColumn.addView(ui.expandable("فهرست پخش", watchList, 0));
+            leftColumn.addView(ui.expandable("فهرست پخش", watchList, 0, this::scrollPageToBottom));
         }
         focusFirst();
     }
@@ -304,14 +309,16 @@ public class DetailsActivity extends AppCompatActivity {
         final String targetUrl = (details.url != null && !details.url.isEmpty()) ? details.url : intentUrl;
         final BrowseItem savedItem = new BrowseItem(
                 title, "", details.coverUrl, targetUrl, typeOf(details), "");
-        final TextView saved = ui.ghostButton(
-                watchlistStore.contains(targetUrl) ? "★ در علاقه‌مندی‌ها" : "+ علاقه‌مندی‌ها",
-                R.drawable.ic_bookmark);
+        final TextView saved = ui.ghostButton("علاقه‌مندی‌ها", R.drawable.ic_bookmark);
         LinearLayout.LayoutParams savedParams = ui.params(-2, ui.dp(44));
         savedParams.setMarginStart(ui.dp(10));
+        tintSavedIcon(saved, watchlistStore.contains(targetUrl));
+        saved.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus
+                ? ui.stroked(Ui.GLASS, 20, 2, Ui.BRAND)
+                : ui.stroked(Ui.GLASS, 20, 1, Ui.HAIRLINE)));
         saved.setOnClickListener(v -> {
             boolean now = watchlistStore.toggle(savedItem);
-            saved.setText(now ? "★ در علاقه‌مندی‌ها" : "+ علاقه‌مندی‌ها");
+            tintSavedIcon(saved, now);
             Toast.makeText(this,
                     now ? "به علاقه‌مندی‌ها اضافه شد" : "از علاقه‌مندی‌ها حذف شد",
                     Toast.LENGTH_SHORT).show();
@@ -323,6 +330,13 @@ public class DetailsActivity extends AppCompatActivity {
         infoParams.setMarginStart(ui.dp(16));
         header.addView(info, infoParams);
         page.addView(header, ui.withTop(-1, -2, 2));
+    }
+
+    /** وضعیت علاقه‌مندی فقط با رنگ آیکن نشان داده می‌شود: قرمز یعنی ذخیره‌شده. */
+    private void tintSavedIcon(TextView saved, boolean inList) {
+        for (android.graphics.drawable.Drawable drawable : saved.getCompoundDrawablesRelative()) {
+            if (drawable != null) drawable.setTint(inList ? Ui.BRAND : Ui.TEXT);
+        }
     }
 
     private boolean addTag(LinearLayout row, String label, boolean first) {
@@ -384,6 +398,12 @@ public class DetailsActivity extends AppCompatActivity {
 
     // ── فهرست پخش ──────────────────────────────────────────────────
 
+    /** بعد از هر بازشدن، انتهای فهرست را نشان بده تا محتوای تازه دیده شود. */
+    private void scrollPageToBottom() {
+        if (pageScroll == null || page == null) return;
+        pageScroll.post(() -> pageScroll.smoothScrollTo(0, page.getBottom()));
+    }
+
     private void addWatchGroups(LinearLayout parent, ItemDetails details) {
         for (DownloadGroup group : details.groups) {
             if (group.season) {
@@ -391,7 +411,7 @@ public class DetailsActivity extends AppCompatActivity {
                 for (DownloadCategory category : group.categories) addCategory(seasonContent, category);
                 String title = group.title
                         + (group.status == null || group.status.isEmpty() ? "" : "  ·  " + group.status);
-                parent.addView(ui.expandable(title, seasonContent, 0));
+                parent.addView(ui.expandable(title, seasonContent, 0, this::scrollPageToBottom));
             } else {
                 for (DownloadCategory category : group.categories) addCategory(parent, category);
             }
@@ -401,10 +421,39 @@ public class DetailsActivity extends AppCompatActivity {
     private void addCategory(LinearLayout parent, DownloadCategory category) {
         LinearLayout content = ui.column();
         for (DownloadOption option : category.options) {
-            content.addView(ui.expandable(optionLabel(option), linkGrid(option), 2));
+            // تک‌لینک مستقیم پخش می‌شود؛ بدون گام اضافهٔ «دکمهٔ پخش داخل کیفیت».
+            if (option.links.size() == 1) {
+                content.addView(singlePlayButton(option));
+            } else {
+                content.addView(ui.expandable(optionLabel(option), linkGrid(option), 2,
+                        this::scrollPageToBottom));
+            }
         }
         String title = category.title == null || category.title.isEmpty() ? "پخش" : category.title;
-        parent.addView(ui.expandable(title, content, 1));
+        parent.addView(ui.expandable(title, content, 1, this::scrollPageToBottom));
+    }
+
+    /** دکمهٔ پخش مستقیم برای کیفیتی که فقط یک لینک دارد. */
+    private View singlePlayButton(DownloadOption option) {
+        final MediaLink only = option.links.get(0);
+        TextView play = ui.rowButton(singleLabel(option), R.drawable.ic_play, false);
+        play.setOnClickListener(v -> play(only));
+        LinearLayout.LayoutParams params = ui.params(-1, -2);
+        params.bottomMargin = ui.dp(12);
+        params.setMarginStart(ui.dp(32));
+        play.setLayoutParams(params);
+        return play;
+    }
+
+    private String singleLabel(DownloadOption option) {
+        StringBuilder label = new StringBuilder();
+        if (option.quality != null && !option.quality.isEmpty()) label.append(option.quality);
+        if (option.encoder != null && !option.encoder.isEmpty()) {
+            if (label.length() > 0) label.append("  ·  ");
+            label.append(option.encoder);
+        }
+        if (label.length() == 0) label.append("پخش");
+        return label.toString();
     }
 
     private String optionLabel(DownloadOption option) {

@@ -33,7 +33,7 @@ final class SearchPad {
         if (field.getId() == View.NO_ID) field.setId(View.generateViewId());
         panel = ui.column();
         panel.setVisibility(View.GONE);
-        panel.setBackground(ui.rounded(0xF20A0A0C, 16));
+        panel.setBackground(ui.stroked(0xFF0A0A0C, 16, 1, Ui.HAIRLINE));
         panel.setPadding(ui.dp(10), ui.dp(8), ui.dp(10), ui.dp(10));
         rows = ui.column();
         panel.addView(rows, ui.params(-1, -2));
@@ -146,7 +146,16 @@ final class SearchPad {
         view.setGravity(Gravity.CENTER);
         view.setSingleLine(true);
         if (Build.VERSION.SDK_INT >= 26) view.setDefaultFocusHighlightEnabled(false);
-        ui.fillFocus(view, primary, 34, 8);
+        // کلیدها مات‌اند تا فهرست از پشت‌شان دیده نشود؛ فوکوس قرمز می‌شود.
+        view.setFocusable(true);
+        view.setFocusableInTouchMode(true);
+        view.setClickable(true);
+        view.setMinimumHeight(ui.dp(34));
+        final android.graphics.drawable.GradientDrawable idle =
+                ui.stroked(Ui.SURFACE_2, 8, 1, Ui.HAIRLINE);
+        final android.graphics.drawable.GradientDrawable focused = ui.rounded(Ui.BRAND, 8);
+        view.setBackground(idle);
+        view.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
         view.setOnClickListener(v -> onKey(label, tag));
         LinearLayout.LayoutParams params = ui.params(0, ui.dp(34), weight);
         params.setMargins(ui.dp(3), ui.dp(3), ui.dp(3), ui.dp(3));

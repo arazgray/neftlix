@@ -44,11 +44,11 @@ final class DisplayText {
 
     /**
      * برچسب دکمهٔ لینک: زبان «دانلود» سایت به «تماشا» برمی‌گردد؛
-     * «مستقیم» یعنی تماشای رایگان.
+     * «مستقیم» یعنی پخش مستقیم.
      */
     static String watchLabel(String siteLabel) {
         String label = siteLabel == null ? "" : siteLabel.replace("دانلود", "تماشا").trim();
-        if (label.contains("مستقیم")) return "تماشا رایگان";
+        if (label.contains("مستقیم")) return "پخش مستقیم";
         return label.isEmpty() ? "تماشا" : label;
     }
 
