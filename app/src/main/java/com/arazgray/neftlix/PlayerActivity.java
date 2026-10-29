@@ -61,12 +61,8 @@ public class PlayerActivity extends AppCompatActivity {
         playerView.post(() -> {
             setupCustomControlIcons(playerView);
             stylePlayerControls(playerView);
-            android.view.View ccButton =
-                    playerView.findViewById(androidx.media3.ui.R.id.exo_subtitle);
-            if (ccButton != null) {
-                ccButton.setOnClickListener(v -> showSubtitleDialog());
-            }
-            
+            ensureSubtitleButton(playerView);
+
             android.view.View settingsButton =
                     playerView.findViewById(androidx.media3.ui.R.id.exo_settings);
             if (settingsButton != null) {
@@ -79,6 +75,7 @@ public class PlayerActivity extends AppCompatActivity {
                         playerView.post(() -> {
                             setupCustomControlIcons(playerView);
                             stylePlayerControls(playerView);
+                            ensureSubtitleButton(playerView);
                         });
                     }
                 });
@@ -124,6 +121,7 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onTracksChanged(androidx.media3.common.Tracks tracks) {
                 ensureSubtitleSelected();
+                if (playerView != null) playerView.post(() -> ensureSubtitleButton(playerView));
             }
         });
 
@@ -451,6 +449,34 @@ public class PlayerActivity extends AppCompatActivity {
         label.setTextDirection(View.TEXT_DIRECTION_INHERIT);
         row.addView(label);
         return row;
+    }
+
+    private void ensureSubtitleButton(PlayerView playerView) {
+        if (playerView == null) return;
+        View ccButton = playerView.findViewById(androidx.media3.ui.R.id.exo_subtitle);
+        if (ccButton == null || ccButton.getId() == View.NO_ID) return;
+        ccButton.setVisibility(View.VISIBLE);
+        ccButton.setFocusable(true);
+        ccButton.setFocusableInTouchMode(true);
+        ccButton.setClickable(true);
+        Ui.hoverFocus(ccButton);
+        wireSingleButton(ccButton);
+        ccButton.setOnClickListener(v -> showSubtitleDialog());
+        ccButton.setNextFocusUpId(androidx.media3.ui.R.id.exo_ffwd);
+        wireDownToSubtitle(playerView, androidx.media3.ui.R.id.exo_ffwd);
+        wireDownToSubtitle(playerView, androidx.media3.ui.R.id.exo_ffwd_with_amount);
+        wireDownToSubtitle(playerView, androidx.media3.ui.R.id.exo_next);
+        androidx.media3.ui.DefaultTimeBar timeBar =
+                playerView.findViewById(androidx.media3.ui.R.id.exo_progress);
+        if (timeBar != null) timeBar.setNextFocusDownId(ccButton.getId());
+    }
+
+    private void wireDownToSubtitle(PlayerView root, int id) {
+        View button = root.findViewById(id);
+        View cc = root.findViewById(androidx.media3.ui.R.id.exo_subtitle);
+        if (button != null && cc != null && cc.getId() != View.NO_ID) {
+            button.setNextFocusDownId(cc.getId());
+        }
     }
 
     private void setupCustomControlIcons(PlayerView playerView) {

@@ -53,7 +53,7 @@ final class Ui {
     final Activity activity;
     final float scale;
     final android.graphics.Typeface font;
-    
+
     final int brand;
     final boolean persian;
     private final float density;
@@ -84,6 +84,33 @@ final class Ui {
 
     private float sp(float value) {
         return value * scale;
+    }
+
+    String siteTitle(String title) {
+        if (title == null) return "";
+        return persian ? title : CatalogLabels.english(title);
+    }
+
+    String metaText(BrowseItem item) {
+        if (item == null || item.meta == null) return "";
+        return persian ? item.meta : CatalogLabels.englishMeta(item.meta);
+    }
+
+    interface FocusListener {
+        void onCardFocused(BrowseItem item, View card);
+    }
+
+    private FocusListener focusListener;
+
+    void setCardFocusListener(FocusListener listener) {
+        focusListener = listener;
+    }
+
+    static void hoverFocus(View v) {
+        v.setOnHoverListener((view, event) -> {
+            if (event.getAction() == android.view.MotionEvent.ACTION_HOVER_ENTER) view.requestFocus();
+            return false;
+        });
     }
 
     int screenWidthDp() {
@@ -288,6 +315,7 @@ final class Ui {
         final GradientDrawable focused = rounded(brand, 21);
         box.setBackground(idle);
         box.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
+        hoverFocus(box);
         box.setLayoutParams(new LinearLayout.LayoutParams(dp(42), dp(42)));
         return box;
     }
@@ -349,9 +377,10 @@ final class Ui {
         view.setBackground(idle);
         view.setTextColor(primary ? TEXT : TEXT);
         view.setFocusable(true);
-        
+
         view.setFocusableInTouchMode(true);
         view.setClickable(true);
+        hoverFocus(view);
         view.setMinimumHeight(dp(heightDp));
         view.setOnFocusChangeListener((v, hasFocus) -> {
             v.setBackground(hasFocus ? focused : idle);
@@ -382,14 +411,17 @@ final class Ui {
         accentParams.setMarginEnd(dp(9));
         header.addView(accent, accentParams);
         header.addView(heading(title), new LinearLayout.LayoutParams(-2, -2));
+        if (action != null) {
+            LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(-2, -2);
+            actionParams.setMarginStart(dp(10));
+            header.addView(action, actionParams);
+        }
         if (countText != null && !countText.isEmpty()) {
             TextView count = dim(countText, 12);
             LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-2, -2);
             countParams.setMarginStart(dp(8));
             header.addView(count, countParams);
         }
-        header.addView(new View(activity), new LinearLayout.LayoutParams(0, 1, 1f));
-        if (action != null) header.addView(action, new LinearLayout.LayoutParams(-2, -2));
         return header;
     }
 
@@ -532,7 +564,7 @@ final class Ui {
         card.addView(title, titleParams);
 
         final TextView meta = showMeta && item.meta != null && !item.meta.isEmpty()
-                ? text(item.meta, 11, TEXT_MUTED, false) : null;
+                ? text(metaText(item), 11, TEXT_MUTED, false) : null;
         if (meta != null) {
             meta.setMaxLines(1);
             meta.setEllipsize(android.text.TextUtils.TruncateAt.END);
@@ -544,8 +576,9 @@ final class Ui {
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             card.setDefaultFocusHighlightEnabled(false);
         }
+        hoverFocus(card);
         card.setOnFocusChangeListener((v, hasFocus) -> {
-            
+
             border.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
             applyText(title, 13, hasFocus ? TEXT : 0xFFE9E9EE, hasFocus);
             v.animate().cancel();
@@ -555,6 +588,7 @@ final class Ui {
                     .start();
             v.setTranslationZ(hasFocus ? dp(12) : 0);
             if (hasFocus) upgradePoster(poster, item.coverUrl);
+            if (hasFocus && focusListener != null) focusListener.onCardFocused(item, v);
         });
         loadCover(poster, item.coverUrl);
         return card;
@@ -632,6 +666,7 @@ final class Ui {
         summary.setFocusable(true);
         summary.setClickable(true);
         summary.setFocusableInTouchMode(true);
+        hoverFocus(summary);
         final GradientDrawable idle = depth == 0
                 ? stroked(SURFACE_2, RADIUS_BUTTON, 1, HAIRLINE)
                 : stroked(0x0DFFFFFF, RADIUS_BUTTON, 1, 0x14FFFFFF);

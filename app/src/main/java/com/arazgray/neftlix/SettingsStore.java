@@ -24,8 +24,8 @@ final class SettingsStore {
 
     static String getLang(Context context) {
         String lang = prefs(context).getString(KEY_LANG, null);
-        if (LANG_EN.equals(lang)) return LANG_EN;
-        return LANG_FA;
+        if (LANG_FA.equals(lang)) return LANG_FA;
+        return LANG_EN;
     }
 
     static boolean isPersian(Context context) {

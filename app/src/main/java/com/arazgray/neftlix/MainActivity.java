@@ -30,8 +30,13 @@ public class MainActivity extends AppCompatActivity {
     private Ui ui;
     private CatalogData catalog;
     private WatchlistStore watchlistStore;
+    private ImageView liveBackdrop;
+    private final java.util.Map<String, String> backdropCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final ExecutorService backdrops = Executors.newSingleThreadExecutor();
     private LinearLayout page;
     private TextView status;
+    private LinearLayout statusBar;
+    private TextView settingsBack;
     private TextView searchBox;
     private SearchPad searchPad;
     private boolean showingSubPage;
@@ -111,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
         logo.setImageResource(R.drawable.logo_transparent);
         logo.setAdjustViewBounds(true);
         logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        logo.setFocusable(true);
         logo.setClickable(true);
         logo.setOnClickListener(v -> renderHome());
         LinearLayout.LayoutParams logoParams = ui.params(ui.dp(104), ui.dp(38));
@@ -217,14 +221,22 @@ public class MainActivity extends AppCompatActivity {
         status = ui.text("", 12, Ui.TEXT_MUTED);
         status.setSingleLine(true);
         status.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        
+
         status.setBackground(ui.stroked(Ui.STATUS_BG, Ui.RADIUS_PILL, 1, Ui.HAIRLINE));
         status.setPadding(ui.dp(16), ui.dp(6), ui.dp(16), ui.dp(6));
-        status.setVisibility(View.GONE);
         status.setElevation(ui.dp(16));
-        LinearLayout.LayoutParams statusParams = ui.params(-1, -2);
-        statusParams.setMargins(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
-        root.addView(status, statusParams);
+        settingsBack = ui.ghostButton(getString(R.string.back), R.drawable.ic_back);
+        settingsBack.setOnClickListener(view -> renderHome());
+        settingsBack.setVisibility(View.GONE);
+        LinearLayout.LayoutParams settingsBackParams = ui.params(-2, ui.dp(42));
+        settingsBackParams.setMarginEnd(ui.dp(8));
+        LinearLayout statusBar = ui.row();
+        statusBar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
+        statusBar.addView(settingsBack, settingsBackParams);
+        statusBar.addView(status, ui.params(0, -2, 1f));
+        statusBar.setVisibility(View.GONE);
+        this.statusBar = statusBar;
+        root.addView(statusBar, ui.params(-1, -2));
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -249,6 +261,12 @@ public class MainActivity extends AppCompatActivity {
         backdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
         backdrop.setAlpha(0.55f);
         frame.addView(backdrop, new FrameLayout.LayoutParams(-1, -1));
+        ImageView liveBackdrop = new ImageView(this);
+        liveBackdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        liveBackdrop.setAlpha(0.35f);
+        frame.addView(liveBackdrop, new FrameLayout.LayoutParams(-1, -1));
+        this.liveBackdrop = liveBackdrop;
+        ui.setCardFocusListener(this::onCardFocused);
         frame.addView(root, new FrameLayout.LayoutParams(-1, -1));
 
         int keyboardWidth = getResources().getDisplayMetrics().widthPixels / 2;
@@ -350,6 +368,51 @@ public class MainActivity extends AppCompatActivity {
         if (status == null) return;
         status.setText(text == null ? "" : text);
         status.setVisibility(text == null || text.isEmpty() ? View.GONE : View.VISIBLE);
+        updateStatusBar();
+    }
+
+    private void updateStatusBar() {
+        if (statusBar == null) return;
+        boolean show = status.getVisibility() == View.VISIBLE
+                || (settingsBack != null && settingsBack.getVisibility() == View.VISIBLE);
+        statusBar.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
+    private void showSettingsBack(boolean show) {
+        if (settingsBack != null) settingsBack.setVisibility(show ? View.VISIBLE : View.GONE);
+        updateStatusBar();
+    }
+
+    private void onCardFocused(BrowseItem item, View card) {
+        if (item == null || item.url == null || item.url.isEmpty()) return;
+        String cached = backdropCache.get(item.url);
+        if (cached != null) {
+            if (!cached.isEmpty()) loadLiveBackdrop(cached);
+            return;
+        }
+        final String url = item.url;
+        card.postDelayed(() -> {
+            if (!card.hasFocus()) return;
+            backdrops.execute(() -> {
+                String art = "";
+                try {
+                    art = repository.loadItem(url).backdropUrl;
+                } catch (Exception ignored) {
+                }
+                if (art == null) art = "";
+                backdropCache.put(url, art);
+                if (!art.isEmpty()) {
+                    final String found = art;
+                    runOnUiThread(() -> {
+                        if (card.hasFocus()) loadLiveBackdrop(found);
+                    });
+                }
+            });
+        }, 450);
+    }
+
+    private void loadLiveBackdrop(String url) {
+        if (liveBackdrop != null) ui.loadCover(liveBackdrop, url);
     }
 
     private void refreshCatalog() {
@@ -584,6 +647,7 @@ public class MainActivity extends AppCompatActivity {
             v.setBackground(hasFocus ? focused : idle);
             button.setTextColor(hasFocus ? Ui.TEXT : 0xFF0A0A0C);
         });
+        Ui.hoverFocus(button);
         return button;
     }
 
@@ -701,6 +765,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void renderHome() {
         hideSplash();
+        showSettingsBack(false);
         page.removeAllViews();
         showingSubPage = false;
         showingWatchlist = false;
@@ -738,7 +803,7 @@ public class MainActivity extends AppCompatActivity {
             cards.add(card);
         }
         if (cards.isEmpty()) {
-            page.addView(ui.sectionHeader(section.title, null, null));
+            page.addView(ui.sectionHeader(ui.siteTitle(section.title), null, null));
             page.addView(note(getString(R.string.no_items)));
             return;
         }
@@ -748,14 +813,14 @@ public class MainActivity extends AppCompatActivity {
             more.setLayoutParams(ui.params(-2, ui.dp(34)));
             more.setOnClickListener(v -> openSection(section, 1));
         }
-        page.addView(ui.sectionHeader(section.title, getString(R.string.titles_n, ui.digits(section.items.size())), more));
+        page.addView(ui.sectionHeader(ui.siteTitle(section.title), getString(R.string.titles_n, ui.digits(section.items.size())), more));
         page.addView(ui.rail(cards));
     }
 
     private List<View> chipViews(List<BrowseCategory> categories) {
         List<View> chips = new ArrayList<>();
         for (final BrowseCategory category : categories) {
-            TextView chip = ui.chip(category.title, getString(R.string.genres_n, ui.digits(category.count)));
+            TextView chip = ui.chip(ui.siteTitle(category.title), getString(R.string.genres_n, ui.digits(category.count)));
             chip.setOnClickListener(view -> openCategory(category, 1));
             chips.add(chip);
         }
@@ -771,6 +836,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSearchResults() {
         if (catalog == null) return;
+        showSettingsBack(false);
         final String query = searchBox.getText().toString().trim();
         if (searchPad != null) searchPad.close();
         searchBox.clearFocus();
@@ -780,15 +846,13 @@ public class MainActivity extends AppCompatActivity {
         activeCategory = null;
         if (query.isEmpty()) {
             page.removeAllViews();
-            addBackButton();
-            addHeading(getString(R.string.all_titles), getString(R.string.titles_n, ui.digits(uniqueItems(catalog.sections).size())));
+            addSubHeader(getString(R.string.all_titles), getString(R.string.titles_n, ui.digits(uniqueItems(catalog.sections).size())));
             addItemsGrid(uniqueItems(catalog.sections));
             focusFirst();
             return;
         }
         page.removeAllViews();
-        addBackButton();
-        addHeading(getString(R.string.search_results), query);
+        addSubHeader(getString(R.string.search_results), query);
         showLoading(getString(R.string.loading_searching));
         io.execute(() -> {
             List<BrowseItem> found = new ArrayList<>();
@@ -809,8 +873,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 hideLoading();
                 page.removeAllViews();
-                addBackButton();
-                addHeading(getString(R.string.search_results), query);
+                addSubHeader(getString(R.string.search_results), query);
                 setStatus(getString(R.string.results_from, ui.digits(direct.size()), source));
                 addItemsGrid(direct);
                 focusFirst();
@@ -831,22 +894,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openSection(BrowseSection section, int pageNum) {
+        showSettingsBack(false);
         activeSection = section;
         activeCategory = null;
         listingPage = pageNum;
         showingSubPage = true;
         showingWatchlist = false;
-        showLoading(getString(R.string.loading_section, section.title));
+        showLoading(getString(R.string.loading_section, ui.siteTitle(section.title)));
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(section.url, section.contentType, pageNum);
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    setStatus(section.title + " · " + getString(R.string.page_n, ui.digits(pageNum)));
+                    setStatus(ui.siteTitle(section.title) + " · " + getString(R.string.page_n, ui.digits(pageNum)));
                     page.removeAllViews();
-                    addBackButton();
-                    addHeading(section.title, getString(R.string.page_n, ui.digits(pageNum)));
+                    addSubHeader(ui.siteTitle(section.title), getString(R.string.page_n, ui.digits(pageNum)));
                     addItemsGrid(result.items);
                     addPaginationBar();
                     focusFirst();
@@ -854,31 +917,31 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    setStatus(getString(R.string.d_err_load, section.title));
+                    setStatus(getString(R.string.d_err_load, ui.siteTitle(section.title)));
                 });
             }
         });
     }
 
     private void openCategory(BrowseCategory category, int pageNum) {
+        showSettingsBack(false);
         activeCategory = category;
         activeSection = null;
         listingPage = pageNum;
         showingSubPage = true;
         showingWatchlist = false;
-        showLoading(getString(R.string.loading_section, category.title));
+        showLoading(getString(R.string.loading_section, ui.siteTitle(category.title)));
         io.execute(() -> {
             try {
                 ListingPage result = repository.loadListingPage(category.url, category.contentType, pageNum);
                 runOnUiThread(() -> {
                     hideLoading();
                     listingHasNext = result.hasNext;
-                    setStatus(category.title + " · " + getString(R.string.page_n, ui.digits(pageNum)));
+                    setStatus(ui.siteTitle(category.title) + " · " + getString(R.string.page_n, ui.digits(pageNum)));
                     page.removeAllViews();
-                    addBackButton();
                     String count = category.count == null || category.count.isEmpty()
                             ? "" : getString(R.string.titles_n, ui.digits(category.count));
-                    addHeading(category.title, count);
+                    addSubHeader(ui.siteTitle(category.title), count);
                     addItemsGrid(result.items);
                     addPaginationBar();
                     focusFirst();
@@ -886,21 +949,21 @@ public class MainActivity extends AppCompatActivity {
             } catch (Throwable error) {
                 runOnUiThread(() -> {
                     hideLoading();
-                    setStatus(getString(R.string.d_err_load, category.title));
+                    setStatus(getString(R.string.d_err_load, ui.siteTitle(category.title)));
                 });
             }
         });
     }
 
     private void openWatchlist() {
+        showSettingsBack(false);
         showingSubPage = true;
         showingWatchlist = true;
         activeSection = null;
         activeCategory = null;
         List<BrowseItem> saved = watchlistStore.items();
         page.removeAllViews();
-        addBackButton();
-        addHeading(getString(R.string.nav_watchlist), getString(R.string.titles_n, ui.digits(saved.size())));
+        addSubHeader(getString(R.string.nav_watchlist), getString(R.string.titles_n, ui.digits(saved.size())));
         setStatus(getString(R.string.watchlist_n, ui.digits(saved.size())));
         if (saved.isEmpty()) {
             page.addView(note(getString(R.string.watchlist_empty)));
@@ -916,8 +979,7 @@ public class MainActivity extends AppCompatActivity {
         activeSection = null;
         activeCategory = null;
         page.removeAllViews();
-        addBackButton();
-        addHeading(getString(R.string.nav_settings), null);
+        showSettingsBack(true);
         setStatus(getString(R.string.settings_sub));
         page.addView(ui.sectionHeader(getString(R.string.set_language), null, null));
         page.addView(languageRow());
@@ -986,6 +1048,7 @@ public class MainActivity extends AppCompatActivity {
         final android.graphics.drawable.GradientDrawable focused = ui.stroked(color, 12, 3, 0xFFFFFFFF);
         view.setBackground(idle);
         view.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
+        Ui.hoverFocus(view);
         return view;
     }
 
@@ -1077,15 +1140,25 @@ public class MainActivity extends AppCompatActivity {
         page.addView(bar);
     }
 
-    private void addBackButton() {
+    private void addSubHeader(String text, String countText) {
         LinearLayout bar = ui.row();
         bar.setPadding(ui.dp(Ui.PAGE_PAD), ui.dp(4), ui.dp(Ui.PAGE_PAD), 0);
-
         TextView back = ui.ghostButton(getString(R.string.back), R.drawable.ic_back);
         back.setTag("back");
         back.setOnClickListener(view -> renderHome());
         bar.addView(back, ui.params(-2, ui.dp(42)));
-
+        View accent = new View(this);
+        accent.setBackground(ui.rounded(ui.brand, 2));
+        LinearLayout.LayoutParams accentParams = ui.params(ui.dp(3), ui.dp(18));
+        accentParams.setMarginStart(ui.dp(12));
+        bar.addView(accent, accentParams);
+        bar.addView(ui.heading(text), new LinearLayout.LayoutParams(-2, -2));
+        if (countText != null && !countText.isEmpty()) {
+            TextView count = ui.dim(countText, 12);
+            LinearLayout.LayoutParams countParams = ui.params(-2, -2);
+            countParams.setMarginStart(ui.dp(8));
+            bar.addView(count, countParams);
+        }
         page.addView(bar);
     }
 

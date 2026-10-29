@@ -153,6 +153,7 @@ final class SearchPad {
         final android.graphics.drawable.GradientDrawable focused = ui.rounded(ui.brand, 8);
         view.setBackground(idle);
         view.setOnFocusChangeListener((v, hasFocus) -> v.setBackground(hasFocus ? focused : idle));
+        Ui.hoverFocus(view);
         view.setOnClickListener(v -> onKey(label, tag));
         LinearLayout.LayoutParams params = ui.params(0, ui.dp(34), weight);
         params.setMargins(ui.dp(3), ui.dp(3), ui.dp(3), ui.dp(3));

@@ -28,6 +28,7 @@ public class DetailsActivity extends AppCompatActivity {
     private final CatalogRepository repository = new CatalogRepository();
     private Ui ui;
     private ScrollView pageScroll;
+    private View watchListBox;
     private LinearLayout page;
     private TextView status;
     private WatchlistStore watchlistStore;
@@ -220,7 +221,8 @@ public class DetailsActivity extends AppCompatActivity {
         if (!details.groups.isEmpty()) {
             LinearLayout watchList = ui.column();
             addWatchGroups(watchList, details);
-            leftColumn.addView(ui.expandable(getString(R.string.d_playlist), watchList, 0, this::scrollPageToBottom));
+            watchListBox = ui.expandable(getString(R.string.d_playlist), watchList, 0, this::scrollPageToBottom);
+            leftColumn.addView(watchListBox);
         }
         focusFirst();
     }
@@ -291,10 +293,17 @@ public class DetailsActivity extends AppCompatActivity {
 
         LinearLayout actions = ui.row();
         actions.setPadding(0, ui.dp(18), 0, 0);
+        if (!details.groups.isEmpty()) {
+            TextView free = ui.ghostButton(getString(R.string.d_free_play), R.drawable.ic_play);
+            free.setTag("play");
+            free.setOnClickListener(v -> jumpToPlaylist());
+            actions.addView(free, ui.params(-2, ui.dp(44)));
+        }
         TextView trailer = ui.ghostButton(getString(R.string.d_trailer), R.drawable.ic_play);
-        trailer.setTag("play");
         trailer.setOnClickListener(v -> playTrailer(title));
-        actions.addView(trailer, ui.params(-2, ui.dp(44)));
+        LinearLayout.LayoutParams trailerParams = ui.params(-2, ui.dp(44));
+        trailerParams.setMarginStart(ui.dp(10));
+        actions.addView(trailer, trailerParams);
         final String intentUrl = getIntent().getStringExtra(EXTRA_URL);
         final String targetUrl = (details.url != null && !details.url.isEmpty()) ? details.url : intentUrl;
         final BrowseItem savedItem = new BrowseItem(
@@ -352,7 +361,7 @@ public class DetailsActivity extends AppCompatActivity {
             genres.setGravity(Gravity.TOP);
             boolean first = true;
             for (String genre : details.genres) {
-                TextView pill = ui.tagPill(genre, 0x00000000, ui.brand, Ui.TEXT, false);
+                TextView pill = ui.tagPill(ui.siteTitle(genre), 0x00000000, ui.brand, Ui.TEXT, false);
                 LinearLayout.LayoutParams params = ui.params(-2, -2);
                 if (!first) params.setMarginStart(ui.dp(8));
                 genres.addView(pill, params);
@@ -365,7 +374,7 @@ public class DetailsActivity extends AppCompatActivity {
             flags.setPadding(0, ui.dp(8), 0, 0);
             first = true;
             for (String flag : details.flags) {
-                TextView pill = ui.tagPill(flag, Ui.GLASS, Ui.HAIRLINE, Ui.TEXT_DIM, false);
+                TextView pill = ui.tagPill(ui.siteTitle(flag), Ui.GLASS, Ui.HAIRLINE, Ui.TEXT_DIM, false);
                 LinearLayout.LayoutParams params = ui.params(-2, -2);
                 if (!first) params.setMarginStart(ui.dp(8));
                 flags.addView(pill, params);
@@ -387,6 +396,19 @@ public class DetailsActivity extends AppCompatActivity {
     private void scrollPageToBottom() {
         if (pageScroll == null || page == null) return;
         pageScroll.post(() -> pageScroll.smoothScrollTo(0, page.getBottom()));
+    }
+
+    private void jumpToPlaylist() {
+        if (!(watchListBox instanceof android.view.ViewGroup)) return;
+        android.view.ViewGroup box = (android.view.ViewGroup) watchListBox;
+        if (box.getChildCount() < 2) return;
+        View summary = box.getChildAt(0);
+        View content = box.getChildAt(1);
+        if (content.getVisibility() != View.VISIBLE) summary.performClick();
+        content.post(() -> {
+            View first = findFirstFocusable(content);
+            if (first != null) first.requestFocus();
+        });
     }
 
     private void addWatchGroups(LinearLayout parent, ItemDetails details) {
@@ -414,7 +436,7 @@ public class DetailsActivity extends AppCompatActivity {
                         this::scrollPageToBottom));
             }
         }
-        String title = category.title == null || category.title.isEmpty() ? getString(R.string.d_play) : category.title;
+        String title = category.title == null || category.title.isEmpty() ? getString(R.string.d_play) : ui.siteTitle(category.title);
         parent.addView(ui.expandable(title, content, 1, this::scrollPageToBottom));
     }
 
@@ -458,7 +480,8 @@ public class DetailsActivity extends AppCompatActivity {
         container.setPadding(0, ui.dp(8), 0, ui.dp(2));
         List<View> rowCards = new ArrayList<>();
         for (final MediaLink link : option.links) {
-            TextView button = ui.gridButton(DisplayText.watchLabel(link.label), R.drawable.ic_play);
+            String label = ui.persian ? DisplayText.watchLabel(link.label) : CatalogLabels.english(link.label);
+            TextView button = ui.gridButton(label, R.drawable.ic_play);
             button.setOnClickListener(v -> play(link));
             rowCards.add(button);
             if (rowCards.size() == columns) {

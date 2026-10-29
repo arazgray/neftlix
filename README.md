@@ -2,10 +2,8 @@
   <img src="logo_transparent.png" alt="Neftlix logo" width="200">
 </p>
 
-<h1 align="center">Neftlix</h1>
-
 <p align="center">
-  <strong>An Android TV app for free movies and series streaming.</strong>
+  <strong>Neftlix, An Android TV app for free movies and series streaming.</strong>
 </p>
 
 <p align="center">

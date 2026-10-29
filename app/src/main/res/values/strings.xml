@@ -82,10 +82,10 @@
     <string name="d_err_render">Error showing the page</string>
     <string name="d_no_info">No information found for this title.</string>
     <string name="d_comments">Comments (%1$s)</string>
-    <string name="d_playlist">Play queue</string>
+    <string name="d_playlist">Play options</string>
     <string name="d_links">%1$s play links</string>
     <string name="d_play">Play</string>
-    <string name="d_trailer_missing">YouTube not found</string>
+    <string name="d_free_play">Free play</string>    <string name="d_trailer_missing">YouTube not found</string>
     <string name="d_by_user">User</string>
     <string name="d_rating">Rating %1$s</string>
     <string name="p_bad_url">Invalid play address</string>

@@ -82,9 +82,10 @@
     <string name="d_err_render">خطا در نمایش صفحه</string>
     <string name="d_no_info">برای این عنوان اطلاعاتی پیدا نشد.</string>
     <string name="d_comments">نظرات (%1$s)</string>
-    <string name="d_playlist">فهرست پخش</string>
+    <string name="d_playlist">گزینه‌های پخش</string>
     <string name="d_links">%1$s لینک پخش</string>
     <string name="d_play">پخش</string>
+    <string name="d_free_play">پخش رایگان</string>
     <string name="d_trailer_missing">یوتیوب پیدا نشد</string>
     <string name="d_by_user">کاربر</string>
     <string name="d_rating">رضایت %1$s</string>
