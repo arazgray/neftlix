@@ -33,7 +33,10 @@ public class PlayerActivity extends AppCompatActivity {
     private int hiddenControlKey = KeyEvent.KEYCODE_UNKNOWN;
     private android.widget.TextView seekIndicator;
     private final Runnable hideSeekIndicator = () -> {
-        if (seekIndicator != null) seekIndicator.setVisibility(View.GONE);
+        if (seekIndicator != null) {
+            seekIndicator.animate().cancel();
+            seekIndicator.setVisibility(View.GONE);
+        }
     };
     private final Runnable saveProgress = new Runnable() {
         @Override
@@ -698,6 +701,9 @@ public class PlayerActivity extends AppCompatActivity {
         seekIndicator.setText(getString(forward ? R.string.p_seek_forward : R.string.p_seek_back,
                 ui.digits((forward ? PlaybackSeek.FORWARD_MS : PlaybackSeek.BACK_MS) / 1000)));
         seekIndicator.setVisibility(View.VISIBLE);
+        seekIndicator.animate().cancel();
+        seekIndicator.setAlpha(0.2f);
+        seekIndicator.animate().alpha(1f).setDuration(140).start();
         seekIndicator.removeCallbacks(hideSeekIndicator);
         seekIndicator.postDelayed(hideSeekIndicator, 900);
         savePlaybackProgress();
@@ -743,7 +749,10 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onDestroy() {
         savePlaybackProgress();
         if (playerView != null) playerView.removeCallbacks(saveProgress);
-        if (seekIndicator != null) seekIndicator.removeCallbacks(hideSeekIndicator);
+        if (seekIndicator != null) {
+            seekIndicator.animate().cancel();
+            seekIndicator.removeCallbacks(hideSeekIndicator);
+        }
         if (playerView != null) playerView.setPlayer(null);
         if (player != null) {
             player.release();
