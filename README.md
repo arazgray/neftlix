@@ -31,7 +31,8 @@ The app communicates directly with the media source, requiring no dedicated back
 - **Persian subtitles:** Automatically prefers Persian subtitles, with Vazirmatn typography, right-to-left text, transparent backgrounds, and drop shadows.
 - **Remote controls:** D-pad navigation, OK to select or expand, and Back to navigate or control playback. Every control highlights with the accent color on focus, including rewind/forward.
 - **Playback options:** The subtitle button opens one compact glassy dialog (subtitles with Off, audio where multiple exist, quality where multiple exist) whose options all turn red on focus; choices apply immediately with no confirmation step.
-- **Playback shortcuts:** Seek backward or forward by 10 seconds while player controls are hidden.
+- **Playback shortcuts:** With controls hidden, Left seeks back 5 seconds and Right seeks forward 15 seconds with brief on-screen feedback. Up or Down reveals controls focused on Play/Pause.
+- **Playback resume:** Remembers the position locally for each video link and resumes it on the next visit. Finished videos start from the beginning.
 - **Screen stays awake:** Prevents the TV box from activating its screensaver during playback.
 
 ### Android TV interface
