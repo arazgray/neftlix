@@ -1,6 +1,6 @@
 {
-  "versionCode": 25,
-  "versionName": "1.24",
+  "versionCode": 26,
+  "versionName": "1.25",
   "apkUrl": "https://github.com/arazgray/neftlix/releases/latest/download/neftlix-android-tv.apk",
-  "notes": "نسخه ۱٫۲۴: پس‌زمینهٔ محو و تیره، وسط‌چین متن دکمه‌ها، کیوآر ایمیل سازنده."
+  "notes": "نسخه ۱٫۲۵: ادامهٔ پخش از جای قبلی، عقب‌بردن ۵ ثانیه و جلو‌بردن ۱۵ ثانیه با کلیدهای چپ و راست، بازشدن کنترل‌ها روی دکمهٔ پخش و نشانگر چشمک‌زن هنگام جابه‌جایی."
 }
