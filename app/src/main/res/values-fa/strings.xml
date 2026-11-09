@@ -91,6 +91,8 @@
     <string name="d_by_user">کاربر</string>
     <string name="d_rating">رضایت %1$s</string>
     <string name="p_bad_url">نشانی پخش نامعتبر است</string>
+    <string name="p_seek_forward">+%1$s ثانیه</string>
+    <string name="p_seek_back">−%1$s ثانیه</string>
     <string name="p_error">خطا در پخش. اتصال اینترنت یا نشانی فایل را بررسی کنید.</string>
     <string name="p_subtitles">زیرنویس‌ها</string>
     <string name="p_audio">زبان صدا</string>

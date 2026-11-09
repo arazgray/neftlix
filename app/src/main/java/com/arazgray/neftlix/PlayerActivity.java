@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,6 +26,22 @@ public class PlayerActivity extends AppCompatActivity {
     private ExoPlayer player;
     private PlayerView playerView;
     private Ui ui;
+    private PlaybackProgressStore progressStore;
+    private String progressKey;
+    private boolean playbackReady;
+    private boolean focusPlayPauseOnShow;
+    private int hiddenControlKey = KeyEvent.KEYCODE_UNKNOWN;
+    private android.widget.TextView seekIndicator;
+    private final Runnable hideSeekIndicator = () -> {
+        if (seekIndicator != null) seekIndicator.setVisibility(View.GONE);
+    };
+    private final Runnable saveProgress = new Runnable() {
+        @Override
+        public void run() {
+            savePlaybackProgress();
+            if (playerView != null) playerView.postDelayed(this, 5000);
+        }
+    };
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -44,6 +61,8 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         FrameLayout root = new FrameLayout(this);
+        progressKey = url;
+        progressStore = new PlaybackProgressStore(new java.io.File(getFilesDir(), "playback-progress.json"));
         root.setBackgroundColor(0xFF000000);
 
         playerView = new PlayerView(this);
@@ -51,6 +70,7 @@ public class PlayerActivity extends AppCompatActivity {
         playerView.setShutterBackgroundColor(android.graphics.Color.BLACK);
         playerView.setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING);
         playerView.setShowSubtitleButton(true);
+        playerView.setControllerAutoShow(false);
         
         playerView.setKeepScreenOn(true);
         FrameLayout.LayoutParams videoParams = new FrameLayout.LayoutParams(
@@ -76,13 +96,17 @@ public class PlayerActivity extends AppCompatActivity {
                             setupCustomControlIcons(playerView);
                             stylePlayerControls(playerView);
                             ensureSubtitleButton(playerView);
+                            focusPlayPause();
                         });
                     }
                 });
 
         setContentView(root);
 
-        player = new ExoPlayer.Builder(this).build();
+        player = new ExoPlayer.Builder(this)
+                .setSeekBackIncrementMs(PlaybackSeek.BACK_MS)
+                .setSeekForwardIncrementMs(PlaybackSeek.FORWARD_MS)
+                .build();
         playerView.setPlayer(player);
         playerView.setControllerShowTimeoutMs(4000);
         
@@ -114,6 +138,17 @@ public class PlayerActivity extends AppCompatActivity {
         }
         player.addListener(new Player.Listener() {
             @Override
+            public void onPlaybackStateChanged(int playbackState) {
+                if (playbackState == Player.STATE_READY) playbackReady = true;
+                if (playbackState == Player.STATE_ENDED) savePlaybackProgress();
+            }
+
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                if (!isPlaying) savePlaybackProgress();
+            }
+
+            @Override
             public void onPlayerError(PlaybackException error) {
                 showCenterError(getString(R.string.p_error));
             }
@@ -126,9 +161,10 @@ public class PlayerActivity extends AppCompatActivity {
         });
 
         MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
-        player.setMediaItem(mediaItem);
+        player.setMediaItem(mediaItem, progressStore.position(progressKey));
         player.prepare();
         player.play();
+        playerView.postDelayed(saveProgress, 5000);
     }
 
     private void ensureSubtitleSelected() {
@@ -577,7 +613,7 @@ public class PlayerActivity extends AppCompatActivity {
                 }
             }
         }
-        paintControlBackground(button, false);
+        paintControlBackground(button, button.hasFocus());
         button.setOnFocusChangeListener((v, hasFocus) -> paintControlBackground(v, hasFocus));
     }
 
@@ -602,25 +638,78 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
-        if (player != null
-                && (playerView == null || !playerView.isControllerFullyVisible())) {
-            
-            if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
-                    || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_REWIND) {
-                player.seekTo(Math.max(0, player.getCurrentPosition() - 60000));
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int keyCode = event.getKeyCode();
+        if (keyCode == hiddenControlKey) {
+            if (event.getAction() == KeyEvent.ACTION_UP) {
+                hiddenControlKey = KeyEvent.KEYCODE_UNKNOWN;
                 return true;
             }
-            if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT
-                    || keyCode == android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
-                long duration = player.getDuration();
-                long target = player.getCurrentPosition() + 60000;
-                player.seekTo(duration == androidx.media3.common.C.TIME_UNSET
-                        ? target : Math.min(duration, target));
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (isSeekKey(keyCode)) seekWithoutControls(keyCode);
                 return true;
             }
         }
-        return super.onKeyDown(keyCode, event);
+        if (player != null && playerView != null && !playerView.isControllerFullyVisible()
+                && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (isSeekKey(keyCode)) {
+                hiddenControlKey = keyCode;
+                seekWithoutControls(keyCode);
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                hiddenControlKey = keyCode;
+                focusPlayPauseOnShow = true;
+                playerView.showController();
+                focusPlayPause();
+                playerView.post(this::focusPlayPause);
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private boolean isSeekKey(int keyCode) {
+        return keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
+                || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
+    }
+
+    private void focusPlayPause() {
+        if (!focusPlayPauseOnShow || playerView == null || !playerView.isControllerFullyVisible()) return;
+        View button = playerView.findViewById(androidx.media3.ui.R.id.exo_play_pause);
+        if (button != null && button.requestFocus()) focusPlayPauseOnShow = false;
+    }
+
+    private void seekWithoutControls(int keyCode) {
+        if (player == null || !player.isCurrentMediaItemSeekable()) return;
+        boolean forward = keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
+                || keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
+        focusPlayPauseOnShow = false;
+        player.seekTo(PlaybackSeek.target(player.getCurrentPosition(), player.getDuration(), forward));
+        playerView.hideController();
+        if (seekIndicator == null) {
+            seekIndicator = ui.text("", 24, Ui.TEXT);
+            seekIndicator.setGravity(Gravity.CENTER);
+            seekIndicator.setPadding(ui.dp(24), ui.dp(14), ui.dp(24), ui.dp(14));
+            seekIndicator.setBackground(ui.stroked(0xE6141415, 14, 1, Ui.HAIRLINE));
+            ((FrameLayout) playerView.getParent()).addView(seekIndicator,
+                    new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
+        }
+        seekIndicator.setText(getString(forward ? R.string.p_seek_forward : R.string.p_seek_back,
+                ui.digits((forward ? PlaybackSeek.FORWARD_MS : PlaybackSeek.BACK_MS) / 1000)));
+        seekIndicator.setVisibility(View.VISIBLE);
+        seekIndicator.removeCallbacks(hideSeekIndicator);
+        seekIndicator.postDelayed(hideSeekIndicator, 900);
+        savePlaybackProgress();
+    }
+
+    private void savePlaybackProgress() {
+        if (player == null || progressStore == null || !playbackReady) return;
+        if (player.getPlaybackState() == Player.STATE_ENDED) {
+            progressStore.save(progressKey, 0);
+        } else if (player.isCurrentMediaItemSeekable() && !player.isCurrentMediaItemLive()) {
+            progressStore.save(progressKey, player.getCurrentPosition());
+        }
     }
 
     private int dp(float value) {
@@ -646,11 +735,15 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        savePlaybackProgress();
         if (player != null) player.pause();
     }
 
     @Override
     protected void onDestroy() {
+        savePlaybackProgress();
+        if (playerView != null) playerView.removeCallbacks(saveProgress);
+        if (seekIndicator != null) seekIndicator.removeCallbacks(hideSeekIndicator);
         if (playerView != null) playerView.setPlayer(null);
         if (player != null) {
             player.release();

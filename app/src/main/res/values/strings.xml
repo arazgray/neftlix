@@ -90,6 +90,8 @@
     <string name="d_by_user">User</string>
     <string name="d_rating">Rating %1$s</string>
     <string name="p_bad_url">Invalid play address</string>
+    <string name="p_seek_forward">+%1$s s</string>
+    <string name="p_seek_back">−%1$s s</string>
     <string name="p_error">Playback error. Check your connection or the file address.</string>
     <string name="p_subtitles">Subtitles</string>
     <string name="p_audio">Audio language</string>
