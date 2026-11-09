@@ -117,7 +117,7 @@ The whole redesign lives here; **new screens should use these factories, not raw
   `setKeepScreenOn(true)` so boxes (Mi Box) never drop to the screensaver mid-play.
   Every controller button highlights red on focus (`markFocusable()` covers button views
   only, never containers, and replaces stock backgrounds so no white survives;
-  rewind/forward are wired explicitly by id, all stepping 10s);
+  rewind/forward use the player's configured −5/+15-second increments);
   CC opens one compact glassy playback-options dialog (subtitles + Off, audio, quality —
   sections only when meaningful), all options red-on-focus with apply-on-select; the gear
   button is hidden.
@@ -154,12 +154,16 @@ The whole redesign lives here; **new screens should use these factories, not raw
   builds and publishes the GitHub release from the tag.
 - `version.json` (repo root) is what the installed app checks for updates; it points at
   `releases/latest/download/neftlix-android-tv.apk`. Bump it only when releasing.
-- Current: 25 / 1.24 on `main` (v1.24 tag released).
+- Current: 26 / 1.25 on `main` (v1.25 tag released).
 - Docs: `README.md` (English, features/design/screenshots), `tv-preview.html` (static preview
   using committed screenshots).
 
-## Current state (v1.24 released, Oct 2026)
+## Current state (v1.25 released, Nov 2026)
 
+- v1.25 on `main` (versionCode 26): Up/Down reveals player controls focused on Play/Pause;
+  hidden-control Left/Right seeks −5/+15 seconds with pulsing feedback on every repeat;
+  matching player-button increments; local per-video-link progress saved on exit and every
+  five seconds, resumed on reopening, cleared when playback finishes.
 - v1.24 on `main` (versionCode 25): blurred + dimmed live backdrops, font-padding fix
   for button text centering, About dialog with email-QR + contact line + Close only.
 - v1.23 on `main` (versionCode 24): bilingual EN/FA UI with locale layout, changeable
